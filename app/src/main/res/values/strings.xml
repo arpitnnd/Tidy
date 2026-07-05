@@ -1,0 +1,113 @@
+<resources>
+    <string name="app_name">Tidy</string>
+
+    <!-- Main Screen -->
+    <string name="main_history_desc">History</string>
+    <string name="main_settings_desc">Settings</string>
+    <string name="main_copy">Copy</string>
+    <string name="main_copied">Copied!</string>
+    <string name="main_share">Share</string>
+    <string name="main_clean_new_url">Clean new URL</string>
+    <string name="main_expand_url">Expand URL</string>
+    <string name="main_hide_details">Hide details</string>
+    <string name="main_show_details">Show details</string>
+    <string name="main_cleaned_url">Cleaned URL</string>
+    <string name="main_original_url">Original URL</string>
+    <string name="main_expanded_url">Expanded URL</string>
+    <string name="main_removed_parameters">Removed Parameters</string>
+    
+    <string name="welcome_title">Tidy Up Your URLs</string>
+    <string name="welcome_subtitle">Strip tracking parameters from URLs before you share.</string>
+    <string name="welcome_local_title">Device-Only</string>
+    <string name="welcome_local_subtitle">Cleaned entirely offline on your phone.</string>
+    <string name="welcome_privacy_title">Absolute Privacy</string>
+    <string name="welcome_privacy_subtitle">No logs, no servers, no tracking.</string>
+    <string name="welcome_free_title">Free &amp; Ad-Free</string>
+    <string name="welcome_free_subtitle">No ads, no subscriptions, or banners.</string>
+    <string name="welcome_get_started">Get Started</string>
+    <string name="welcome_welcome_to">Welcome to Tidy</string>
+    <string name="welcome_welcome_desc">Tidy removes tracking parameters from URLs, keeping your sharing private and clean.</string>
+    <string name="welcome_paste_prompt">Paste URL to clean</string>
+    <string name="welcome_placeholder">https://example.com/link?utm_source=...</string>
+    
+    <string name="dialog_allow_param_title">Allow Parameter?</string>
+    <string name="dialog_allow_param_text">Always keep parameter \"%1$s\" on \"%2$s\"?</string>
+    <string name="dialog_allow">Allow</string>
+    <string name="dialog_cancel">Cancel</string>
+    
+    <string name="banner_found_clipboard">Found URL in clipboard</string>
+    <string name="banner_paste_clean">Paste &amp; Clean</string>
+    <string name="button_clean_url">Clean URL</string>
+    <string name="toast_no_browser_app">No app found to open URL</string>
+    <string name="toast_copied">Copied to clipboard!</string>
+    <string name="toast_cleaned_copied">URL cleaned and copied!</string>
+    <string name="toast_already_clean">Clipboard URL is already clean!</string>
+    <string name="toast_no_url_in_clipboard">No URL found in clipboard!</string>
+    <string name="toast_clipboard_empty">Clipboard is empty!</string>
+    
+    <!-- Settings Screen -->
+    <string name="settings_title">Settings</string>
+    <string name="settings_back_desc">Back</string>
+    <string name="settings_bypass_list">Bypass List</string>
+    <string name="settings_no_domains_bypassed">No domains bypassed</string>
+    <string name="settings_domain_bypassed_single">domain bypassed</string>
+    <string name="settings_domains_bypassed_plural">domains bypassed</string>
+    <string name="settings_collapse">Collapse</string>
+    <string name="settings_expand">Expand</string>
+    <string name="settings_bypass_desc">URLs from these domains will bypass cleaning, preserving all parameters.</string>
+    <string name="settings_add_domain_desc">Add domain</string>
+    <string name="settings_no_domains_bypassed_text">No domains bypassed.</string>
+    <string name="settings_placeholder_domain">google.com</string>
+    
+    <string name="settings_custom_params_title">Blacklisted Custom Parameters</string>
+    <string name="settings_custom_params_desc">Specify custom parameters to strip in addition to standard tracking tags.</string>
+    <string name="settings_placeholder_param">ref_code</string>
+    <string name="settings_add_param_desc">Add custom param</string>
+    <string name="settings_no_custom_params_text">No custom parameters blacklisted.</string>
+    
+    <string name="settings_automation">Automation</string>
+    <string name="settings_copy_shared_title">Copy when shared</string>
+    <string name="settings_copy_shared_desc">Copy cleaned URLs to clipboard immediately when shared with Tidy.</string>
+    <string name="settings_close_shared_title">Close after copying</string>
+    <string name="settings_close_shared_desc">Close the app automatically after a shared URL is copied.</string>
+    <string name="settings_auto_expand_title">Auto-expand short URLs</string>
+    <string name="settings_auto_expand_desc">Automatically resolve and expand short URLs before cleaning.</string>
+    <string name="settings_auto_clean_launch_title">Auto-clean clipboard on launch</string>
+    <string name="settings_auto_clean_launch_desc">Instantly clean clipboard URL, copy back, and exit the app on launch.</string>
+    <string name="settings_auto_clean_input_title">Auto-clean typed URLs</string>
+    <string name="settings_auto_clean_input_desc">Clean URLs automatically as you type or paste without clicking clean.</string>
+    <string name="settings_remove_mobile_subdomains_title">Remove mobile subdomains</string>
+    <string name="settings_remove_mobile_subdomains_desc">Automatically strip \'m.\' or \'mobile.\' subdomains from cleaned links.</string>
+    
+    <string name="settings_param_whitelist_title">Domain Parameter Whitelist</string>
+    <string name="settings_no_params_whitelisted">No parameters whitelisted</string>
+    <string name="settings_param_whitelisted_single">parameter whitelisted</string>
+    <string name="settings_params_whitelisted_plural">parameters whitelisted</string>
+    <string name="settings_param_whitelist_desc">Allow specific tracking parameters for particular domains (e.g., keeping \'v\' on youtube.com).</string>
+    <string name="settings_placeholder_whitelist_param">v</string>
+    <string name="settings_add_param_whitelist_desc">Add parameter whitelist</string>
+    <string name="settings_no_params_whitelisted_text">No parameters whitelisted for domains.</string>
+
+    <!-- History Screen -->
+    <string name="history_title">History &amp; Stats</string>
+    <string name="history_import_desc">Import history</string>
+    <string name="history_export_desc">Export history</string>
+    <string name="history_clear_desc">Clear history</string>
+    <string name="history_dashboard">Privacy Dashboard</string>
+    <string name="history_urls_cleaned">URLs Cleaned</string>
+    <string name="history_trackers_blocked">Trackers Blocked</string>
+    <string name="history_clean_history">Clean History</string>
+    <string name="history_no_history">No history yet</string>
+    <string name="history_no_history_desc">Cleaned URLs will appear here</string>
+    <string name="history_clear_dialog_title">Clear All History?</string>
+    <string name="history_clear_dialog_text">Permanently delete all %1$d history entries? This cannot be undone.</string>
+    <string name="history_clear_all">Clear All</string>
+    <string name="history_bandwidth_desc">Estimated bandwidth saved by stripping tracking parameters</string>
+    <string name="history_open">Open</string>
+    <string name="history_toast_exported">Exported successfully!</string>
+    <string name="history_toast_export_failed">Export failed</string>
+    <string name="history_toast_import_failed">Failed to read file</string>
+    <string name="history_item_removed_count">%1$d removed</string>
+    <string name="history_item_clean">clean</string>
+    <string name="main_stats_summary">%1$d URLs cleaned · %2$d trackers blocked</string>
+</resources>

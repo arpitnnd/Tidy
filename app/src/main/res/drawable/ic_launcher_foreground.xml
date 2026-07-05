@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+
+    <!-- Scale and center the logo to fit the safe zone -->
+    <group
+        android:scaleX="0.68"
+        android:scaleY="0.68"
+        android:translateX="3.84"
+        android:translateY="3.84">
+
+        <!-- PART 1: The Link Loops (background) -->
+        <!-- Left Link Loop -->
+        <path
+            android:pathData="M7,10c0,-1.65 1.35,-3 3,-3h4V5h-4c-2.76,0 -5,2.24 -5,5s2.24,5 5,5h4v-2h-4c-1.65,0 -3,-1.35 -3,-3z">
+            <aapt:attr name="android:fillColor">
+                <gradient
+                    android:startX="5"
+                    android:startY="5"
+                    android:endX="22"
+                    android:endY="15"
+                    android:type="linear">
+                    <item android:color="#2DD4BF" android:offset="0.0" />
+                    <item android:color="#0D9488" android:offset="1.0" />
+                </gradient>
+            </aapt:attr>
+        </path>
+
+        <!-- Right Link Loop -->
+        <path
+            android:pathData="M17,5h-4v2h4c1.65,0 3,1.35 3,3s-1.35,3 -3,3h-4v2h4c2.76,0 5,-2.24 5,-5s-2.24,-5 -5,-5z">
+            <aapt:attr name="android:fillColor">
+                <gradient
+                    android:startX="5"
+                    android:startY="5"
+                    android:endX="22"
+                    android:endY="15"
+                    android:type="linear">
+                    <item android:color="#2DD4BF" android:offset="0.0" />
+                    <item android:color="#0D9488" android:offset="1.0" />
+                </gradient>
+            </aapt:attr>
+        </path>
+
+        <!-- PART 2: The Broom Stick (foreground, official Outlined CleaningServices paths) -->
+        <!-- Broom base bristle -->
+        <path
+            android:pathData="M3,20h18v2h-18z">
+            <aapt:attr name="android:fillColor">
+                <gradient
+                    android:startX="3"
+                    android:startY="2"
+                    android:endX="21"
+                    android:endY="22"
+                    android:type="linear">
+                    <item android:color="#FFFFFF" android:offset="0.0" />
+                    <item android:color="#CBD5E1" android:offset="1.0" />
+                </gradient>
+            </aapt:attr>
+        </path>
+
+        <!-- Broom middle bristle -->
+        <path
+            android:pathData="M3,16h15v2h-15z">
+            <aapt:attr name="android:fillColor">
+                <gradient
+                    android:startX="3"
+                    android:startY="2"
+                    android:endX="21"
+                    android:endY="22"
+                    android:type="linear">
+                    <item android:color="#FFFFFF" android:offset="0.0" />
+                    <item android:color="#CBD5E1" android:offset="1.0" />
+                </gradient>
+            </aapt:attr>
+        </path>
+
+        <!-- Broom top bristle -->
+        <path
+            android:pathData="M3,12h12v2h-12z">
+            <aapt:attr name="android:fillColor">
+                <gradient
+                    android:startX="3"
+                    android:startY="2"
+                    android:endX="21"
+                    android:endY="22"
+                    android:type="linear">
+                    <item android:color="#FFFFFF" android:offset="0.0" />
+                    <item android:color="#CBD5E1" android:offset="1.0" />
+                </gradient>
+            </aapt:attr>
+        </path>
+
+        <!-- Broom handle stem -->
+        <path
+            android:pathData="M14.5,5.5l-4.5,4.5l1.5,1.5l4.5,-4.5z">
+            <aapt:attr name="android:fillColor">
+                <gradient
+                    android:startX="3"
+                    android:startY="2"
+                    android:endX="21"
+                    android:endY="22"
+                    android:type="linear">
+                    <item android:color="#FFFFFF" android:offset="0.0" />
+                    <item android:color="#CBD5E1" android:offset="1.0" />
+                </gradient>
+            </aapt:attr>
+        </path>
+
+        <!-- Broom handle cap -->
+        <path
+            android:pathData="M20.35,4.14l-1.49,-1.49c-0.2,-0.2 -0.51,-0.2 -0.71,0l-1.78,1.78l2.2,2.2l1.78,-1.78c0.2,-0.2 0.2,-0.51 0,-0.71z">
+            <aapt:attr name="android:fillColor">
+                <gradient
+                    android:startX="3"
+                    android:startY="2"
+                    android:endX="21"
+                    android:endY="22"
+                    android:type="linear">
+                    <item android:color="#FFFFFF" android:offset="0.0" />
+                    <item android:color="#CBD5E1" android:offset="1.0" />
+                </gradient>
+            </aapt:attr>
+        </path>
+
+        <!-- Sparkle 1 -->
+        <path
+            android:pathData="M15.58,11.25l1.67,-1.67l1.41,1.41l-1.67,1.67z">
+            <aapt:attr name="android:fillColor">
+                <gradient
+                    android:startX="15"
+                    android:startY="9"
+                    android:endX="19"
+                    android:endY="13"
+                    android:type="linear">
+                    <item android:color="#38BDF8" android:offset="0.0" />
+                    <item android:color="#0EA5E9" android:offset="1.0" />
+                </gradient>
+            </aapt:attr>
+        </path>
+
+        <!-- Sparkle 2 -->
+        <path
+            android:pathData="M14.17,12.66l1.67,-1.67l1.41,1.41l-1.67,1.67z">
+            <aapt:attr name="android:fillColor">
+                <gradient
+                    android:startX="13"
+                    android:startY="11"
+                    android:endX="17"
+                    android:endY="15"
+                    android:type="linear">
+                    <item android:color="#38BDF8" android:offset="0.0" />
+                    <item android:color="#0EA5E9" android:offset="1.0" />
+                </gradient>
+            </aapt:attr>
+        </path>
+
+    </group>
+
+</vector>
