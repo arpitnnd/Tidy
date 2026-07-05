@@ -601,6 +601,26 @@ private fun HistoryItem(
                             Spacer(modifier = Modifier.width(4.dp))
                             Text(stringResource(R.string.main_copy), style = MaterialTheme.typography.labelMedium)
                         }
+
+                        // Copy Original Button
+                        TextButton(
+                            onClick = {
+                                val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
+                                val clip = android.content.ClipData.newPlainText("Original URL", entry.originalUrl)
+                                clipboard.setPrimaryClip(clip)
+                                android.widget.Toast.makeText(context, context.getString(R.string.main_copied), android.widget.Toast.LENGTH_SHORT).show()
+                            },
+                            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 4.dp),
+                            modifier = Modifier.defaultMinSize(minHeight = 1.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Filled.ContentCopy,
+                                contentDescription = null,
+                                modifier = Modifier.size(16.dp)
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text(stringResource(R.string.history_copy_original), style = MaterialTheme.typography.labelMedium)
+                        }
                     }
                 }
             }
