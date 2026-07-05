@@ -44,6 +44,7 @@ import androidx.compose.material.icons.outlined.OpenInNew
 import androidx.compose.material.icons.outlined.Link
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import kotlinx.coroutines.delay
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -104,19 +105,12 @@ fun MainScreen(
     val sheetState = rememberModalBottomSheetState()
     val introSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
-    var showCrashSheet by remember { mutableStateOf(crashReportText != null && !dontAskAgainCrash) }
     var showViewReportDialog by remember { mutableStateOf(false) }
-
+    var hasShownCrashSheetThisSession by rememberSaveable { mutableStateOf(false) }
+    var showCrashSheet by remember { mutableStateOf(crashReportText != null && !dontAskAgainCrash && !hasShownCrashSheetThisSession) }
     val onDismissCrashReport = {
         showCrashSheet = false
-        try {
-            val dir = java.io.File(context.filesDir, "crash_reports")
-            if (dir.exists()) {
-                dir.deleteRecursively()
-            }
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
+        hasShownCrashSheetThisSession = true
     }
 
     // Clean URL if shared through Android intent

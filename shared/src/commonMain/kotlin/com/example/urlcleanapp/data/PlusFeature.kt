@@ -12,5 +12,9 @@ enum class PlusFeature(val title: String, val description: String) {
     EXTRA_THEMES(
         title = "Extra Premium Themes",
         description = "Unlock customized expressive styles like Forest Green, Ocean Blue, and Dark Velvet."
+    ),
+    TEXT_SELECTION(
+        title = "Inline Selection Cleaning",
+        description = "Clean text links in place from any third-party app via the text-selection toolbar."
     )
 }

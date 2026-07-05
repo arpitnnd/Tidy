@@ -14,6 +14,7 @@ import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -587,8 +588,8 @@ fun SettingsScreen(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Column(
-                    modifier = Modifier.padding(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                    modifier = Modifier.padding(20.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
 
                     Row(
@@ -599,7 +600,7 @@ fun SettingsScreen(
                                     clickable { showUpsellSheet = true }
                                 } else this
                             },
-                        horizontalArrangement = Arrangement.SpaceBetween,
+                        horizontalArrangement = Arrangement.spacedBy(16.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Column(modifier = Modifier.weight(1f)) {
@@ -622,6 +623,7 @@ fun SettingsScreen(
                                     )
                                 }
                             }
+                            Spacer(modifier = Modifier.height(2.dp))
                             Text(
                                 text = stringResource(R.string.settings_copy_shared_desc),
                                 style = MaterialTheme.typography.bodySmall,
@@ -654,7 +656,7 @@ fun SettingsScreen(
                                     clickable { showUpsellSheet = true }
                                 } else this
                             },
-                        horizontalArrangement = Arrangement.SpaceBetween,
+                        horizontalArrangement = Arrangement.spacedBy(16.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Column(modifier = Modifier.weight(1f)) {
@@ -677,6 +679,7 @@ fun SettingsScreen(
                                     )
                                 }
                             }
+                            Spacer(modifier = Modifier.height(2.dp))
                             Text(
                                 text = stringResource(R.string.settings_close_shared_desc),
                                 style = MaterialTheme.typography.bodySmall,
@@ -704,7 +707,7 @@ fun SettingsScreen(
 
                     Row(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
+                        horizontalArrangement = Arrangement.spacedBy(16.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Column(modifier = Modifier.weight(1f)) {
@@ -714,6 +717,7 @@ fun SettingsScreen(
                                 fontWeight = FontWeight.SemiBold,
                                 color = MaterialTheme.colorScheme.onSurface
                             )
+                            Spacer(modifier = Modifier.height(2.dp))
                             Text(
                                 text = stringResource(R.string.settings_auto_expand_desc),
                                 style = MaterialTheme.typography.bodySmall,
@@ -734,7 +738,7 @@ fun SettingsScreen(
 
                     Row(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
+                        horizontalArrangement = Arrangement.spacedBy(16.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Column(modifier = Modifier.weight(1f)) {
@@ -744,6 +748,7 @@ fun SettingsScreen(
                                 fontWeight = FontWeight.SemiBold,
                                 color = MaterialTheme.colorScheme.onSurface
                             )
+                            Spacer(modifier = Modifier.height(2.dp))
                             Text(
                                 text = stringResource(R.string.settings_remove_mobile_subdomains_desc),
                                 style = MaterialTheme.typography.bodySmall,
@@ -764,7 +769,7 @@ fun SettingsScreen(
 
                     Row(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
+                        horizontalArrangement = Arrangement.spacedBy(16.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Column(modifier = Modifier.weight(1f)) {
@@ -774,6 +779,7 @@ fun SettingsScreen(
                                 fontWeight = FontWeight.SemiBold,
                                 color = MaterialTheme.colorScheme.onSurface
                             )
+                            Spacer(modifier = Modifier.height(2.dp))
                             Text(
                                 text = stringResource(R.string.settings_auto_clean_launch_desc),
                                 style = MaterialTheme.typography.bodySmall,
@@ -794,7 +800,7 @@ fun SettingsScreen(
 
                     Row(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
+                        horizontalArrangement = Arrangement.spacedBy(16.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Column(modifier = Modifier.weight(1f)) {
@@ -804,6 +810,7 @@ fun SettingsScreen(
                                 fontWeight = FontWeight.SemiBold,
                                 color = MaterialTheme.colorScheme.onSurface
                             )
+                            Spacer(modifier = Modifier.height(2.dp))
                             Text(
                                 text = stringResource(R.string.settings_auto_clean_input_desc),
                                 style = MaterialTheme.typography.bodySmall,
@@ -834,7 +841,7 @@ fun SettingsScreen(
                 colors = CardDefaults.cardColors(
                     containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)
                 ),
-                modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp)
+                modifier = Modifier.fillMaxWidth()
             ) {
                 Column(
                     modifier = Modifier.padding(20.dp),
@@ -856,7 +863,7 @@ fun SettingsScreen(
                                     Toast.makeText(context, "Could not open browser", Toast.LENGTH_SHORT).show()
                                 }
                             },
-                        horizontalArrangement = Arrangement.SpaceBetween,
+                        horizontalArrangement = Arrangement.spacedBy(16.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Column(modifier = Modifier.weight(1f)) {
@@ -866,6 +873,7 @@ fun SettingsScreen(
                                 fontWeight = FontWeight.SemiBold,
                                 color = MaterialTheme.colorScheme.onSurface
                             )
+                            Spacer(modifier = Modifier.height(2.dp))
                             Text(
                                 text = stringResource(R.string.settings_view_blocklist_changes_desc),
                                 style = MaterialTheme.typography.bodySmall,
@@ -879,6 +887,179 @@ fun SettingsScreen(
                         )
                     }
                 }
+            }
+
+            // Diagnostics & Crashes (if crash report exists)
+            var currentCrashReportText by remember {
+                mutableStateOf(
+                    try {
+                        val dir = java.io.File(context.filesDir, "crash_reports")
+                        if (dir.exists()) {
+                            val files = dir.listFiles()
+                            if (!files.isNullOrEmpty()) {
+                                files.sortBy { it.lastModified() }
+                                files.last().readText()
+                            } else null
+                        } else null
+                    } catch (e: Exception) {
+                        null
+                    }
+                )
+            }
+
+            var showSettingsCrashDialog by remember { mutableStateOf(false) }
+
+            if (currentCrashReportText != null) {
+                Text(
+                    text = stringResource(R.string.settings_diagnostics_title),
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.ExtraBold,
+                    color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.padding(start = 4.dp, top = 8.dp)
+                )
+
+                Card(
+                    shape = RoundedCornerShape(24.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)
+                    ),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Column(
+                        modifier = Modifier.padding(20.dp),
+                        verticalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable { showSettingsCrashDialog = true },
+                            horizontalArrangement = Arrangement.spacedBy(16.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = stringResource(R.string.settings_crash_log_title),
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                                Spacer(modifier = Modifier.height(2.dp))
+                                Text(
+                                    text = stringResource(R.string.settings_crash_log_desc),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                            Icon(
+                                imageVector = Icons.Filled.ChevronRight,
+                                contentDescription = "Open",
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                        }
+                    }
+                }
+            }
+
+            if (showSettingsCrashDialog && currentCrashReportText != null) {
+                AlertDialog(
+                    onDismissRequest = { showSettingsCrashDialog = false },
+                    title = { Text(stringResource(R.string.dialog_crash_log_title)) },
+                    text = {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .heightIn(max = 300.dp)
+                                .verticalScroll(rememberScrollState())
+                        ) {
+                            Text(
+                                text = currentCrashReportText!!,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    },
+                    confirmButton = {
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            TextButton(
+                                onClick = {
+                                    val sendIntent: Intent = Intent().apply {
+                                        action = Intent.ACTION_SEND
+                                        putExtra(Intent.EXTRA_TEXT, currentCrashReportText)
+                                        type = "text/plain"
+                                    }
+                                    val shareIntent = Intent.createChooser(sendIntent, null).apply {
+                                        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                                    }
+                                    try {
+                                        context.startActivity(shareIntent)
+                                    } catch (e: Exception) {
+                                        Toast.makeText(context, "Could not share", Toast.LENGTH_SHORT).show()
+                                    }
+                                }
+                            ) {
+                                Text(stringResource(R.string.dialog_share))
+                            }
+                            TextButton(
+                                onClick = {
+                                    try {
+                                        val dir = java.io.File(context.filesDir, "crash_reports")
+                                        if (dir.exists()) {
+                                            dir.deleteRecursively()
+                                        }
+                                        currentCrashReportText = null
+                                        showSettingsCrashDialog = false
+                                        Toast.makeText(context, context.getString(R.string.toast_crash_deleted), Toast.LENGTH_SHORT).show()
+                                    } catch (e: Exception) {
+                                        e.printStackTrace()
+                                    }
+                                },
+                                colors = ButtonDefaults.textButtonColors(
+                                    contentColor = MaterialTheme.colorScheme.error
+                                )
+                            ) {
+                                Text(stringResource(R.string.dialog_delete))
+                            }
+                        }
+                    },
+                    dismissButton = {
+                        TextButton(onClick = { showSettingsCrashDialog = false }) {
+                            Text(stringResource(R.string.dialog_cancel))
+                        }
+                    }
+                )
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+            
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable {
+                        val url = if (com.example.urlcleanapp.BuildConfig.FLAVOR == "play") {
+                            "https://play.google.com/store/apps/details?id=${context.packageName}"
+                        } else {
+                            "https://github.com/arpitnnd/Tidy/releases"
+                        }
+                        try {
+                            val intent = Intent(Intent.ACTION_VIEW, android.net.Uri.parse(url)).apply {
+                                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                            }
+                            context.startActivity(intent)
+                        } catch (e: Exception) {
+                            Toast.makeText(context, "Could not open link", Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                    .padding(vertical = 16.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = "Tidy Version ${com.example.urlcleanapp.BuildConfig.VERSION_NAME} (${com.example.urlcleanapp.BuildConfig.FLAVOR.uppercase()})",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+                    textAlign = TextAlign.Center
+                )
             }
         }
     }

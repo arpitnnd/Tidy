@@ -112,9 +112,9 @@
     <string name="main_stats_summary">%1$d URLs cleaned · %2$d trackers blocked</string>
 
     <!-- Remote Blocklist & Issues -->
-    <string name="rules_blocklist_title">Rules &amp; Blocklist</string>
-    <string name="settings_view_blocklist_changes_title">View blocklist changes</string>
-    <string name="settings_view_blocklist_changes_desc">Open blocklist update history on GitHub.</string>
+    <string name="rules_blocklist_title">Blocklist &amp; Rule Updates</string>
+    <string name="settings_view_blocklist_changes_title">Blocklist Sync History</string>
+    <string name="settings_view_blocklist_changes_desc">Inspect the chronological list of tracker changes and additions on GitHub.</string>
     <string name="details_no_explanation">No explanation available for this parameter.</string>
     <string name="details_report_issue">Report Issue</string>
     <string name="details_always_keep">Always Keep</string>
@@ -122,4 +122,13 @@
     <string name="process_text_cleaned">URL Cleaned!</string>
     <string name="process_text_label">Clean with Tidy</string>
     <string name="history_copy_original">Copy Original</string>
+
+    <!-- Diagnostics & Crashes -->
+    <string name="settings_diagnostics_title">Diagnostics &amp; Crashes</string>
+    <string name="settings_crash_log_title">Latest Crash Report</string>
+    <string name="settings_crash_log_desc">Inspect, share, or delete the last recorded application crash.</string>
+    <string name="dialog_crash_log_title">Latest Crash Log</string>
+    <string name="dialog_delete">Delete</string>
+    <string name="dialog_share">Share</string>
+    <string name="toast_crash_deleted">Crash report deleted</string>
 </resources>
