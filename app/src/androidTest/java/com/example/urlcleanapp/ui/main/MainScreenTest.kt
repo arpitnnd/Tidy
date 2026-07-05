@@ -14,13 +14,18 @@ class MainScreenTest {
 
   @Before
   fun setup() {
-    composeTestRule.setContent { MainScreen(FAKE_DATA) }
+    composeTestRule.setContent {
+      MainScreen(
+        sharedUrl = null,
+        crashReportText = null,
+        onSettingsClick = {},
+        onHistoryClick = {}
+      )
+    }
   }
 
   @Test
-  fun firstItem_exists() {
-    FAKE_DATA.forEach { composeTestRule.onNodeWithText("Hello $it!").assertExists() }
+  fun welcomeTitle_exists() {
+    composeTestRule.onNodeWithText("Tidy Up Your URLs").assertExists()
   }
 }
-
-private val FAKE_DATA = listOf("Sample1", "Sample2", "Sample3")
