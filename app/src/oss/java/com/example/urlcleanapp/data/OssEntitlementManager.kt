@@ -5,7 +5,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
-class OssEntitlementManager : EntitlementManager {
+class OssEntitlementManager : AndroidEntitlementManager {
     private val _isPlusUnlocked = MutableStateFlow(true)
     override val isPlusUnlocked: StateFlow<Boolean> = _isPlusUnlocked.asStateFlow()
 

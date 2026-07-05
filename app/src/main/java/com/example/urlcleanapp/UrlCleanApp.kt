@@ -14,7 +14,7 @@ class UrlCleanApp : Application() {
         private set
     lateinit var historyRepository: HistoryRepository
         private set
-    lateinit var entitlementManager: com.example.urlcleanapp.data.EntitlementManager
+    lateinit var entitlementManager: com.example.urlcleanapp.data.AndroidEntitlementManager
         private set
 
     override fun attachBaseContext(base: android.content.Context) {

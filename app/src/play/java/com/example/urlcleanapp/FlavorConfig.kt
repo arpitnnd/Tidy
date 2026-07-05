@@ -20,7 +20,7 @@ import kotlinx.coroutines.flow.first
 object FlavorConfig {
     val isPlayFlavor: Boolean = true
 
-    fun createEntitlementManager(context: android.content.Context): EntitlementManager {
+    fun createEntitlementManager(context: android.content.Context): com.example.urlcleanapp.data.AndroidEntitlementManager {
         return PlayEntitlementManager(context)
     }
 

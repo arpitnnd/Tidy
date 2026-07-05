@@ -7,7 +7,7 @@ import com.example.urlcleanapp.data.OssEntitlementManager
 object FlavorConfig {
     val isPlayFlavor: Boolean = false
 
-    fun createEntitlementManager(context: android.content.Context): EntitlementManager {
+    fun createEntitlementManager(context: android.content.Context): com.example.urlcleanapp.data.AndroidEntitlementManager {
         return OssEntitlementManager()
     }
 
