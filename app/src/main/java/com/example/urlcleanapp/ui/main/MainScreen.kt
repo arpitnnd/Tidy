@@ -95,6 +95,7 @@ fun MainScreen(
     var showUpsellSheet by remember { mutableStateOf(showPlusUpsell) }
     var bulkClipboardUrls by remember { mutableStateOf<List<String>?>(null) }
     val trackerDescriptions by settingsRepository.trackerDescriptions.collectAsStateWithLifecycle(initialValue = emptyMap())
+    val lastCleanedUrl by settingsRepository.lastCleanedUrl.collectAsStateWithLifecycle(initialValue = "")
 
     // Auto-detect clipboard URL on resume
     var clipboardUrl by remember { mutableStateOf<String?>(null) }
@@ -179,7 +180,7 @@ fun MainScreen(
                                 clipboardUrl = null
                             } else if (urls.size == 1) {
                                 val singleUrl = urls[0]
-                                if (singleUrl != state.inputUrl && singleUrl != state.originalUrl) {
+                                if (singleUrl != state.inputUrl && singleUrl != state.originalUrl && singleUrl != state.cleanedUrl && singleUrl != lastCleanedUrl) {
                                     clipboardUrl = singleUrl
                                 }
                                 bulkClipboardUrls = null

@@ -54,7 +54,9 @@ class MainActivity : ComponentActivity() {
             val now = System.currentTimeMillis()
             val settings = UrlCleanApp.instance.settingsRepository
             val shouldAutoClean = runBlocking { settings.autoCleanClipboardOnLaunch.first() }
-            if (shouldAutoClean && (now - lastExitTimestamp > 3000)) {
+            val isFromHistory = (intent?.flags?.and(Intent.FLAG_ACTIVITY_LAUNCHED_FROM_HISTORY) ?: 0) != 0
+            val isFreshLaunch = savedInstanceState == null && !isFromHistory
+            if (shouldAutoClean && isFreshLaunch && (now - lastExitTimestamp > 3000)) {
                 val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
                 if (clipboard.hasPrimaryClip()) {
                     val item = clipboard.primaryClip?.getItemAt(0)
