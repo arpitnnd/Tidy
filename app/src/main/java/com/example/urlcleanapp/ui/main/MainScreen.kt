@@ -1090,7 +1090,7 @@ fun MainScreen(
     if (paramToWhitelist != null) {
         val param = paramToWhitelist!!
         val domain = extractDomain(state.originalUrl)
-        val description = trackerDescriptions[param] ?: "No explanation available for this parameter."
+        val description = trackerDescriptions[param] ?: stringResource(R.string.details_no_explanation)
 
         ModalBottomSheet(
             onDismissRequest = { paramToWhitelist = null },
@@ -1131,7 +1131,7 @@ fun MainScreen(
                         modifier = Modifier.weight(1f),
                         shape = RoundedCornerShape(16.dp)
                     ) {
-                        Text("Report Issue", fontWeight = FontWeight.Bold)
+                        Text(stringResource(R.string.details_report_issue), fontWeight = FontWeight.Bold)
                     }
 
                     Button(
@@ -1142,7 +1142,7 @@ fun MainScreen(
                         modifier = Modifier.weight(1f),
                         shape = RoundedCornerShape(16.dp)
                     ) {
-                        Text("Always Keep", fontWeight = FontWeight.Bold)
+                        Text(stringResource(R.string.details_always_keep), fontWeight = FontWeight.Bold)
                     }
                 }
             }

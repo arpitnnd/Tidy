@@ -110,4 +110,15 @@
     <string name="history_item_removed_count">%1$d removed</string>
     <string name="history_item_clean">clean</string>
     <string name="main_stats_summary">%1$d URLs cleaned · %2$d trackers blocked</string>
+
+    <!-- Remote Blocklist & Issues -->
+    <string name="rules_blocklist_title">Rules &amp; Blocklist</string>
+    <string name="settings_view_blocklist_changes_title">View blocklist changes</string>
+    <string name="settings_view_blocklist_changes_desc">Open blocklist update history on GitHub.</string>
+    <string name="details_no_explanation">No explanation available for this parameter.</string>
+    <string name="details_report_issue">Report Issue</string>
+    <string name="details_always_keep">Always Keep</string>
+    <string name="process_text_plus_required">Tidy+ is required for this feature</string>
+    <string name="process_text_cleaned">URL Cleaned!</string>
+    <string name="process_text_label">Clean with Tidy</string>
 </resources>
