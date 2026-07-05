@@ -165,9 +165,17 @@ fun MainScreen(
         }
     }
 
+    val currentInputUrl by rememberUpdatedState(state.inputUrl)
+    val currentIsCleaned by rememberUpdatedState(state.isCleaned)
+
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_RESUME) {
+                if (currentInputUrl.isNotEmpty() || currentIsCleaned) {
+                    clipboardUrl = null
+                    bulkClipboardUrls = null
+                    return@LifecycleEventObserver
+                }
                 try {
                     val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
                     if (clipboard.hasPrimaryClip()) {
