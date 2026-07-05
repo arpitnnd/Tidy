@@ -1,5 +1,13 @@
 package com.example.urlcleanapp.data
 
+import kotlinx.serialization.Serializable
+
+@Serializable
+data class TrackerEntry(
+    val name: String,
+    val description: String
+)
+
 class UrlCleaner {
     companion object {
         val DEFAULT_TRACKING_PARAMS = setOf(
@@ -26,7 +34,8 @@ class UrlCleaner {
         whitelistedDomains: Set<String> = emptySet(),
         customBlacklistParams: Set<String> = emptySet(),
         domainWhitelistedParams: Set<String> = emptySet(),
-        removeMobileSubdomains: Boolean = false
+        removeMobileSubdomains: Boolean = false,
+        trackingParams: Set<String> = DEFAULT_TRACKING_PARAMS
     ): CleanResult {
         var trimmed = urlStr.trim()
         if (trimmed.isEmpty()) {
@@ -76,7 +85,7 @@ class UrlCleaner {
             val key = parts[0]
             val keyLower = key.lowercase().trim()
             
-            val isDefaultTracking = DEFAULT_TRACKING_PARAMS.contains(keyLower) || keyLower.startsWith("utm_")
+            val isDefaultTracking = trackingParams.contains(keyLower) || keyLower.startsWith("utm_")
             val isCustomBlacklisted = customBlacklistParams.any { it.trim().lowercase() == keyLower }
 
             val isParamWhitelisted = domainWhitelistedParams.any { entry ->

@@ -1,0 +1,22 @@
+[
+  {"name": "utm_source", "description": "Google Analytics campaign source parameter, used to track referrer website/app."},
+  {"name": "utm_medium", "description": "Google Analytics campaign medium parameter, used to identify marketing channel (e.g. email, CPC)."},
+  {"name": "utm_campaign", "description": "Google Analytics campaign name parameter, used to identify a specific marketing campaign."},
+  {"name": "utm_term", "description": "Google Analytics campaign term parameter, used to track keywords for search ads."},
+  {"name": "utm_content", "description": "Google Analytics campaign content parameter, used to distinguish different links in the same ad/email."},
+  {"name": "utm_id", "description": "Google Analytics campaign ID parameter, used to identify a specific ad campaign."},
+  {"name": "utm_source_platform", "description": "Google Analytics campaign source platform parameter, identifying the ad platform."},
+  {"name": "utm_marketing_tactic", "description": "Google Analytics campaign tactic parameter, used to track the marketing approach."},
+  {"name": "fbclid", "description": "Facebook Click ID, used by Facebook to track user clicks and link them to advertising campaigns."},
+  {"name": "gclid", "description": "Google Click ID, used by Google AdWords to track clicks and attribute conversions."},
+  {"name": "msclkid", "description": "Microsoft Click ID, used by Bing Ads to track clicks and attribute conversions."},
+  {"name": "yclid", "description": "Yandex Click ID, used by Yandex Direct to track clicks and attribute conversions."},
+  {"name": "dclid", "description": "DoubleClick Click ID, used to track display advertisements."},
+  {"name": "si", "description": "Spotify Share ID, containing analytical telemetry to identify the sharing source profile."},
+  {"name": "igsh", "description": "Instagram Share ID, containing analytical telemetry to identify the sharing source profile."},
+  {"name": "mc_eid", "description": "Mailchimp Email ID, used to link an email click back to a subscriber profile."},
+  {"name": "gclsrc", "description": "Google Click Source parameter, specifying the AdWords platform source for conversion tracking."},
+  {"name": "rb_clickid", "description": "Rebounce Click ID, used for redirect tracking and attribution."},
+  {"name": "affclick", "description": "Affiliate Click ID, used to track affiliate sales conversions."},
+  {"name": "campid", "description": "Campaign ID, used by various marketing platforms to identify the active campaign."}
+]
