@@ -5,10 +5,12 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
+import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringSetPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import kotlinx.serialization.json.Json
 
 class SettingsRepository(private val dataStore: DataStore<Preferences>) {
     companion object {
@@ -29,6 +31,32 @@ class SettingsRepository(private val dataStore: DataStore<Preferences>) {
         val KEY_MIGRATION_DONE = booleanPreferencesKey("migration_done")
         val KEY_MIGRATION_FOLLOWUP_DISMISSED = booleanPreferencesKey("migration_followup_dismissed")
         val KEY_SELECTED_THEME = stringPreferencesKey("selected_theme")
+        val KEY_BLOCKLIST_JSON = stringPreferencesKey("blocklist_json")
+        val KEY_BLOCKLIST_ETAG = stringPreferencesKey("blocklist_etag")
+        val KEY_BLOCKLIST_LAST_FETCH_TIME = longPreferencesKey("blocklist_last_fetch_time")
+        
+        const val DEFAULT_BLOCKLIST_JSON = """[
+  {"name": "utm_source", "description": "Google Analytics campaign source parameter, used to track referrer website/app."},
+  {"name": "utm_medium", "description": "Google Analytics campaign medium parameter, used to identify marketing channel (e.g. email, CPC)."},
+  {"name": "utm_campaign", "description": "Google Analytics campaign name parameter, used to identify a specific marketing campaign."},
+  {"name": "utm_term", "description": "Google Analytics campaign term parameter, used to track keywords for search ads."},
+  {"name": "utm_content", "description": "Google Analytics campaign content parameter, used to distinguish different links in the same ad/email."},
+  {"name": "utm_id", "description": "Google Analytics campaign ID parameter, used to identify a specific ad campaign."},
+  {"name": "utm_source_platform", "description": "Google Analytics campaign source platform parameter, identifying the ad platform."},
+  {"name": "utm_marketing_tactic", "description": "Google Analytics campaign tactic parameter, used to track the marketing approach."},
+  {"name": "fbclid", "description": "Facebook Click ID, used by Facebook to track user clicks and link them to advertising campaigns."},
+  {"name": "gclid", "description": "Google Click ID, used by Google AdWords to track clicks and attribute conversions."},
+  {"name": "msclkid", "description": "Microsoft Click ID, used by Bing Ads to track clicks and attribute conversions."},
+  {"name": "yclid", "description": "Yandex Click ID, used by Yandex Direct to track clicks and attribute conversions."},
+  {"name": "dclid", "description": "DoubleClick Click ID, used to track display advertisements."},
+  {"name": "si", "description": "Spotify Share ID, containing analytical telemetry to identify the sharing source profile."},
+  {"name": "igsh", "description": "Instagram Share ID, containing analytical telemetry to identify the sharing source profile."},
+  {"name": "mc_eid", "description": "Mailchimp Email ID, used to link an email click back to a subscriber profile."},
+  {"name": "gclsrc", "description": "Google Click Source parameter, specifying the AdWords platform source for conversion tracking."},
+  {"name": "rb_clickid", "description": "Rebounce Click ID, used for redirect tracking and attribution."},
+  {"name": "affclick", "description": "Affiliate Click ID, used to track affiliate sales conversions."},
+  {"name": "campid", "description": "Campaign ID, used by various marketing platforms to identify the active campaign."}
+]"""
     }
 
     val whitelistedDomains: Flow<Set<String>> = dataStore.data.map { preferences ->
@@ -243,5 +271,47 @@ class SettingsRepository(private val dataStore: DataStore<Preferences>) {
         dataStore.edit { preferences ->
             preferences[KEY_SELECTED_THEME] = theme
         }
+    }
+
+    val blocklistJson: Flow<String> = dataStore.data.map { preferences ->
+        preferences[KEY_BLOCKLIST_JSON] ?: DEFAULT_BLOCKLIST_JSON
+    }
+
+    suspend fun setBlocklistJson(json: String) {
+        dataStore.edit { preferences ->
+            preferences[KEY_BLOCKLIST_JSON] = json
+        }
+    }
+
+    val blocklistEtag: Flow<String> = dataStore.data.map { preferences ->
+        preferences[KEY_BLOCKLIST_ETAG] ?: ""
+    }
+
+    suspend fun setBlocklistEtag(etag: String) {
+        dataStore.edit { preferences ->
+            preferences[KEY_BLOCKLIST_ETAG] = etag
+        }
+    }
+
+    val blocklistLastFetchTime: Flow<Long> = dataStore.data.map { preferences ->
+        preferences[KEY_BLOCKLIST_LAST_FETCH_TIME] ?: 0L
+    }
+
+    suspend fun setBlocklistLastFetchTime(time: Long) {
+        dataStore.edit { preferences ->
+            preferences[KEY_BLOCKLIST_LAST_FETCH_TIME] = time
+        }
+    }
+
+    val trackers: Flow<List<TrackerEntry>> = blocklistJson.map { json ->
+        try {
+            Json.decodeFromString<List<TrackerEntry>>(json)
+        } catch (e: Exception) {
+            Json.decodeFromString<List<TrackerEntry>>(DEFAULT_BLOCKLIST_JSON)
+        }
+    }
+
+    val trackerDescriptions: Flow<Map<String, String>> = trackers.map { list ->
+        list.associate { it.name to it.description }
     }
 }
