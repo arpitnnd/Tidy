@@ -78,7 +78,8 @@ fun MainScreen(
     onSettingsClick: () -> Unit,
     onHistoryClick: () -> Unit,
     modifier: Modifier = Modifier,
-    viewModel: MainScreenViewModel = viewModel()
+    viewModel: MainScreenViewModel = viewModel(),
+    showPlusUpsell: Boolean = false
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
@@ -91,8 +92,9 @@ fun MainScreen(
     
     val entitlementManager = UrlCleanApp.instance.entitlementManager
     val isPlusUnlocked by entitlementManager.isPlusUnlocked.collectAsStateWithLifecycle(initialValue = false)
-    var showUpsellSheet by remember { mutableStateOf(false) }
+    var showUpsellSheet by remember { mutableStateOf(showPlusUpsell) }
     var bulkClipboardUrls by remember { mutableStateOf<List<String>?>(null) }
+    val trackerDescriptions by settingsRepository.trackerDescriptions.collectAsStateWithLifecycle(initialValue = emptyMap())
 
     // Auto-detect clipboard URL on resume
     var clipboardUrl by remember { mutableStateOf<String?>(null) }
@@ -1088,26 +1090,63 @@ fun MainScreen(
     if (paramToWhitelist != null) {
         val param = paramToWhitelist!!
         val domain = extractDomain(state.originalUrl)
-        AlertDialog(
+        val description = trackerDescriptions[param] ?: "No explanation available for this parameter."
+
+        ModalBottomSheet(
             onDismissRequest = { paramToWhitelist = null },
-            title = { Text(stringResource(R.string.dialog_allow_param_title), fontWeight = FontWeight.Bold) },
-            text = { Text(stringResource(R.string.dialog_allow_param_text, param, domain)) },
-            confirmButton = {
-                Button(
-                    onClick = {
-                        viewModel.addDomainWhitelistedParam(domain, param)
-                        paramToWhitelist = null
-                    }
+            sheetState = rememberModalBottomSheetState(),
+            containerColor = MaterialTheme.colorScheme.surface,
+            tonalElevation = 8.dp
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .navigationBarsPadding()
+                    .padding(horizontal = 24.dp)
+                    .padding(bottom = 32.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                Text(
+                    text = param,
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.primary
+                )
+
+                Text(
+                    text = description,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    Text(stringResource(R.string.dialog_allow), fontWeight = FontWeight.Bold)
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { paramToWhitelist = null }) {
-                    Text(stringResource(R.string.dialog_cancel))
+                    OutlinedButton(
+                        onClick = {
+                            launchGitHubBugReport(context, param, domain)
+                            paramToWhitelist = null
+                        },
+                        modifier = Modifier.weight(1f),
+                        shape = RoundedCornerShape(16.dp)
+                    ) {
+                        Text("Report Issue", fontWeight = FontWeight.Bold)
+                    }
+
+                    Button(
+                        onClick = {
+                            viewModel.addDomainWhitelistedParam(domain, param)
+                            paramToWhitelist = null
+                        },
+                        modifier = Modifier.weight(1f),
+                        shape = RoundedCornerShape(16.dp)
+                    ) {
+                        Text("Always Keep", fontWeight = FontWeight.Bold)
+                    }
                 }
             }
-        )
+        }
     }
 
     if (showUpsellSheet) {
@@ -1346,6 +1385,34 @@ private fun extractDomain(url: String): String {
     val portIndex = temp.indexOf(':')
     if (portIndex != -1) temp = temp.substring(0, portIndex)
     return temp.trim().lowercase()
+}
+
+private fun launchGitHubBugReport(context: Context, param: String, domain: String) {
+    val appVersion = "1.0.0"
+    val androidVersion = "API ${android.os.Build.VERSION.SDK_INT} (Android ${android.os.Build.VERSION.RELEASE})"
+    val title = "Incorrect removal of parameter '$param' on '$domain'"
+    val body = """
+**Parameter:** `$param`
+**Domain:** `$domain`
+**App Version:** `$appVersion`
+**Android Version:** `$androidVersion`
+
+**Description:**
+The parameter `$param` was removed from `$domain`, which broke the site or removed required information. Please review this rule.
+""".trimIndent()
+
+    try {
+        val encodedTitle = java.net.URLEncoder.encode(title, "UTF-8")
+        val encodedBody = java.net.URLEncoder.encode(body, "UTF-8")
+        val urlStr = "https://github.com/arpitnnd/Tidy/issues/new?title=$encodedTitle&body=$encodedBody&labels=bug-report"
+
+        val intent = Intent(Intent.ACTION_VIEW, android.net.Uri.parse(urlStr)).apply {
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        }
+        context.startActivity(intent)
+    } catch (e: Exception) {
+        android.widget.Toast.makeText(context, "Could not open browser", android.widget.Toast.LENGTH_SHORT).show()
+    }
 }
 
 @Composable
