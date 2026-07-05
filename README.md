@@ -13,6 +13,9 @@ Tidy values your digital hygiene, offering robust whitelisting mechanics, automa
 ## Key Features 🚀
 
 - **Local & Offline-First**: All URL cleaning is performed 100% locally on your phone. No logins, no trackers, and no external API dependencies.
+- **Inline Selection Cleaning (`PROCESS_TEXT`)**: Clean URLs in-place from any third-party app via the system text-selection toolbar (Tidy+ only).
+- **GitHub-hosted Remote Blocklist Sync**: Periodic background synchronization of the parameter blocklist via ETag cache headers.
+- **Unified Bottom Sheet Details**: Displays parameter descriptions, one-tap whitelisting, and prefilled issue reporting templates for stripped parameters.
 - **Smart Short URL Expansion**: Prepend protocols and resolve shortened links (e.g. `bit.ly`, `tinyurl.com`, `t.co`) to their final destinations before cleaning, bypassing aggressive redirect blockades.
 - **Mobile Subdomain Removal**: Automatically strip `m.` or `mobile.` subdomains from cleaned links (preserving short domains like `m.me` that lack a second dot in their host).
 - **Domain-Specific Parameter Whitelisting**: Allow specific parameters on certain domains (e.g., keep the `v` parameter on `youtube.com` while stripping it globally).
@@ -25,7 +28,7 @@ Tidy values your digital hygiene, offering robust whitelisting mechanics, automa
 - **Debounced Auto-Clean on Typing**: Automatically cleans URLs in the input field as you type or paste without requiring manual clicks.
 - **Privacy Dashboard & Local History**: 
   - Tracks statistics like *URLs Cleaned*, *Trackers Blocked*, and *Estimated Bandwidth Saved*.
-  - Detailed, interactive local history cards with individual "Open" and "Copy" actions.
+  - Detailed, interactive local history cards with individual "Open", "Copy", and "Copy Original" actions.
   - JSON Backup import and export to secure your stats locally.
 - **Accessible Modern Design**: Built following **Material 3 Expressive guidelines** with a quiet, nature-inspired palette (grounded forest slates, moss charcoal, and sage green). Fully responsive bottom sheet input dialogs and a full-width ergonomic details toggle row.
 
@@ -47,6 +50,7 @@ this funds continued development without compromising what Tidy is for.
 | Full history & Privacy Dashboard | ✅ Unlimited | ✅ Unlimited |
 | JSON backup & restore | ✅ | ✅ |
 | Auto-copy & auto-close on share | — | ✅ |
+| Inline text-selection cleaning | — | ✅ |
 | Bulk clipboard cleaning | — | ✅ |
 | Extra themes | — | ✅ |
 | Available on | GitHub Releases (direct APK) | Google Play (free install, unlock via in-app purchase) |
@@ -57,7 +61,7 @@ A few things worth being upfront about:
   cleaning, custom rules, whitelist profiles, full history, your own
   backups — is in the free tier, permanently, no asterisks.
 - **Tidy+ is about saving time, not unlocking trust.** Auto-copy, auto-close,
-  and bulk actions exist for people who already know how the app behaves
+  inline selection cleaning, and bulk actions exist for people who already know how the app behaves
   and just want fewer taps. Nothing in there changes what gets cleaned or
   who can see your data.
 - **Tidy+ is a one-time purchase, not a subscription.** Since everything
@@ -99,10 +103,8 @@ Instead:
 - **Crashes** are caught locally using [ACRA](https://github.com/ACRA/acra),
   an open-source crash handler. If Tidy crashes, the report is written to
   your device only. On next launch, you'll see a small prompt offering to
-  show you the report or share it yourself, manually, through Android's
-  normal share sheet — to a GitHub issue, email, wherever you choose. The
-  report contains the crash stack trace and basic build/OS info, nothing
-  else. Tidy never sends it anywhere on its own.
+  show you the report or share it yourself, manually. To prevent continuous popup alerts, dismissing the prompt hides it for the current app session.
+- **Diagnostics & Log Access**: Users can always inspect, share, or delete the last crash report at any time via a dedicated "Diagnostics & Crashes" section in the Settings panel.
 - **Usage analytics** don't exist, full stop. The Privacy Dashboard already
   gives *you* the stats that matter (URLs cleaned, trackers blocked) —
   there's no separate copy being sent to us, and no toggle anywhere that
