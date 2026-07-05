@@ -107,6 +107,7 @@ Instead:
   gives *you* the stats that matter (URLs cleaned, trackers blocked) —
   there's no separate copy being sent to us, and no toggle anywhere that
   sends it either.
+- **Remote Blocklist Updates**: Tidy periodically performs a read-only background fetch to synchronize its parameter blocklist from GitHub. This fetch transmits absolutely no client identifiers, usage statistics, or cleaned URL data. It is a one-way download of public parsing rules so your app can stay up-to-date against new trackers without needing manual updates. The app is fully functional offline on first install using its bundled fallback rules.
 - **Performance monitoring** happens on our end during development (Android
   Studio Profiler, Macrobenchmark), never in the shipped app.
 - On the **Play Store build only**, we rely on Android Vitals in Play
