@@ -80,14 +80,20 @@ fun SettingsScreen(
         },
         modifier = modifier
     ) { paddingValues ->
-        Column(
+        Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues)
-                .verticalScroll(rememberScrollState())
-                .padding(horizontal = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(20.dp)
+                .padding(paddingValues),
+            contentAlignment = Alignment.TopCenter
         ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxHeight()
+                    .widthIn(max = 650.dp)
+                    .verticalScroll(rememberScrollState())
+                    .padding(horizontal = 16.dp),
+                verticalArrangement = Arrangement.spacedBy(20.dp)
+            ) {
             com.example.urlcleanapp.FlavorConfig.SettingsUpgradeRow {
                 if (com.example.urlcleanapp.FlavorConfig.isPlayFlavor) {
                     showUpsellSheet = true
@@ -1062,6 +1068,7 @@ fun SettingsScreen(
                 )
             }
         }
+    }
     }
 
     if (showMigrationDialog) {

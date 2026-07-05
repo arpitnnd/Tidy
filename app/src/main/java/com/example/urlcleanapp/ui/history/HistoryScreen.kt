@@ -47,6 +47,7 @@ import java.util.Date
 import java.util.Locale
 import androidx.compose.ui.res.stringResource
 import com.example.urlcleanapp.R
+import com.example.urlcleanapp.ui.components.shimmer
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -157,13 +158,19 @@ fun HistoryScreen(
         },
         modifier = modifier
     ) { paddingValues ->
-        LazyColumn(
+        Box(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues),
-            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+            contentAlignment = Alignment.TopCenter
         ) {
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxHeight()
+                    .widthIn(max = 650.dp),
+                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
             // Analytics Section
             item {
                 Text(
@@ -301,6 +308,7 @@ fun HistoryScreen(
             }
         }
     }
+}
 
     // Clear confirmation dialog
     if (state.showClearConfirmation) {
@@ -625,35 +633,6 @@ private fun HistoryItem(
                 }
             }
         }
-    }
-}
-
-@Composable
-fun Modifier.shimmer(): Modifier {
-    val transition = rememberInfiniteTransition(label = "shimmer")
-    val translateAnim by transition.animateFloat(
-        initialValue = 0f,
-        targetValue = 1000f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(durationMillis = 1200, easing = LinearEasing),
-            repeatMode = RepeatMode.Restart
-        ),
-        label = "shimmerTranslation"
-    )
-
-    val shimmerColors = listOf(
-        MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
-        MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.9f),
-        MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
-    )
-
-    return this.drawBehind {
-        val brush = Brush.linearGradient(
-            colors = shimmerColors,
-            start = Offset(translateAnim - 300f, translateAnim - 300f),
-            end = Offset(translateAnim, translateAnim)
-        )
-        drawRect(brush = brush)
     }
 }
 
