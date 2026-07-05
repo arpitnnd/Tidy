@@ -9,6 +9,10 @@ import org.acra.config.CoreConfigurationBuilder
 import org.acra.data.StringFormat
 import org.acra.ReportField
 
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+
 class UrlCleanApp : Application() {
     lateinit var settingsRepository: SettingsRepository
         private set
@@ -16,6 +20,8 @@ class UrlCleanApp : Application() {
         private set
     lateinit var entitlementManager: com.example.urlcleanapp.data.AndroidEntitlementManager
         private set
+
+    private val applicationScope = CoroutineScope(Dispatchers.Default)
 
     override fun attachBaseContext(base: android.content.Context) {
         super.attachBaseContext(base)
@@ -41,6 +47,13 @@ class UrlCleanApp : Application() {
 
         entitlementManager = FlavorConfig.createEntitlementManager(this)
         entitlementManager.init()
+
+        com.example.urlcleanapp.data.SharedDependencies.entitlementManager = entitlementManager
+        com.example.urlcleanapp.data.SharedDependencies.settingsRepository = settingsRepository
+
+        applicationScope.launch {
+            com.example.urlcleanapp.data.BlocklistSyncer.sync(this@UrlCleanApp, settingsRepository)
+        }
     }
 
     companion object {
