@@ -18,7 +18,8 @@ import kotlinx.coroutines.flow.SharedFlow
 fun MainNavigation(
   initialUrl: String?,
   sharedUrls: SharedFlow<String>,
-  crashReportText: String?
+  crashReportText: String?,
+  showPlusUpsell: Boolean = false
 ) {
   val backStack = rememberNavBackStack(Main(initialUrl))
 
@@ -39,7 +40,8 @@ fun MainNavigation(
             crashReportText = crashReportText,
             onSettingsClick = { backStack.add(Settings) },
             onHistoryClick = { backStack.add(History) },
-            modifier = Modifier.systemBarsPadding()
+            modifier = Modifier.systemBarsPadding(),
+            showPlusUpsell = showPlusUpsell
           )
         }
         entry<Settings> {

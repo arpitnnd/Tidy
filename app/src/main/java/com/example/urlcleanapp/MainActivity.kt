@@ -95,6 +95,8 @@ class MainActivity : ComponentActivity() {
             }
         }
 
+        val showPlusUpsell = intent?.getBooleanExtra("show_plus_upsell", false) ?: false
+
         enableEdgeToEdge()
         setContent {
             UrlCleanAppTheme {
@@ -102,7 +104,7 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    MainNavigation(initialUrl, sharedUrls, crashReportText)
+                    MainNavigation(initialUrl, sharedUrls, crashReportText, showPlusUpsell)
                 }
             }
         }
