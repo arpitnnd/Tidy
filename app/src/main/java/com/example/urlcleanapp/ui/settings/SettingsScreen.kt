@@ -102,6 +102,14 @@ fun SettingsScreen(
                 }
             }
 
+            Text(
+                text = stringResource(R.string.rules_title),
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.ExtraBold,
+                color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.padding(start = 4.dp, top = 8.dp)
+            )
+
             var isBypassListExpanded by remember { mutableStateOf(false) }
 
             // Bypass List Collapsible Header
@@ -118,9 +126,9 @@ fun SettingsScreen(
                     Column {
                         Text(
                             text = stringResource(R.string.settings_bypass_list),
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.ExtraBold,
-                            color = MaterialTheme.colorScheme.primary
+                            style = MaterialTheme.typography.bodyLarge,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurface
                         )
                         val summaryText = if (state.whitelistedDomains.isEmpty()) {
                             stringResource(R.string.settings_no_domains_bypassed)
@@ -255,9 +263,9 @@ fun SettingsScreen(
                     Column {
                         Text(
                             text = stringResource(R.string.settings_param_whitelist_title),
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.ExtraBold,
-                            color = MaterialTheme.colorScheme.primary
+                            style = MaterialTheme.typography.bodyLarge,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurface
                         )
                         val summaryText = if (state.domainWhitelistedParams.isEmpty()) {
                             stringResource(R.string.settings_no_params_whitelisted)
@@ -394,9 +402,9 @@ fun SettingsScreen(
 
             Text(
                 text = stringResource(R.string.settings_custom_params_title),
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.ExtraBold,
-                color = MaterialTheme.colorScheme.primary,
+                style = MaterialTheme.typography.bodyLarge,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurface,
                 modifier = Modifier.padding(start = 4.dp, top = 8.dp)
             )
 
@@ -484,6 +492,67 @@ fun SettingsScreen(
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
                             modifier = Modifier.padding(vertical = 4.dp)
+                        )
+                    }
+                }
+            }
+
+            Text(
+                text = stringResource(R.string.settings_view_blocklist_changes_title),
+                style = MaterialTheme.typography.bodyLarge,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurface,
+                modifier = Modifier.padding(start = 4.dp, top = 8.dp)
+            )
+
+            Card(
+                shape = RoundedCornerShape(24.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)
+                ),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Column(
+                    modifier = Modifier.padding(20.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable {
+                                try {
+                                    val intent = Intent(
+                                        Intent.ACTION_VIEW,
+                                        android.net.Uri.parse("https://github.com/arpitnnd/Tidy/commits/main/blocklist/trackers.json")
+                                    ).apply {
+                                        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                                    }
+                                    context.startActivity(intent)
+                                } catch (e: Exception) {
+                                    Toast.makeText(context, "Could not open browser", Toast.LENGTH_SHORT).show()
+                                }
+                            },
+                        horizontalArrangement = Arrangement.spacedBy(16.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = stringResource(R.string.settings_view_blocklist_changes_title),
+                                style = MaterialTheme.typography.bodyMedium,
+                                fontWeight = FontWeight.SemiBold,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                            Spacer(modifier = Modifier.height(2.dp))
+                            Text(
+                                text = stringResource(R.string.settings_view_blocklist_changes_desc),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                        Icon(
+                            imageVector = Icons.Filled.ChevronRight,
+                            contentDescription = "Open",
+                            tint = MaterialTheme.colorScheme.primary
                         )
                     }
                 }
@@ -837,69 +906,6 @@ fun SettingsScreen(
                 }
             }
 
-            Spacer(modifier = Modifier.height(8.dp))
-
-            Text(
-                text = stringResource(R.string.rules_blocklist_title),
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.ExtraBold,
-                color = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.padding(start = 4.dp, top = 8.dp)
-            )
-
-            Card(
-                shape = RoundedCornerShape(24.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)
-                ),
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Column(
-                    modifier = Modifier.padding(20.dp),
-                    verticalArrangement = Arrangement.spacedBy(16.dp)
-                ) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable {
-                                try {
-                                    val intent = Intent(
-                                        Intent.ACTION_VIEW,
-                                        android.net.Uri.parse("https://github.com/arpitnnd/Tidy/commits/main/blocklist/trackers.json")
-                                    ).apply {
-                                        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                                    }
-                                    context.startActivity(intent)
-                                } catch (e: Exception) {
-                                    Toast.makeText(context, "Could not open browser", Toast.LENGTH_SHORT).show()
-                                }
-                            },
-                        horizontalArrangement = Arrangement.spacedBy(16.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text(
-                                text = stringResource(R.string.settings_view_blocklist_changes_title),
-                                style = MaterialTheme.typography.bodyMedium,
-                                fontWeight = FontWeight.SemiBold,
-                                color = MaterialTheme.colorScheme.onSurface
-                            )
-                            Spacer(modifier = Modifier.height(2.dp))
-                            Text(
-                                text = stringResource(R.string.settings_view_blocklist_changes_desc),
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
-                        Icon(
-                            imageVector = Icons.Filled.ChevronRight,
-                            contentDescription = "Open",
-                            tint = MaterialTheme.colorScheme.primary
-                        )
-                    }
-                }
-            }
-
             // Diagnostics & Crashes (if crash report exists)
             var currentCrashReportText by remember {
                 mutableStateOf(
@@ -991,8 +997,29 @@ fun SettingsScreen(
                     },
                     confirmButton = {
                         Row(
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
+                            TextButton(
+                                onClick = {
+                                    val clipboard = context.getSystemService(android.content.Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
+                                    val clip = android.content.ClipData.newPlainText("Crash Report", currentCrashReportText)
+                                    clipboard.setPrimaryClip(clip)
+                                    Toast.makeText(context, "Copied log. Paste it on GitHub!", Toast.LENGTH_LONG).show()
+
+                                    val intent = Intent(Intent.ACTION_VIEW, android.net.Uri.parse("https://github.com/arpitnnd/Tidy/issues/new?title=Crash%20Report&body=Paste%20copied%20crash%20log%20here")).apply {
+                                        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                                    }
+                                    try {
+                                        context.startActivity(intent)
+                                    } catch (e: Exception) {
+                                        Toast.makeText(context, "Could not open browser", Toast.LENGTH_SHORT).show()
+                                    }
+                                    showSettingsCrashDialog = false
+                                }
+                            ) {
+                                Text("Report on GitHub")
+                            }
                             TextButton(
                                 onClick = {
                                     val sendIntent: Intent = Intent().apply {
@@ -1042,8 +1069,6 @@ fun SettingsScreen(
                 )
             }
 
-            Spacer(modifier = Modifier.height(24.dp))
-            
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -1066,7 +1091,7 @@ fun SettingsScreen(
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    text = "Tidy Version ${com.example.urlcleanapp.BuildConfig.VERSION_NAME} (${com.example.urlcleanapp.BuildConfig.FLAVOR.uppercase()})",
+                    text = "Tidy Version ${com.example.urlcleanapp.BuildConfig.VERSION_NAME} (${com.example.urlcleanapp.BuildConfig.VERSION_CODE}) (${com.example.urlcleanapp.BuildConfig.FLAVOR.uppercase()})",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
                     textAlign = TextAlign.Center
