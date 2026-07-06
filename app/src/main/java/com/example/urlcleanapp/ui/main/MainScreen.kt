@@ -1051,10 +1051,10 @@ fun MainScreen(
 
                         Button(
                             onClick = {
-                                val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
+                                val clipboard = context.getSystemService(android.content.Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
                                 val clip = android.content.ClipData.newPlainText("Crash Report", crashReportText)
                                 clipboard.setPrimaryClip(clip)
-                                Toast.makeText(context, "Copied log. Paste it on GitHub!", Toast.LENGTH_LONG).show()
+                                android.widget.Toast.makeText(context, "Copied log. Paste it on GitHub!", android.widget.Toast.LENGTH_LONG).show()
                                 
                                 val intent = Intent(Intent.ACTION_VIEW, android.net.Uri.parse("https://github.com/arpitnnd/Tidy/issues/new?title=Crash%20Report&body=Paste%20copied%20crash%20log%20here")).apply {
                                     addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
@@ -1062,7 +1062,7 @@ fun MainScreen(
                                 try {
                                     context.startActivity(intent)
                                 } catch (e: Exception) {
-                                    Toast.makeText(context, "Could not open browser", Toast.LENGTH_SHORT).show()
+                                    android.widget.Toast.makeText(context, "Could not open browser", android.widget.Toast.LENGTH_SHORT).show()
                                 }
                                 onDismissCrashReport()
                             },
