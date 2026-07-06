@@ -510,17 +510,22 @@ fun SettingsScreen(
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     Text(
-                        text = "Customize Tidy's visual theme.",
+                        text = "Customise Tidy's visual theme",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
 
-                    val themes = listOf(
-                        "slate" to "Sage Slate (Default)",
-                        "forest" to "Forest Green (Premium)",
-                        "ocean" to "Ocean Blue (Premium)",
-                        "velvet" to "Dark Velvet (Premium)"
-                    )
+                    val themes = remember {
+                        buildList {
+                            add("slate" to "Sage Slate (Default)")
+                            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {
+                                add("dynamic" to "Material You (Premium)")
+                            }
+                            add("forest" to "Forest Green (Premium)")
+                            add("ocean" to "Ocean Blue (Premium)")
+                            add("velvet" to "Dark Velvet (Premium)")
+                        }
+                    }
 
                     val selectedThemeState = settingsRepository.selectedTheme.collectAsStateWithLifecycle(initialValue = "slate")
                     val selectedTheme = selectedThemeState.value

@@ -68,11 +68,27 @@ fun UrlCleanAppTheme(
     val selectedThemeState = settingsRepository.selectedTheme.collectAsStateWithLifecycle(initialValue = "slate")
     val selectedTheme = selectedThemeState.value
 
-    val colorScheme = if (selectedTheme == "slate") {
-        if (darkTheme) DarkColorScheme else LightColorScheme
-    } else {
-        com.example.urlcleanapp.FlavorConfig.getPremiumColorScheme(selectedTheme, darkTheme)
-            ?: (if (darkTheme) DarkColorScheme else LightColorScheme)
+    val entitlementManager = com.example.urlcleanapp.UrlCleanApp.instance.entitlementManager
+    val isPlusUnlockedState = entitlementManager.isPlusUnlocked.collectAsStateWithLifecycle(initialValue = false)
+    val isPlusUnlocked = isPlusUnlockedState.value
+
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val colorScheme = when (selectedTheme) {
+        "dynamic" -> {
+            if (isPlusUnlocked && android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {
+                if (darkTheme) androidx.compose.material3.dynamicDarkColorScheme(context)
+                else androidx.compose.material3.dynamicLightColorScheme(context)
+            } else {
+                if (darkTheme) DarkColorScheme else LightColorScheme
+            }
+        }
+        "slate" -> {
+            if (darkTheme) DarkColorScheme else LightColorScheme
+        }
+        else -> {
+            com.example.urlcleanapp.FlavorConfig.getPremiumColorScheme(selectedTheme, darkTheme)
+                ?: (if (darkTheme) DarkColorScheme else LightColorScheme)
+        }
     }
 
     MaterialTheme(
