@@ -1033,14 +1033,6 @@ fun MainScreen(
                         horizontalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
                         OutlinedButton(
-                            onClick = { showViewReportDialog = true },
-                            modifier = Modifier.weight(1f),
-                            shape = RoundedCornerShape(16.dp)
-                        ) {
-                            Text("View report", fontWeight = FontWeight.Bold)
-                        }
-
-                        Button(
                             onClick = {
                                 val sendIntent: Intent = Intent().apply {
                                     action = Intent.ACTION_SEND
@@ -1054,8 +1046,35 @@ fun MainScreen(
                             modifier = Modifier.weight(1f),
                             shape = RoundedCornerShape(16.dp)
                         ) {
-                            Text("Share report", fontWeight = FontWeight.Bold)
+                            Text("Share log", fontWeight = FontWeight.Bold)
                         }
+
+                        Button(
+                            onClick = {
+                                val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
+                                val clip = android.content.ClipData.newPlainText("Crash Report", crashReportText)
+                                clipboard.setPrimaryClip(clip)
+                                Toast.makeText(context, "Copied log. Paste it on GitHub!", Toast.LENGTH_LONG).show()
+                                
+                                val intent = Intent(Intent.ACTION_VIEW, android.net.Uri.parse("https://github.com/arpitnnd/Tidy/issues/new?title=Crash%20Report&body=Paste%20copied%20crash%20log%20here")).apply {
+                                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                                }
+                                try {
+                                    context.startActivity(intent)
+                                } catch (e: Exception) {
+                                    Toast.makeText(context, "Could not open browser", Toast.LENGTH_SHORT).show()
+                                }
+                                onDismissCrashReport()
+                            },
+                            modifier = Modifier.weight(1f),
+                            shape = RoundedCornerShape(16.dp)
+                        ) {
+                            Text("Report on GitHub", fontWeight = FontWeight.Bold)
+                        }
+                    }
+
+                    TextButton(onClick = { showViewReportDialog = true }) {
+                        Text("View local crash log")
                     }
                 }
             }
