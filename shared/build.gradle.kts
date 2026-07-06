@@ -6,7 +6,7 @@ plugins {
 
 kotlin {
     androidLibrary {
-        namespace = "com.example.urlcleanapp.shared"
+        namespace = "com.tidy.app.shared"
         compileSdk = 37
         minSdk = 24
         

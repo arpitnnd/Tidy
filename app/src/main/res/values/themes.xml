@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <style name="Theme.UrlCleanApp" parent="android:Theme.Material.Light.NoActionBar" />
-    <style name="Theme.UrlCleanApp.Starting" parent="android:Theme.Material.Light.NoActionBar">
+    <style name="Theme.TidyURL" parent="android:Theme.Material.Light.NoActionBar" />
+    <style name="Theme.TidyURL.Starting" parent="android:Theme.Material.Light.NoActionBar">
         <item name="android:windowBackground">@drawable/splash_background</item>
     </style>
 </resources>

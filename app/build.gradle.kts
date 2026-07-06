@@ -5,10 +5,10 @@ plugins {
 }
 
 android {
-    namespace = "com.example.urlcleanapp"
+    namespace = "com.tidy.app"
     compileSdk = 37
     defaultConfig {
-        applicationId = "com.example.urlcleanapp"
+        applicationId = "com.tidy.app"
         minSdk = 24
         targetSdk = 37
         versionCode = 1
