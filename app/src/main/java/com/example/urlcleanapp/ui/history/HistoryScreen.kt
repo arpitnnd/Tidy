@@ -15,7 +15,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.ContentCopy
-import androidx.compose.material.icons.filled.OpenInNew
+import androidx.compose.material.icons.automirrored.filled.OpenInNew
+import com.example.urlcleanapp.ui.components.TooltipWrapper
 import androidx.compose.material.icons.outlined.FileDownload
 import androidx.compose.material.icons.outlined.FileUpload
 import androidx.compose.material.icons.outlined.DeleteSweep
@@ -107,47 +108,55 @@ fun HistoryScreen(
                     )
                 },
                 navigationIcon = {
-                    IconButton(onClick = onBackClick) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = stringResource(R.string.settings_back_desc)
-                        )
+                    TooltipWrapper(tooltipText = "Back to dashboard") {
+                        IconButton(onClick = onBackClick) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                contentDescription = stringResource(R.string.settings_back_desc)
+                            )
+                        }
                     }
                 },
                 actions = {
                     // Import
-                    IconButton(onClick = {
-                        val intent = Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
-                            addCategory(Intent.CATEGORY_OPENABLE)
-                            type = "application/json"
+                    TooltipWrapper(tooltipText = "Import history log") {
+                        IconButton(onClick = {
+                            val intent = Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
+                                addCategory(Intent.CATEGORY_OPENABLE)
+                                type = "application/json"
+                            }
+                            importLauncher.launch(intent)
+                        }) {
+                            Icon(
+                                imageVector = Icons.Outlined.FileDownload,
+                                contentDescription = stringResource(R.string.history_import_desc),
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
                         }
-                        importLauncher.launch(intent)
-                    }) {
-                        Icon(
-                            imageVector = Icons.Outlined.FileDownload,
-                            contentDescription = stringResource(R.string.history_import_desc),
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
                     }
                     // Export
-                    IconButton(onClick = {
-                        val dateStr = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())
-                        exportLauncher.launch("tidy_history_$dateStr.json")
-                    }) {
-                        Icon(
-                            imageVector = Icons.Outlined.FileUpload,
-                            contentDescription = stringResource(R.string.history_export_desc),
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
+                    TooltipWrapper(tooltipText = "Export history log") {
+                        IconButton(onClick = {
+                            val dateStr = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())
+                            exportLauncher.launch("tidy_history_$dateStr.json")
+                        }) {
+                            Icon(
+                                imageVector = Icons.Outlined.FileUpload,
+                                contentDescription = stringResource(R.string.history_export_desc),
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
                     }
                     // Clear all
                     if (state.history.isNotEmpty()) {
-                        IconButton(onClick = { viewModel.showClearConfirmation() }) {
-                            Icon(
-                                imageVector = Icons.Outlined.DeleteSweep,
-                                contentDescription = stringResource(R.string.history_clear_desc),
-                                tint = MaterialTheme.colorScheme.error
-                            )
+                        TooltipWrapper(tooltipText = "Delete all history entries") {
+                            IconButton(onClick = { viewModel.showClearConfirmation() }) {
+                                Icon(
+                                    imageVector = Icons.Outlined.DeleteSweep,
+                                    contentDescription = stringResource(R.string.history_clear_desc),
+                                    tint = MaterialTheme.colorScheme.error
+                                )
+                            }
                         }
                     }
                 },
@@ -556,9 +565,7 @@ private fun HistoryItem(
                         Text(
                             text = entry.originalUrl,
                             style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            maxLines = 10,
-                            overflow = TextOverflow.Ellipsis
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
 
@@ -566,68 +573,74 @@ private fun HistoryItem(
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
                         modifier = Modifier.fillMaxWidth()
                     ) {
-                        // Open Button
-                        TextButton(
-                            onClick = {
-                                try {
-                                    val intent = Intent(Intent.ACTION_VIEW, android.net.Uri.parse(entry.cleanedUrl)).apply {
-                                        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                                    }
-                                    context.startActivity(intent)
-                                } catch (e: Exception) {
-                                    android.widget.Toast.makeText(context, context.getString(R.string.toast_no_browser_app), android.widget.Toast.LENGTH_SHORT).show()
-                                }
-                            },
-                            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 4.dp),
-                            modifier = Modifier.defaultMinSize(minHeight = 1.dp)
-                        ) {
-                            Icon(
-                                imageVector = Icons.Filled.OpenInNew,
-                                contentDescription = null,
-                                modifier = Modifier.size(16.dp)
-                            )
-                            Spacer(modifier = Modifier.width(4.dp))
-                            Text(stringResource(R.string.history_open), style = MaterialTheme.typography.labelMedium)
+                        // Copy Original Button
+                        TooltipWrapper(tooltipText = "Copy original unmodified URL") {
+                            TextButton(
+                                onClick = {
+                                    val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
+                                    val clip = android.content.ClipData.newPlainText("Original URL", entry.originalUrl)
+                                    clipboard.setPrimaryClip(clip)
+                                    android.widget.Toast.makeText(context, context.getString(R.string.main_copied), android.widget.Toast.LENGTH_SHORT).show()
+                                },
+                                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 4.dp),
+                                modifier = Modifier.defaultMinSize(minHeight = 1.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Filled.ContentCopy,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(16.dp)
+                                )
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Text(stringResource(R.string.history_copy_original), style = MaterialTheme.typography.labelMedium)
+                            }
                         }
 
                         // Copy Button
-                        TextButton(
-                            onClick = {
-                                val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
-                                val clip = android.content.ClipData.newPlainText(context.getString(R.string.main_cleaned_url), entry.cleanedUrl)
-                                clipboard.setPrimaryClip(clip)
-                                android.widget.Toast.makeText(context, context.getString(R.string.main_copied), android.widget.Toast.LENGTH_SHORT).show()
-                            },
-                            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 4.dp),
-                            modifier = Modifier.defaultMinSize(minHeight = 1.dp)
-                        ) {
-                            Icon(
-                                imageVector = Icons.Filled.ContentCopy,
-                                contentDescription = null,
-                                modifier = Modifier.size(16.dp)
-                            )
-                            Spacer(modifier = Modifier.width(4.dp))
-                            Text(stringResource(R.string.main_copy), style = MaterialTheme.typography.labelMedium)
+                        TooltipWrapper(tooltipText = "Copy cleaned URL") {
+                            TextButton(
+                                onClick = {
+                                    val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
+                                    val clip = android.content.ClipData.newPlainText(context.getString(R.string.main_cleaned_url), entry.cleanedUrl)
+                                    clipboard.setPrimaryClip(clip)
+                                    android.widget.Toast.makeText(context, context.getString(R.string.main_copied), android.widget.Toast.LENGTH_SHORT).show()
+                                },
+                                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 4.dp),
+                                modifier = Modifier.defaultMinSize(minHeight = 1.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Filled.ContentCopy,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(16.dp)
+                                )
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Text(stringResource(R.string.main_copy), style = MaterialTheme.typography.labelMedium)
+                            }
                         }
 
-                        // Copy Original Button
-                        TextButton(
-                            onClick = {
-                                val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
-                                val clip = android.content.ClipData.newPlainText("Original URL", entry.originalUrl)
-                                clipboard.setPrimaryClip(clip)
-                                android.widget.Toast.makeText(context, context.getString(R.string.main_copied), android.widget.Toast.LENGTH_SHORT).show()
-                            },
-                            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 4.dp),
-                            modifier = Modifier.defaultMinSize(minHeight = 1.dp)
-                        ) {
-                            Icon(
-                                imageVector = Icons.Filled.ContentCopy,
-                                contentDescription = null,
-                                modifier = Modifier.size(16.dp)
-                            )
-                            Spacer(modifier = Modifier.width(4.dp))
-                            Text(stringResource(R.string.history_copy_original), style = MaterialTheme.typography.labelMedium)
+                        // Open Button
+                        TooltipWrapper(tooltipText = "Open cleaned URL in browser") {
+                            TextButton(
+                                onClick = {
+                                    try {
+                                        val intent = Intent(Intent.ACTION_VIEW, android.net.Uri.parse(entry.cleanedUrl)).apply {
+                                            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                                        }
+                                        context.startActivity(intent)
+                                    } catch (e: Exception) {
+                                        android.widget.Toast.makeText(context, context.getString(R.string.toast_no_browser_app), android.widget.Toast.LENGTH_SHORT).show()
+                                    }
+                                },
+                                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 4.dp),
+                                modifier = Modifier.defaultMinSize(minHeight = 1.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.AutoMirrored.Filled.OpenInNew,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(16.dp)
+                                )
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Text(stringResource(R.string.history_open), style = MaterialTheme.typography.labelMedium)
+                            }
                         }
                     }
                 }
