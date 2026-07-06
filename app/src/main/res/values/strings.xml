@@ -132,4 +132,38 @@
     <string name="dialog_delete">Delete</string>
     <string name="dialog_share">Share</string>
     <string name="toast_crash_deleted">Crash report deleted</string>
+
+    <!-- Tooltips -->
+    <string name="tooltip_history">View cleaning history</string>
+    <string name="tooltip_settings">Open settings</string>
+    <string name="tooltip_copy_clean">Copy cleaned URL to clipboard</string>
+    <string name="tooltip_share_clean">Share cleaned URL with other apps</string>
+    <string name="tooltip_clean_new">Clean another link</string>
+    <string name="tooltip_open_browser">Open cleaned URL in browser</string>
+    <string name="tooltip_toggle_details">Toggle parameter details</string>
+    <string name="tooltip_clear_input">Clear text input</string>
+    <string name="tooltip_process_url">Process and clean URL</string>
+    <string name="tooltip_back">Back to dashboard</string>
+    <string name="tooltip_import">Import history log</string>
+    <string name="tooltip_export">Export history log</string>
+    <string name="tooltip_clear_all">Delete all history entries</string>
+    <string name="tooltip_copy_original">Copy original unmodified URL</string>
+
+    <!-- Crash Reporting -->
+    <string name="crash_share_log">Share log</string>
+    <string name="crash_report_github">Report on GitHub</string>
+    <string name="crash_view_local">View local crash log</string>
+    <string name="crash_toast_copied">Copied log. Paste it on GitHub!</string>
+    <string name="crash_toast_browser_error">Could not open browser</string>
+
+    <!-- Plus Entitlements -->
+    <string name="plus_value_proposition">zero sub. pay once own forever</string>
+
+    <!-- History Import status -->
+    <string name="history_import_success">Imported %1$d new entries</string>
+    <string name="history_import_invalid">Import failed: invalid file format</string>
+
+    <string name="toast_could_not_share">Could not share</string>
+    <string name="toast_no_link_app">Could not open link</string>
+    <string name="plus_toast_bulk_cleaned">Cleaned and copied %1$d URLs!</string>
 </resources>

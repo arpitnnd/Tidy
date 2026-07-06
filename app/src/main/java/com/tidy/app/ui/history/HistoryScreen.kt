@@ -108,7 +108,7 @@ fun HistoryScreen(
                     )
                 },
                 navigationIcon = {
-                    TooltipWrapper(tooltipText = "Back to dashboard") {
+                    TooltipWrapper(tooltipText = stringResource(R.string.tooltip_back)) {
                         IconButton(onClick = onBackClick) {
                             Icon(
                                 imageVector = Icons.AutoMirrored.Filled.ArrowBack,
@@ -119,7 +119,7 @@ fun HistoryScreen(
                 },
                 actions = {
                     // Import
-                    TooltipWrapper(tooltipText = "Import history log") {
+                    TooltipWrapper(tooltipText = stringResource(R.string.tooltip_import)) {
                         IconButton(onClick = {
                             val intent = Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
                                 addCategory(Intent.CATEGORY_OPENABLE)
@@ -135,7 +135,7 @@ fun HistoryScreen(
                         }
                     }
                     // Export
-                    TooltipWrapper(tooltipText = "Export history log") {
+                    TooltipWrapper(tooltipText = stringResource(R.string.tooltip_export)) {
                         IconButton(onClick = {
                             val dateStr = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())
                             exportLauncher.launch("tidy_history_$dateStr.json")
@@ -149,7 +149,7 @@ fun HistoryScreen(
                     }
                     // Clear all
                     if (state.history.isNotEmpty()) {
-                        TooltipWrapper(tooltipText = "Delete all history entries") {
+                        TooltipWrapper(tooltipText = stringResource(R.string.tooltip_clear_all)) {
                             IconButton(onClick = { viewModel.showClearConfirmation() }) {
                                 Icon(
                                     imageVector = Icons.Outlined.DeleteSweep,
@@ -574,7 +574,7 @@ private fun HistoryItem(
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         // Copy Original Button
-                        TooltipWrapper(tooltipText = "Copy original unmodified URL") {
+                        TooltipWrapper(tooltipText = stringResource(R.string.tooltip_copy_original)) {
                             TextButton(
                                 onClick = {
                                     val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
@@ -596,7 +596,7 @@ private fun HistoryItem(
                         }
 
                         // Copy Button
-                        TooltipWrapper(tooltipText = "Copy cleaned URL") {
+                        TooltipWrapper(tooltipText = stringResource(R.string.tooltip_copy_clean)) {
                             TextButton(
                                 onClick = {
                                     val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
@@ -618,7 +618,7 @@ private fun HistoryItem(
                         }
 
                         // Open Button
-                        TooltipWrapper(tooltipText = "Open cleaned URL in browser") {
+                        TooltipWrapper(tooltipText = stringResource(R.string.tooltip_open_browser)) {
                             TextButton(
                                 onClick = {
                                     try {

@@ -280,7 +280,7 @@ fun MainScreen(
                             .fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
-                        TooltipWrapper(tooltipText = "Copy cleaned URL to clipboard", modifier = Modifier.weight(1f)) {
+                        TooltipWrapper(tooltipText = stringResource(R.string.tooltip_copy_clean), modifier = Modifier.weight(1f)) {
                             Button(
                                 onClick = { viewModel.copyToClipboard(context) },
                                 modifier = Modifier.fillMaxWidth(),
@@ -505,7 +505,7 @@ fun MainScreen(
                         }
 
                         TooltipWrapper(
-                            tooltipText = if (showDetails) "Hide parameter details" else "Show parameter details",
+                            tooltipText = stringResource(if (showDetails) R.string.main_hide_details else R.string.main_show_details),
                             modifier = Modifier.align(Alignment.CenterHorizontally)
                         ) {
                             TextButton(
@@ -1046,7 +1046,7 @@ fun MainScreen(
                             modifier = Modifier.weight(1f),
                             shape = RoundedCornerShape(16.dp)
                         ) {
-                            Text("Share log", fontWeight = FontWeight.Bold)
+                            Text(stringResource(R.string.crash_share_log), fontWeight = FontWeight.Bold)
                         }
 
                         Button(
@@ -1069,12 +1069,12 @@ fun MainScreen(
                             modifier = Modifier.weight(1f),
                             shape = RoundedCornerShape(16.dp)
                         ) {
-                            Text("Report on GitHub", fontWeight = FontWeight.Bold)
+                            Text(stringResource(R.string.crash_report_github), fontWeight = FontWeight.Bold)
                         }
                     }
 
                     TextButton(onClick = { showViewReportDialog = true }) {
-                        Text("View local crash log")
+                        Text(stringResource(R.string.crash_view_local))
                     }
                 }
             }
@@ -1265,7 +1265,7 @@ private fun InputCard(
                     shape = RoundedCornerShape(16.dp),
                     trailingIcon = {
                         if (state.inputUrl.isNotEmpty()) {
-                            TooltipWrapper(tooltipText = "Clear text input") {
+                            TooltipWrapper(tooltipText = stringResource(R.string.tooltip_clear_input)) {
                                 IconButton(onClick = { viewModel.clear() }) {
                                     Icon(Icons.Filled.Clear, contentDescription = stringResource(R.string.settings_collapse))
                                 }
@@ -1304,7 +1304,7 @@ private fun InputCard(
                     }
                 }
 
-                TooltipWrapper(tooltipText = "Process and clean URL") {
+                TooltipWrapper(tooltipText = stringResource(R.string.tooltip_process_url)) {
                     Button(
                         onClick = { viewModel.cleanUrl(state.inputUrl) },
                         modifier = Modifier.fillMaxWidth(),

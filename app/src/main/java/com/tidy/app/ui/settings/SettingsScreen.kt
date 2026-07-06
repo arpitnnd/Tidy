@@ -30,6 +30,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import kotlinx.coroutines.launch
 import com.tidy.app.R
+import com.tidy.app.ui.components.TooltipWrapper
 import android.content.Intent
 import android.widget.Toast
 import androidx.compose.ui.platform.LocalContext
@@ -65,12 +66,14 @@ fun SettingsScreen(
                     )
                 },
                 navigationIcon = {
-                    IconButton(onClick = onBackClick) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = stringResource(R.string.settings_back_desc),
-                            tint = MaterialTheme.colorScheme.onSurface
-                        )
+                    TooltipWrapper(tooltipText = stringResource(R.string.tooltip_back)) {
+                        IconButton(onClick = onBackClick) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                contentDescription = stringResource(R.string.settings_back_desc),
+                                tint = MaterialTheme.colorScheme.onSurface
+                            )
+                        }
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -1018,7 +1021,7 @@ fun SettingsScreen(
                                     showSettingsCrashDialog = false
                                 }
                             ) {
-                                Text("Report on GitHub")
+                                Text(stringResource(R.string.crash_report_github))
                             }
                             TextButton(
                                 onClick = {
