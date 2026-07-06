@@ -22,7 +22,10 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.animation.animateContentSize
+import com.example.urlcleanapp.ui.components.TooltipWrapper
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.OpenInNew
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.ContentCopy
@@ -238,19 +241,23 @@ fun MainScreen(
                     }
                 },
                 actions = {
-                    IconButton(onClick = onHistoryClick) {
-                        Icon(
-                            imageVector = Icons.Outlined.History,
-                            contentDescription = stringResource(R.string.main_history_desc),
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
+                    TooltipWrapper(tooltipText = "View cleaning history") {
+                        IconButton(onClick = onHistoryClick) {
+                            Icon(
+                                imageVector = Icons.Outlined.History,
+                                contentDescription = stringResource(R.string.main_history_desc),
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
                     }
-                    IconButton(onClick = onSettingsClick) {
-                        Icon(
-                            imageVector = Icons.Filled.Settings,
-                            contentDescription = stringResource(R.string.main_settings_desc),
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
+                    TooltipWrapper(tooltipText = "Open settings") {
+                        IconButton(onClick = onSettingsClick) {
+                            Icon(
+                                imageVector = Icons.Filled.Settings,
+                                contentDescription = stringResource(R.string.main_settings_desc),
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -273,50 +280,54 @@ fun MainScreen(
                             .fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
-                        Button(
-                            onClick = { viewModel.copyToClipboard(context) },
-                            modifier = Modifier.weight(1f),
-                            shape = RoundedCornerShape(16.dp),
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = if (state.copySuccess) {
-                                    MaterialTheme.colorScheme.tertiary
-                                } else {
-                                    MaterialTheme.colorScheme.primary
-                                },
-                                contentColor = if (state.copySuccess) {
-                                    MaterialTheme.colorScheme.onTertiary
-                                } else {
-                                    MaterialTheme.colorScheme.onPrimary
-                                }
-                            ),
-                            contentPadding = PaddingValues(vertical = 14.dp)
-                        ) {
-                            Icon(
-                                imageVector = if (state.copySuccess) Icons.Filled.Check else Icons.Filled.ContentCopy,
-                                contentDescription = null,
-                                modifier = Modifier.size(20.dp)
-                            )
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text(
-                                text = if (state.copySuccess) stringResource(R.string.main_copied) else stringResource(R.string.main_copy),
-                                fontWeight = FontWeight.Bold,
-                                style = MaterialTheme.typography.labelLarge
-                            )
+                        TooltipWrapper(tooltipText = "Copy cleaned URL to clipboard", modifier = Modifier.weight(1f)) {
+                            Button(
+                                onClick = { viewModel.copyToClipboard(context) },
+                                modifier = Modifier.fillMaxWidth(),
+                                shape = RoundedCornerShape(16.dp),
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = if (state.copySuccess) {
+                                        MaterialTheme.colorScheme.tertiary
+                                    } else {
+                                        MaterialTheme.colorScheme.primary
+                                    },
+                                    contentColor = if (state.copySuccess) {
+                                        MaterialTheme.colorScheme.onTertiary
+                                    } else {
+                                        MaterialTheme.colorScheme.onPrimary
+                                    }
+                                ),
+                                contentPadding = PaddingValues(vertical = 14.dp)
+                            ) {
+                                Icon(
+                                    imageVector = if (state.copySuccess) Icons.Filled.Check else Icons.Filled.ContentCopy,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(20.dp)
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text(
+                                    text = if (state.copySuccess) stringResource(R.string.main_copied) else stringResource(R.string.main_copy),
+                                    fontWeight = FontWeight.Bold,
+                                    style = MaterialTheme.typography.labelLarge
+                                )
+                            }
                         }
 
-                        Button(
-                            onClick = { viewModel.shareUrl(context) },
-                            modifier = Modifier.weight(1f),
-                            shape = RoundedCornerShape(16.dp),
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = MaterialTheme.colorScheme.primary,
-                                contentColor = MaterialTheme.colorScheme.onPrimary
-                            ),
-                            contentPadding = PaddingValues(vertical = 14.dp)
-                        ) {
-                            Icon(Icons.Filled.Share, contentDescription = null, modifier = Modifier.size(20.dp))
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text(stringResource(R.string.main_share), fontWeight = FontWeight.Bold, style = MaterialTheme.typography.labelLarge)
+                        TooltipWrapper(tooltipText = "Share cleaned URL with other apps", modifier = Modifier.weight(1f)) {
+                            Button(
+                                onClick = { viewModel.shareUrl(context) },
+                                modifier = Modifier.fillMaxWidth(),
+                                shape = RoundedCornerShape(16.dp),
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = MaterialTheme.colorScheme.primary,
+                                    contentColor = MaterialTheme.colorScheme.onPrimary
+                                ),
+                                contentPadding = PaddingValues(vertical = 14.dp)
+                            ) {
+                                Icon(Icons.Filled.Share, contentDescription = null, modifier = Modifier.size(20.dp))
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text(stringResource(R.string.main_share), fontWeight = FontWeight.Bold, style = MaterialTheme.typography.labelLarge)
+                            }
                         }
                     }
                 }
@@ -324,24 +335,26 @@ fun MainScreen(
         },
         floatingActionButton = {
             if (state.isCleaned) {
-                ExtendedFloatingActionButton(
-                    onClick = {
-                        viewModel.onUrlInput("")
-                        showBottomSheet = true
-                    },
-                    icon = {
-                        Icon(
-                            imageVector = Icons.Outlined.CleaningServices,
-                            contentDescription = null
-                        )
-                    },
-                    text = {
-                        Text(stringResource(R.string.main_clean_new_url))
-                    },
-                    containerColor = MaterialTheme.colorScheme.primaryContainer,
-                    contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                    shape = RoundedCornerShape(16.dp)
-                )
+                TooltipWrapper(tooltipText = "Clean another link") {
+                    ExtendedFloatingActionButton(
+                        onClick = {
+                            viewModel.onUrlInput("")
+                            showBottomSheet = true
+                        },
+                        icon = {
+                            Icon(
+                                imageVector = Icons.Outlined.CleaningServices,
+                                contentDescription = null
+                            )
+                        },
+                        text = {
+                            Text(stringResource(R.string.main_clean_new_url))
+                        },
+                        containerColor = MaterialTheme.colorScheme.primaryContainer,
+                        contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                        shape = RoundedCornerShape(16.dp)
+                    )
+                }
             }
         },
         floatingActionButtonPosition = FabPosition.End,
@@ -383,7 +396,9 @@ fun MainScreen(
                         )
                 ) {
                     Column(
-                        modifier = Modifier.padding(20.dp),
+                        modifier = Modifier
+                            .padding(20.dp)
+                            .animateContentSize(animationSpec = androidx.compose.animation.core.spring(stiffness = androidx.compose.animation.core.Spring.StiffnessMediumLow)),
                         verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
                         val domainToWhitelist = remember(state.originalUrl) {
@@ -442,15 +457,7 @@ fun MainScreen(
                                 modifier = Modifier.weight(1f)
                             )
                             if (state.canExpand) {
-                                TooltipBox(
-                                    positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider(),
-                                    tooltip = {
-                                        PlainTooltip {
-                                            Text(stringResource(R.string.main_expand_url))
-                                        }
-                                    },
-                                    state = rememberTooltipState()
-                                ) {
+                                TooltipWrapper(tooltipText = stringResource(R.string.main_expand_url)) {
                                     IconButton(
                                         onClick = { viewModel.expandShortUrl() },
                                         enabled = !state.isExpanding,
@@ -473,57 +480,52 @@ fun MainScreen(
                                     }
                                 }
                             }
-                            IconButton(
-                                onClick = {
-                                    try {
-                                        val intent = Intent(Intent.ACTION_VIEW, android.net.Uri.parse(state.cleanedUrl)).apply {
-                                            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                            TooltipWrapper(tooltipText = "Open cleaned URL in browser") {
+                                IconButton(
+                                    onClick = {
+                                        try {
+                                            val intent = Intent(Intent.ACTION_VIEW, android.net.Uri.parse(state.cleanedUrl)).apply {
+                                                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                                            }
+                                            context.startActivity(intent)
+                                        } catch (e: Exception) {
+                                            android.widget.Toast.makeText(context, context.getString(R.string.toast_no_browser_app), android.widget.Toast.LENGTH_SHORT).show()
                                         }
-                                        context.startActivity(intent)
-                                    } catch (e: Exception) {
-                                        android.widget.Toast.makeText(context, context.getString(R.string.toast_no_browser_app), android.widget.Toast.LENGTH_SHORT).show()
-                                    }
-                                },
-                                colors = IconButtonDefaults.iconButtonColors(
-                                    contentColor = MaterialTheme.colorScheme.onPrimaryContainer
-                                )
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Outlined.OpenInNew,
-                                    contentDescription = "Open in browser"
-                                )
+                                    },
+                                    colors = IconButtonDefaults.iconButtonColors(
+                                        contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                                    )
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.AutoMirrored.Filled.OpenInNew,
+                                        contentDescription = "Open in browser"
+                                    )
+                                }
                             }
                         }
 
-                        HorizontalDivider(
-                            color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.15f),
-                            thickness = 1.dp,
-                            modifier = Modifier.padding(vertical = 4.dp)
-                        )
-
-                        // Show/Hide Details Touch Target (Full-width clickable row)
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .heightIn(min = 48.dp)
-                                .clip(RoundedCornerShape(12.dp))
-                                .clickable { showDetails = !showDetails }
-                                .padding(horizontal = 8.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        TooltipWrapper(
+                            tooltipText = if (showDetails) "Hide parameter details" else "Show parameter details",
+                            modifier = Modifier.align(Alignment.CenterHorizontally)
                         ) {
-                            Icon(
-                                imageVector = if (showDetails) Icons.Filled.KeyboardArrowUp else Icons.Filled.KeyboardArrowDown,
-                                contentDescription = null,
-                                modifier = Modifier.size(24.dp),
-                                tint = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
-                            )
-                            Text(
-                                text = if (showDetails) stringResource(R.string.main_hide_details) else stringResource(R.string.main_show_details),
-                                style = MaterialTheme.typography.labelLarge,
-                                color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f),
-                                fontWeight = FontWeight.Bold
-                            )
+                            TextButton(
+                                onClick = { showDetails = !showDetails },
+                                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 6.dp)
+                            ) {
+                                Icon(
+                                    imageVector = if (showDetails) Icons.Filled.KeyboardArrowUp else Icons.Filled.KeyboardArrowDown,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(20.dp),
+                                    tint = MaterialTheme.colorScheme.onPrimaryContainer
+                                )
+                                Spacer(modifier = Modifier.width(6.dp))
+                                Text(
+                                    text = if (showDetails) stringResource(R.string.main_hide_details) else stringResource(R.string.main_show_details),
+                                    style = MaterialTheme.typography.labelLarge,
+                                    color = MaterialTheme.colorScheme.onPrimaryContainer,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
                         }
 
                         AnimatedVisibility(visible = showDetails) {
@@ -542,9 +544,7 @@ fun MainScreen(
                                     Text(
                                         text = state.originalUrl,
                                         style = MaterialTheme.typography.bodySmall,
-                                        color = MaterialTheme.colorScheme.onPrimaryContainer,
-                                        maxLines = 5,
-                                        overflow = TextOverflow.Ellipsis
+                                        color = MaterialTheme.colorScheme.onPrimaryContainer
                                     )
                                 }
 
@@ -560,9 +560,7 @@ fun MainScreen(
                                         Text(
                                             text = state.expandedUrl!!,
                                             style = MaterialTheme.typography.bodySmall,
-                                            color = MaterialTheme.colorScheme.onPrimaryContainer,
-                                            maxLines = 5,
-                                            overflow = TextOverflow.Ellipsis
+                                            color = MaterialTheme.colorScheme.onPrimaryContainer
                                         )
                                     }
                                 }
@@ -618,96 +616,98 @@ fun MainScreen(
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.SpaceBetween
                     ) {
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Spacer(modifier = Modifier.height(24.dp))
-                            
-                            // Logo
-                            Box(
-                                modifier = Modifier
-                                    .size(80.dp)
-                                    .clip(RoundedCornerShape(24.dp))
-                                    .background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f)),
-                                contentAlignment = Alignment.Center
+                        if (!showIntro) {
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                modifier = Modifier.fillMaxWidth()
                             ) {
-                                Icon(
-                                    imageVector = Icons.Outlined.CleaningServices,
-                                    contentDescription = "Tidy",
-                                    tint = MaterialTheme.colorScheme.primary,
-                                    modifier = Modifier.size(40.dp)
-                                )
-                            }
-                            Spacer(modifier = Modifier.height(20.dp))
-                            
-                            // Title & Tagline
-                            Text(
-                                text = stringResource(R.string.welcome_title),
-                                style = MaterialTheme.typography.headlineMedium,
-                                fontWeight = FontWeight.ExtraBold,
-                                color = MaterialTheme.colorScheme.onBackground,
-                                textAlign = TextAlign.Center
-                            )
-                            Spacer(modifier = Modifier.height(6.dp))
-                            Text(
-                                text = stringResource(R.string.welcome_subtitle),
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                textAlign = TextAlign.Center,
-                                modifier = Modifier.padding(horizontal = 8.dp)
-                            )
-
-                            // Minimal stat line (with shimmer loading state)
-                            if (state.isInitialLoading) {
-                                Spacer(modifier = Modifier.height(16.dp))
+                                Spacer(modifier = Modifier.height(24.dp))
+                                
+                                // Logo
                                 Box(
                                     modifier = Modifier
-                                        .width(220.dp)
-                                        .height(36.dp)
-                                        .clip(RoundedCornerShape(12.dp))
-                                        .shimmer()
-                                )
-                            } else if (state.totalCleanedCount > 0) {
-                                Spacer(modifier = Modifier.height(16.dp))
-                                Surface(
-                                    onClick = onHistoryClick,
-                                    shape = RoundedCornerShape(12.dp),
-                                    color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)
+                                        .size(80.dp)
+                                        .clip(RoundedCornerShape(24.dp))
+                                        .background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f)),
+                                    contentAlignment = Alignment.Center
                                 ) {
-                                    Text(
-                                        text = stringResource(R.string.main_stats_summary, state.totalCleanedCount, state.totalTrackersBlocked),
-                                        style = MaterialTheme.typography.labelMedium,
-                                        fontWeight = FontWeight.SemiBold,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+                                    Icon(
+                                        imageVector = Icons.Outlined.CleaningServices,
+                                        contentDescription = "Tidy",
+                                        tint = MaterialTheme.colorScheme.primary,
+                                        modifier = Modifier.size(40.dp)
                                     )
                                 }
-                            }
+                                Spacer(modifier = Modifier.height(20.dp))
+                                
+                                // Title & Tagline
+                                Text(
+                                    text = stringResource(R.string.welcome_title),
+                                    style = MaterialTheme.typography.headlineMedium,
+                                    fontWeight = FontWeight.ExtraBold,
+                                    color = MaterialTheme.colorScheme.onBackground,
+                                    textAlign = TextAlign.Center
+                                )
+                                Spacer(modifier = Modifier.height(6.dp))
+                                Text(
+                                    text = stringResource(R.string.welcome_subtitle),
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    textAlign = TextAlign.Center,
+                                    modifier = Modifier.padding(horizontal = 8.dp)
+                                )
 
-                            // Compact Trust Markers Row
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(top = 24.dp, bottom = 12.dp),
-                                horizontalArrangement = Arrangement.SpaceEvenly,
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                TrustMarkerCompact(icon = Icons.Outlined.CloudOff, text = stringResource(R.string.welcome_local_title))
-                                VerticalDivider(
+                                // Minimal stat line (with shimmer loading state)
+                                if (state.isInitialLoading) {
+                                    Spacer(modifier = Modifier.height(16.dp))
+                                    Box(
+                                        modifier = Modifier
+                                            .width(220.dp)
+                                            .height(36.dp)
+                                            .clip(RoundedCornerShape(12.dp))
+                                            .shimmer()
+                                    )
+                                } else if (state.totalCleanedCount > 0) {
+                                    Spacer(modifier = Modifier.height(16.dp))
+                                    Surface(
+                                        onClick = onHistoryClick,
+                                        shape = RoundedCornerShape(12.dp),
+                                        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)
+                                    ) {
+                                        Text(
+                                            text = stringResource(R.string.main_stats_summary, state.totalCleanedCount, state.totalTrackersBlocked),
+                                            style = MaterialTheme.typography.labelMedium,
+                                            fontWeight = FontWeight.SemiBold,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+                                        )
+                                    }
+                                }
+
+                                // Compact Trust Markers Row
+                                Row(
                                     modifier = Modifier
-                                        .height(16.dp)
-                                        .width(1.dp),
-                                    color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
-                                )
-                                TrustMarkerCompact(icon = Icons.Outlined.Lock, text = stringResource(R.string.welcome_privacy_title))
-                                VerticalDivider(
-                                    modifier = Modifier
-                                        .height(16.dp)
-                                        .width(1.dp),
-                                    color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
-                                )
-                                TrustMarkerCompact(icon = Icons.Outlined.Block, text = stringResource(R.string.welcome_free_title))
+                                        .fillMaxWidth()
+                                        .padding(top = 24.dp, bottom = 12.dp),
+                                    horizontalArrangement = Arrangement.SpaceEvenly,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    TrustMarkerCompact(icon = Icons.Outlined.CloudOff, text = stringResource(R.string.welcome_local_title))
+                                    VerticalDivider(
+                                        modifier = Modifier
+                                            .height(16.dp)
+                                            .width(1.dp),
+                                        color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
+                                    )
+                                    TrustMarkerCompact(icon = Icons.Outlined.Lock, text = stringResource(R.string.welcome_privacy_title))
+                                    VerticalDivider(
+                                        modifier = Modifier
+                                            .height(16.dp)
+                                            .width(1.dp),
+                                        color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
+                                    )
+                                    TrustMarkerCompact(icon = Icons.Outlined.Block, text = stringResource(R.string.welcome_free_title))
+                                }
                             }
                         }
 
@@ -762,7 +762,7 @@ fun MainScreen(
         if (showBottomSheet) {
             val focusRequester = remember { FocusRequester() }
             LaunchedEffect(focusRequester) {
-                kotlinx.coroutines.delay(150)
+                kotlinx.coroutines.delay(350)
                 try {
                     focusRequester.requestFocus()
                 } catch (e: Exception) {}
@@ -882,8 +882,7 @@ fun MainScreen(
                         .fillMaxWidth()
                         .padding(horizontal = 24.dp)
                         .padding(bottom = 32.dp)
-                        .navigationBarsPadding()
-                        .verticalScroll(rememberScrollState()),
+                        .navigationBarsPadding(),
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
@@ -1247,8 +1246,10 @@ private fun InputCard(
                     shape = RoundedCornerShape(16.dp),
                     trailingIcon = {
                         if (state.inputUrl.isNotEmpty()) {
-                            IconButton(onClick = { viewModel.clear() }) {
-                                Icon(Icons.Filled.Clear, contentDescription = stringResource(R.string.settings_collapse))
+                            TooltipWrapper(tooltipText = "Clear text input") {
+                                IconButton(onClick = { viewModel.clear() }) {
+                                    Icon(Icons.Filled.Clear, contentDescription = stringResource(R.string.settings_collapse))
+                                }
                             }
                         }
                     },
@@ -1284,24 +1285,26 @@ private fun InputCard(
                     }
                 }
 
-                Button(
-                    onClick = { viewModel.cleanUrl(state.inputUrl) },
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(16.dp),
-                    enabled = isValidInputUrl(state.inputUrl) && !state.isLoading,
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.primary
-                    ),
-                    contentPadding = PaddingValues(vertical = 14.dp)
-                ) {
-                    if (state.isLoading) {
-                        CircularProgressIndicator(
-                            color = MaterialTheme.colorScheme.onPrimary,
-                            modifier = Modifier.size(20.dp),
-                            strokeWidth = 2.dp
-                        )
-                    } else {
-                        Text(stringResource(R.string.button_clean_url), fontWeight = FontWeight.Bold)
+                TooltipWrapper(tooltipText = "Process and clean URL") {
+                    Button(
+                        onClick = { viewModel.cleanUrl(state.inputUrl) },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(16.dp),
+                        enabled = isValidInputUrl(state.inputUrl) && !state.isLoading,
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.primary
+                        ),
+                        contentPadding = PaddingValues(vertical = 14.dp)
+                    ) {
+                        if (state.isLoading) {
+                            CircularProgressIndicator(
+                                color = MaterialTheme.colorScheme.onPrimary,
+                                modifier = Modifier.size(20.dp),
+                                strokeWidth = 2.dp
+                            )
+                        } else {
+                            Text(stringResource(R.string.button_clean_url), fontWeight = FontWeight.Bold)
+                        }
                     }
                 }
             }
