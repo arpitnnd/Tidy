@@ -61,6 +61,7 @@ fun HistoryScreen(
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
+    val snackbarHostState = remember { SnackbarHostState() }
 
     val exportLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.CreateDocument("application/json")
@@ -72,9 +73,9 @@ fun HistoryScreen(
                     context.contentResolver.openOutputStream(it)?.bufferedWriter()?.use { writer ->
                         writer.write(json)
                     }
-                    android.widget.Toast.makeText(context, context.getString(R.string.history_toast_exported), android.widget.Toast.LENGTH_SHORT).show()
+                    scope.launch { snackbarHostState.showSnackbar(context.getString(R.string.history_toast_exported)) }
                 } catch (e: Exception) {
-                    android.widget.Toast.makeText(context, context.getString(R.string.history_toast_export_failed), android.widget.Toast.LENGTH_SHORT).show()
+                    scope.launch { snackbarHostState.showSnackbar(context.getString(R.string.history_toast_export_failed)) }
                 }
             }
         }
@@ -89,15 +90,25 @@ fun HistoryScreen(
                     val inputStream = context.contentResolver.openInputStream(uri)
                     val json = inputStream?.bufferedReader()?.readText() ?: return@let
                     inputStream.close()
-                    viewModel.importHistory(context, json)
+                    viewModel.importHistory(json) { count ->
+                        scope.launch {
+                            val msg = if (count >= 0) {
+                                context.getString(R.string.history_import_success, count)
+                            } else {
+                                context.getString(R.string.history_import_invalid)
+                            }
+                            snackbarHostState.showSnackbar(msg)
+                        }
+                    }
                 } catch (e: Exception) {
-                    android.widget.Toast.makeText(context, context.getString(R.string.history_toast_import_failed), android.widget.Toast.LENGTH_SHORT).show()
+                    scope.launch { snackbarHostState.showSnackbar(context.getString(R.string.history_toast_import_failed)) }
                 }
             }
         }
     }
 
     Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             TopAppBar(
                 title = {
@@ -307,7 +318,12 @@ fun HistoryScreen(
                 }
             } else {
                 items(state.history, key = { it.id }) { entry ->
-                    HistoryItem(entry = entry)
+                    HistoryItem(
+                        entry = entry,
+                        onShowSnackbar = { msg ->
+                            scope.launch { snackbarHostState.showSnackbar(msg) }
+                        }
+                    )
                 }
             }
 
@@ -465,6 +481,7 @@ private fun BandwidthCard(
 @Composable
 private fun HistoryItem(
     entry: HistoryEntry,
+    onShowSnackbar: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
     var expanded by remember { mutableStateOf(false) }
@@ -580,7 +597,7 @@ private fun HistoryItem(
                                     val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
                                     val clip = android.content.ClipData.newPlainText("Original URL", entry.originalUrl)
                                     clipboard.setPrimaryClip(clip)
-                                    android.widget.Toast.makeText(context, context.getString(R.string.main_copied), android.widget.Toast.LENGTH_SHORT).show()
+                                    onShowSnackbar(context.getString(R.string.main_copied))
                                 },
                                 contentPadding = PaddingValues(horizontal = 12.dp, vertical = 4.dp),
                                 modifier = Modifier.defaultMinSize(minHeight = 1.dp)
@@ -602,7 +619,7 @@ private fun HistoryItem(
                                     val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
                                     val clip = android.content.ClipData.newPlainText(context.getString(R.string.main_cleaned_url), entry.cleanedUrl)
                                     clipboard.setPrimaryClip(clip)
-                                    android.widget.Toast.makeText(context, context.getString(R.string.main_copied), android.widget.Toast.LENGTH_SHORT).show()
+                                    onShowSnackbar(context.getString(R.string.main_copied))
                                 },
                                 contentPadding = PaddingValues(horizontal = 12.dp, vertical = 4.dp),
                                 modifier = Modifier.defaultMinSize(minHeight = 1.dp)
@@ -627,7 +644,7 @@ private fun HistoryItem(
                                         }
                                         context.startActivity(intent)
                                     } catch (e: Exception) {
-                                        android.widget.Toast.makeText(context, context.getString(R.string.toast_no_browser_app), android.widget.Toast.LENGTH_SHORT).show()
+                                        onShowSnackbar(context.getString(R.string.toast_no_browser_app))
                                     }
                                 },
                                 contentPadding = PaddingValues(horizontal = 12.dp, vertical = 4.dp),

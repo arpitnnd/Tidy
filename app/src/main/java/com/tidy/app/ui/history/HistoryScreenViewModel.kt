@@ -1,10 +1,5 @@
 package com.tidy.app.ui.history
 
-import android.content.Context
-import android.content.Intent
-import android.os.Environment
-import android.widget.Toast
-import androidx.activity.result.ActivityResultLauncher
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.tidy.app.TidyURLApp
@@ -79,14 +74,10 @@ class HistoryScreenViewModel(
         return historyRepository.exportToJson()
     }
 
-    fun importHistory(context: Context, json: String) {
+    fun importHistory(json: String, onResult: (Int) -> Unit) {
         viewModelScope.launch {
             val count = historyRepository.importFromJson(json)
-            if (count >= 0) {
-                Toast.makeText(context, "Imported $count new entries", Toast.LENGTH_SHORT).show()
-            } else {
-                Toast.makeText(context, "Import failed: invalid file format", Toast.LENGTH_SHORT).show()
-            }
+            onResult(count)
         }
     }
 }

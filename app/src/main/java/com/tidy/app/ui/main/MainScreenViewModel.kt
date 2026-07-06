@@ -4,7 +4,6 @@ import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
-import android.widget.Toast
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.tidy.app.TidyURLApp
@@ -254,7 +253,6 @@ class MainScreenViewModel(
                 kotlinx.coroutines.delay(2000)
                 _uiState.update { it.copy(copySuccess = false) }
             }
-            Toast.makeText(context, context.getString(com.tidy.app.R.string.toast_copied), Toast.LENGTH_SHORT).show()
         }
     }
 

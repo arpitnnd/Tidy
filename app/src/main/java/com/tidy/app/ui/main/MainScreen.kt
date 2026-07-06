@@ -90,6 +90,7 @@ fun MainScreen(
     val lifecycleOwner = LocalLifecycleOwner.current
     val activity = context as? android.app.Activity
     val scope = rememberCoroutineScope()
+    val snackbarHostState = remember { SnackbarHostState() }
 
     val settingsRepository = TidyURLApp.instance.settingsRepository
     val dontAskAgainCrash by settingsRepository.dontAskAgainCrash.collectAsStateWithLifecycle(initialValue = false)
@@ -222,6 +223,7 @@ fun MainScreen(
     }
 
     Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             TopAppBar(
                 title = {
@@ -241,7 +243,7 @@ fun MainScreen(
                     }
                 },
                 actions = {
-                    TooltipWrapper(tooltipText = "View cleaning history") {
+                    TooltipWrapper(tooltipText = stringResource(R.string.tooltip_history)) {
                         IconButton(onClick = onHistoryClick) {
                             Icon(
                                 imageVector = Icons.Outlined.History,
@@ -250,7 +252,7 @@ fun MainScreen(
                             )
                         }
                     }
-                    TooltipWrapper(tooltipText = "Open settings") {
+                    TooltipWrapper(tooltipText = stringResource(R.string.tooltip_settings)) {
                         IconButton(onClick = onSettingsClick) {
                             Icon(
                                 imageVector = Icons.Filled.Settings,
@@ -282,7 +284,12 @@ fun MainScreen(
                     ) {
                         TooltipWrapper(tooltipText = stringResource(R.string.tooltip_copy_clean), modifier = Modifier.weight(1f)) {
                             Button(
-                                onClick = { viewModel.copyToClipboard(context) },
+                                onClick = {
+                                    viewModel.copyToClipboard(context)
+                                    scope.launch {
+                                        snackbarHostState.showSnackbar(context.getString(R.string.toast_copied))
+                                    }
+                                },
                                 modifier = Modifier.fillMaxWidth(),
                                 shape = RoundedCornerShape(16.dp),
                                 colors = ButtonDefaults.buttonColors(
@@ -313,7 +320,7 @@ fun MainScreen(
                             }
                         }
 
-                        TooltipWrapper(tooltipText = "Share cleaned URL with other apps", modifier = Modifier.weight(1f)) {
+                        TooltipWrapper(tooltipText = stringResource(R.string.tooltip_share_clean), modifier = Modifier.weight(1f)) {
                             Button(
                                 onClick = { viewModel.shareUrl(context) },
                                 modifier = Modifier.fillMaxWidth(),
@@ -335,7 +342,7 @@ fun MainScreen(
         },
         floatingActionButton = {
             if (state.isCleaned) {
-                TooltipWrapper(tooltipText = "Clean another link") {
+                TooltipWrapper(tooltipText = stringResource(R.string.tooltip_clean_new)) {
                     ExtendedFloatingActionButton(
                         onClick = {
                             viewModel.onUrlInput("")
@@ -480,7 +487,7 @@ fun MainScreen(
                                     }
                                 }
                             }
-                            TooltipWrapper(tooltipText = "Open cleaned URL in browser") {
+                            TooltipWrapper(tooltipText = stringResource(R.string.tooltip_open_browser)) {
                                 IconButton(
                                     onClick = {
                                         try {
@@ -489,7 +496,9 @@ fun MainScreen(
                                             }
                                             context.startActivity(intent)
                                         } catch (e: Exception) {
-                                            android.widget.Toast.makeText(context, context.getString(R.string.toast_no_browser_app), android.widget.Toast.LENGTH_SHORT).show()
+                                            scope.launch {
+                                                snackbarHostState.showSnackbar(context.getString(R.string.toast_no_browser_app))
+                                            }
                                         }
                                     },
                                     colors = IconButtonDefaults.iconButtonColors(
@@ -742,7 +751,9 @@ fun MainScreen(
                                         val clip = android.content.ClipData.newPlainText("Cleaned URLs", joinedCleaned)
                                         clipboard.setPrimaryClip(clip)
                                         
-                                        android.widget.Toast.makeText(context, "Cleaned and copied ${urls.size} URLs!", android.widget.Toast.LENGTH_SHORT).show()
+                                        scope.launch {
+                                            snackbarHostState.showSnackbar(context.getString(R.string.plus_toast_bulk_cleaned, urls.size))
+                                        }
                                         bulkClipboardUrls = null
                                     }
                                 }
@@ -1054,7 +1065,9 @@ fun MainScreen(
                                 val clipboard = context.getSystemService(android.content.Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
                                 val clip = android.content.ClipData.newPlainText("Crash Report", crashReportText)
                                 clipboard.setPrimaryClip(clip)
-                                android.widget.Toast.makeText(context, "Copied log. Paste it on GitHub!", android.widget.Toast.LENGTH_LONG).show()
+                                scope.launch {
+                                    snackbarHostState.showSnackbar(context.getString(R.string.crash_toast_copied))
+                                }
                                 
                                 val intent = Intent(Intent.ACTION_VIEW, android.net.Uri.parse("https://github.com/arpitnnd/Tidy/issues/new?title=Crash%20Report&body=Paste%20copied%20crash%20log%20here")).apply {
                                     addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
@@ -1062,7 +1075,9 @@ fun MainScreen(
                                 try {
                                     context.startActivity(intent)
                                 } catch (e: Exception) {
-                                    android.widget.Toast.makeText(context, "Could not open browser", android.widget.Toast.LENGTH_SHORT).show()
+                                    scope.launch {
+                                        snackbarHostState.showSnackbar(context.getString(R.string.crash_toast_browser_error))
+                                    }
                                 }
                                 onDismissCrashReport()
                             },
@@ -1149,7 +1164,12 @@ fun MainScreen(
                 ) {
                     OutlinedButton(
                         onClick = {
-                            launchGitHubBugReport(context, param, domain)
+                            val success = launchGitHubBugReport(context, param, domain)
+                            if (!success) {
+                                scope.launch {
+                                    snackbarHostState.showSnackbar(context.getString(R.string.crash_toast_browser_error))
+                                }
+                            }
                             paramToWhitelist = null
                         },
                         modifier = Modifier.weight(1f),
@@ -1415,21 +1435,17 @@ private fun extractDomain(url: String): String {
     return temp.trim().lowercase()
 }
 
-private fun launchGitHubBugReport(context: Context, param: String, domain: String) {
-    val appVersion = "1.0.0"
-    val androidVersion = "API ${android.os.Build.VERSION.SDK_INT} (Android ${android.os.Build.VERSION.RELEASE})"
-    val title = "Incorrect removal of parameter '$param' on '$domain'"
+private fun launchGitHubBugReport(context: android.content.Context, param: String, domain: String): Boolean {
+    val title = "Broken parameter: $param on $domain"
     val body = """
-**Parameter:** `$param`
-**Domain:** `$domain`
-**App Version:** `$appVersion`
-**Android Version:** `$androidVersion`
+**Parameter:** $param
+**Domain:** $domain
 
 **Description:**
 The parameter `$param` was removed from `$domain`, which broke the site or removed required information. Please review this rule.
 """.trimIndent()
 
-    try {
+    return try {
         val encodedTitle = java.net.URLEncoder.encode(title, "UTF-8")
         val encodedBody = java.net.URLEncoder.encode(body, "UTF-8")
         val urlStr = "https://github.com/arpitnnd/Tidy/issues/new?title=$encodedTitle&body=$encodedBody&labels=bug-report"
@@ -1438,8 +1454,9 @@ The parameter `$param` was removed from `$domain`, which broke the site or remov
             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         }
         context.startActivity(intent)
+        true
     } catch (e: Exception) {
-        android.widget.Toast.makeText(context, "Could not open browser", android.widget.Toast.LENGTH_SHORT).show()
+        false
     }
 }
 

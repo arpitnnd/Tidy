@@ -51,11 +51,13 @@ fun SettingsScreen(
 
     val settingsRepository = com.tidy.app.TidyURLApp.instance.settingsRepository
     val scope = rememberCoroutineScope()
+    val snackbarHostState = remember { SnackbarHostState() }
 
     var showMigrationDialog by remember { mutableStateOf(false) }
     var showUpsellSheet by remember { mutableStateOf(false) }
 
     Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             TopAppBar(
                 title = {
@@ -532,7 +534,9 @@ fun SettingsScreen(
                                     }
                                     context.startActivity(intent)
                                 } catch (e: Exception) {
-                                    Toast.makeText(context, "Could not open browser", Toast.LENGTH_SHORT).show()
+                                    scope.launch {
+                                        snackbarHostState.showSnackbar(context.getString(R.string.crash_toast_browser_error))
+                                    }
                                 }
                             },
                         horizontalArrangement = Arrangement.spacedBy(16.dp),
@@ -1008,7 +1012,9 @@ fun SettingsScreen(
                                     val clipboard = context.getSystemService(android.content.Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
                                     val clip = android.content.ClipData.newPlainText("Crash Report", currentCrashReportText)
                                     clipboard.setPrimaryClip(clip)
-                                    Toast.makeText(context, "Copied log. Paste it on GitHub!", Toast.LENGTH_LONG).show()
+                                    scope.launch {
+                                        snackbarHostState.showSnackbar(context.getString(R.string.crash_toast_copied))
+                                    }
 
                                     val intent = Intent(Intent.ACTION_VIEW, android.net.Uri.parse("https://github.com/arpitnnd/Tidy/issues/new?title=Crash%20Report&body=Paste%20copied%20crash%20log%20here")).apply {
                                         addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
@@ -1016,7 +1022,9 @@ fun SettingsScreen(
                                     try {
                                         context.startActivity(intent)
                                     } catch (e: Exception) {
-                                        Toast.makeText(context, "Could not open browser", Toast.LENGTH_SHORT).show()
+                                        scope.launch {
+                                            snackbarHostState.showSnackbar(context.getString(R.string.crash_toast_browser_error))
+                                        }
                                     }
                                     showSettingsCrashDialog = false
                                 }
@@ -1036,7 +1044,9 @@ fun SettingsScreen(
                                     try {
                                         context.startActivity(shareIntent)
                                     } catch (e: Exception) {
-                                        Toast.makeText(context, "Could not share", Toast.LENGTH_SHORT).show()
+                                        scope.launch {
+                                            snackbarHostState.showSnackbar(context.getString(R.string.toast_could_not_share))
+                                        }
                                     }
                                 }
                             ) {
@@ -1051,7 +1061,9 @@ fun SettingsScreen(
                                         }
                                         currentCrashReportText = null
                                         showSettingsCrashDialog = false
-                                        Toast.makeText(context, context.getString(R.string.toast_crash_deleted), Toast.LENGTH_SHORT).show()
+                                        scope.launch {
+                                            snackbarHostState.showSnackbar(context.getString(R.string.toast_crash_deleted))
+                                        }
                                     } catch (e: Exception) {
                                         e.printStackTrace()
                                     }
@@ -1087,7 +1099,9 @@ fun SettingsScreen(
                             }
                             context.startActivity(intent)
                         } catch (e: Exception) {
-                            Toast.makeText(context, "Could not open link", Toast.LENGTH_SHORT).show()
+                            scope.launch {
+                                snackbarHostState.showSnackbar(context.getString(R.string.toast_no_link_app))
+                            }
                         }
                     }
                     .padding(vertical = 16.dp),
