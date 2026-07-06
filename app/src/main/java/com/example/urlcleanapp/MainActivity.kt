@@ -27,6 +27,7 @@ class MainActivity : ComponentActivity() {
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        setTheme(R.style.Theme_UrlCleanApp)
         super.onCreate(savedInstanceState)
 
         val crashReportsDir = java.io.File(filesDir, "crash_reports")

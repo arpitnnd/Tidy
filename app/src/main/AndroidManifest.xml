@@ -14,6 +14,7 @@
         android:theme="@style/Theme.UrlCleanApp">
         <activity
             android:name=".MainActivity"
+            android:theme="@style/Theme.UrlCleanApp.Starting"
             android:launchMode="singleTop"
             android:exported="true">
             <intent-filter>
