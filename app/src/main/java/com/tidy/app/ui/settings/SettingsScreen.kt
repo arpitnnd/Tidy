@@ -5,7 +5,16 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.background
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.material.icons.automirrored.filled.OpenInNew
 import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
@@ -123,6 +132,12 @@ fun SettingsScreen(
 
             if (showDefaultBlocklistSheet) {
                 val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+                val scrollState = rememberScrollState()
+                val dividerAlpha by animateFloatAsState(
+                    targetValue = if (scrollState.value > 0) 0.12f else 0f,
+                    label = "BlocklistDividerAlpha"
+                )
+
                 ModalBottomSheet(
                     onDismissRequest = { showDefaultBlocklistSheet = false },
                     sheetState = sheetState,
@@ -133,19 +148,48 @@ fun SettingsScreen(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(horizontal = 24.dp)
-                            .padding(bottom = 32.dp)
                             .navigationBarsPadding(),
                         horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.spacedBy(16.dp)
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
-                        Text(
-                            text = stringResource(R.string.dialog_default_blocklist_title),
-                            style = MaterialTheme.typography.headlineMedium,
-                            fontWeight = FontWeight.ExtraBold,
-                            color = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.align(Alignment.Start)
-                        )
-                        
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = stringResource(R.string.dialog_default_blocklist_title),
+                                style = MaterialTheme.typography.titleLarge,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                            TooltipWrapper(tooltipText = stringResource(R.string.dialog_default_blocklist_view_github)) {
+                                IconButton(
+                                    onClick = {
+                                        try {
+                                            val intent = Intent(
+                                                Intent.ACTION_VIEW,
+                                                android.net.Uri.parse("https://github.com/arpitnnd/Tidy/commits/main/blocklist/trackers.json")
+                                            ).apply {
+                                                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                                            }
+                                            context.startActivity(intent)
+                                        } catch (e: Exception) {
+                                            scope.launch {
+                                                snackbarHostState.showSnackbar(context.getString(R.string.crash_toast_browser_error))
+                                            }
+                                        }
+                                    }
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.AutoMirrored.Filled.OpenInNew,
+                                        contentDescription = stringResource(R.string.dialog_default_blocklist_view_github),
+                                        tint = MaterialTheme.colorScheme.primary
+                                    )
+                                }
+                            }
+                        }
+
                         Text(
                             text = stringResource(R.string.dialog_default_blocklist_desc),
                             style = MaterialTheme.typography.bodyMedium,
@@ -153,15 +197,17 @@ fun SettingsScreen(
                             modifier = Modifier.align(Alignment.Start)
                         )
 
-                        HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.12f))
+                        HorizontalDivider(
+                            color = MaterialTheme.colorScheme.outline.copy(alpha = dividerAlpha),
+                            modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)
+                        )
 
-                        // Scrollable List of default parameters with descriptions
                         Column(
                             verticalArrangement = Arrangement.spacedBy(12.dp),
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .heightIn(max = 300.dp)
-                                .verticalScroll(rememberScrollState())
+                                .weight(1f, fill = false)
+                                .verticalScroll(scrollState)
                         ) {
                             state.trackers.forEach { tracker ->
                                 Column(
@@ -171,7 +217,7 @@ fun SettingsScreen(
                                 ) {
                                     Text(
                                         text = tracker.name,
-                                        style = MaterialTheme.typography.bodyLarge,
+                                        style = MaterialTheme.typography.bodyMedium,
                                         fontWeight = FontWeight.Bold,
                                         color = MaterialTheme.colorScheme.onSurface
                                     )
@@ -183,42 +229,8 @@ fun SettingsScreen(
                                 }
                                 HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.08f))
                             }
-                        }
 
-                        Spacer(modifier = Modifier.height(8.dp))
-
-                        Button(
-                            onClick = {
-                                try {
-                                    val intent = Intent(
-                                        Intent.ACTION_VIEW,
-                                        android.net.Uri.parse("https://github.com/arpitnnd/Tidy/commits/main/blocklist/trackers.json")
-                                    ).apply {
-                                        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                                    }
-                                    context.startActivity(intent)
-                                } catch (e: Exception) {
-                                    scope.launch {
-                                        snackbarHostState.showSnackbar(context.getString(R.string.crash_toast_browser_error))
-                                    }
-                                }
-                                showDefaultBlocklistSheet = false
-                            },
-                            modifier = Modifier.fillMaxWidth(),
-                            shape = RoundedCornerShape(16.dp),
-                            contentPadding = PaddingValues(vertical = 14.dp)
-                        ) {
-                            Text(
-                                text = stringResource(R.string.dialog_default_blocklist_view_github),
-                                fontWeight = FontWeight.Bold
-                            )
-                        }
-
-                        TextButton(onClick = { showDefaultBlocklistSheet = false }) {
-                            Text(
-                                text = stringResource(R.string.dialog_close),
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
+                            Spacer(modifier = Modifier.height(32.dp))
                         }
                     }
                 }
