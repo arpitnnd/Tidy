@@ -119,52 +119,75 @@ fun SettingsScreen(
             var isBypassListExpanded by remember { mutableStateOf(false) }
             var isParamWhitelistExpanded by remember { mutableStateOf(false) }
             var isCustomParamsExpanded by remember { mutableStateOf(false) }
-            var showDefaultBlocklistDialog by remember { mutableStateOf(false) }
+            var showDefaultBlocklistSheet by remember { mutableStateOf(false) }
 
-            if (showDefaultBlocklistDialog) {
-                AlertDialog(
-                    onDismissRequest = { showDefaultBlocklistDialog = false },
-                    title = {
+            if (showDefaultBlocklistSheet) {
+                val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+                ModalBottomSheet(
+                    onDismissRequest = { showDefaultBlocklistSheet = false },
+                    sheetState = sheetState,
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    tonalElevation = 8.dp
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 24.dp)
+                            .padding(bottom = 32.dp)
+                            .navigationBarsPadding(),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
                         Text(
                             text = stringResource(R.string.dialog_default_blocklist_title),
-                            fontWeight = FontWeight.Bold,
-                            style = MaterialTheme.typography.titleMedium
+                            style = MaterialTheme.typography.headlineMedium,
+                            fontWeight = FontWeight.ExtraBold,
+                            color = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.align(Alignment.Start)
                         )
-                    },
-                    text = {
+                        
+                        Text(
+                            text = stringResource(R.string.dialog_default_blocklist_desc),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.align(Alignment.Start)
+                        )
+
+                        HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.12f))
+
+                        // Scrollable List of default parameters with descriptions
                         Column(
                             verticalArrangement = Arrangement.spacedBy(12.dp),
-                            modifier = Modifier.fillMaxWidth()
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .heightIn(max = 300.dp)
+                                .verticalScroll(rememberScrollState())
                         ) {
-                            Text(
-                                text = stringResource(R.string.dialog_default_blocklist_desc),
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-
-                            // List of default tracking params
-                            val defaultParams = listOf(
-                                "utm_source", "utm_medium", "utm_campaign", "utm_term", "utm_content", "utm_id",
-                                "fbclid", "gclid", "msclkid", "yclid", "dclid", "si", "igsh", "mc_eid"
-                            )
-
-                            FlowRow(
-                                horizontalArrangement = Arrangement.spacedBy(6.dp),
-                                verticalArrangement = Arrangement.spacedBy(6.dp),
-                                modifier = Modifier.fillMaxWidth().heightIn(max = 160.dp).verticalScroll(rememberScrollState())
-                            ) {
-                                defaultParams.forEach { param ->
-                                    SuggestionChip(
-                                        onClick = {},
-                                        label = { Text(param, style = MaterialTheme.typography.bodySmall) },
-                                        shape = RoundedCornerShape(8.dp)
+                            state.trackers.forEach { tracker ->
+                                Column(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(vertical = 4.dp)
+                                ) {
+                                    Text(
+                                        text = tracker.name,
+                                        style = MaterialTheme.typography.bodyLarge,
+                                        fontWeight = FontWeight.Bold,
+                                        color = MaterialTheme.colorScheme.onSurface
+                                    )
+                                    Text(
+                                        text = tracker.description,
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
                                     )
                                 }
+                                HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.08f))
                             }
                         }
-                    },
-                    confirmButton = {
-                        TextButton(
+
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        Button(
                             onClick = {
                                 try {
                                     val intent = Intent(
@@ -179,19 +202,26 @@ fun SettingsScreen(
                                         snackbarHostState.showSnackbar(context.getString(R.string.crash_toast_browser_error))
                                     }
                                 }
-                                showDefaultBlocklistDialog = false
-                            }
+                                showDefaultBlocklistSheet = false
+                            },
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(16.dp),
+                            contentPadding = PaddingValues(vertical = 14.dp)
                         ) {
-                            Text(stringResource(R.string.dialog_default_blocklist_view_github), fontWeight = FontWeight.Bold)
+                            Text(
+                                text = stringResource(R.string.dialog_default_blocklist_view_github),
+                                fontWeight = FontWeight.Bold
+                            )
                         }
-                    },
-                    dismissButton = {
-                        TextButton(onClick = { showDefaultBlocklistDialog = false }) {
-                            Text(stringResource(R.string.dialog_close))
+
+                        TextButton(onClick = { showDefaultBlocklistSheet = false }) {
+                            Text(
+                                text = stringResource(R.string.dialog_close),
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
                         }
-                    },
-                    shape = RoundedCornerShape(28.dp)
-                )
+                    }
+                }
             }
 
             Card(
@@ -593,7 +623,7 @@ fun SettingsScreen(
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clickable { showDefaultBlocklistDialog = true }
+                            .clickable { showDefaultBlocklistSheet = true }
                             .padding(vertical = 4.dp),
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically

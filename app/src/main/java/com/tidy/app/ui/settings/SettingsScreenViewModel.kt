@@ -7,6 +7,8 @@ import com.tidy.app.data.SettingsRepository
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
+import com.tidy.app.data.TrackerEntry
+
 class SettingsScreenViewModel(
     private val settingsRepository: SettingsRepository = TidyURLApp.instance.settingsRepository
 ) : ViewModel() {
@@ -15,6 +17,7 @@ class SettingsScreenViewModel(
         val whitelistedDomains: Set<String> = emptySet(),
         val blacklistedParams: Set<String> = emptySet(),
         val domainWhitelistedParams: Set<String> = emptySet(),
+        val trackers: List<TrackerEntry> = emptyList(),
         val domainInput: String = "",
         val paramInput: String = "",
         val newParamWhitelistDomain: String = "",
@@ -36,14 +39,22 @@ class SettingsScreenViewModel(
         val autoCleanInput: Boolean
     )
 
+    private data class RulesData(
+        val whitelist: Set<String>,
+        val blacklist: Set<String>,
+        val domainParams: Set<String>,
+        val trackers: List<TrackerEntry>
+    )
+
     private val _uiState = MutableStateFlow(UiState())
     val uiState: StateFlow<UiState> = combine(
         combine(
             settingsRepository.whitelistedDomains,
             settingsRepository.blacklistedParams,
-            settingsRepository.domainWhitelistedParams
-        ) { whitelist, blacklist, domainParams ->
-            Triple(whitelist, blacklist, domainParams)
+            settingsRepository.domainWhitelistedParams,
+            settingsRepository.trackers
+        ) { whitelist, blacklist, domainParams, trackers ->
+            RulesData(whitelist, blacklist, domainParams, trackers)
         },
         combine(
             settingsRepository.autoCopyOnShare,
@@ -65,9 +76,10 @@ class SettingsScreenViewModel(
         _uiState
     ) { reposFlow1, reposFlow2, state ->
         state.copy(
-            whitelistedDomains = reposFlow1.first,
-            blacklistedParams = reposFlow1.second,
-            domainWhitelistedParams = reposFlow1.third,
+            whitelistedDomains = reposFlow1.whitelist,
+            blacklistedParams = reposFlow1.blacklist,
+            domainWhitelistedParams = reposFlow1.domainParams,
+            trackers = reposFlow1.trackers,
             autoCopyOnShare = reposFlow2.autoCopy,
             autoCloseOnShare = reposFlow2.autoClose,
             autoExpandShortUrls = reposFlow2.autoExpand,
