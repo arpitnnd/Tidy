@@ -102,6 +102,8 @@
     <string name="history_clear_dialog_title">Clear all history?</string>
     <string name="history_clear_dialog_text">Permanently delete all %1$d history entries? This cannot be undone.</string>
     <string name="history_clear_all">Clear all</string>
+    <string name="history_cleared_toast">History cleared</string>
+    <string name="history_undo_action">Undo</string>
     <string name="history_bandwidth_desc">Estimated bandwidth saved by stripping tracking parameters</string>
     <string name="history_open">Open</string>
     <string name="history_toast_exported">Exported successfully</string>

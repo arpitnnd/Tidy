@@ -12,6 +12,15 @@ object UrlExpander {
         "goo.gl", "ow.ly", "tiny.cc", "t.ly", "cutt.ly"
     )
 
+    private const val CACHE_MAX_SIZE = 100
+    private val cache = java.util.Collections.synchronizedMap(
+        object : java.util.LinkedHashMap<String, String>(16, 0.75f, true) {
+            override fun removeEldestEntry(eldest: MutableMap.MutableEntry<String, String>?): Boolean {
+                return size > CACHE_MAX_SIZE
+            }
+        }
+    )
+
     fun isShortUrl(urlStr: String): Boolean {
         val host = extractHost(urlStr)
         return SHORT_URL_DOMAINS.contains(host) || SHORT_URL_DOMAINS.any { domain ->
@@ -21,6 +30,10 @@ object UrlExpander {
 
     suspend fun resolve(urlStr: String): String = withContext(Dispatchers.IO) {
         var currentUrl = urlStr.trim()
+        val cached = cache[currentUrl]
+        if (cached != null) {
+            return@withContext cached
+        }
         if (!currentUrl.startsWith("http://", ignoreCase = true) && !currentUrl.startsWith("https://", ignoreCase = true)) {
             currentUrl = "https://$currentUrl"
         }
@@ -66,6 +79,7 @@ object UrlExpander {
                 connection?.disconnect()
             }
         }
+        cache[urlStr.trim()] = currentUrl
         currentUrl
     }
 

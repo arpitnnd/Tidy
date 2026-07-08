@@ -27,11 +27,14 @@ class HistoryScreenViewModel(
         val totalCleanedCount: Int = 0,
         val totalTrackersBlocked: Int = 0,
         val showClearConfirmation: Boolean = false,
-        val isInitialLoading: Boolean = true
+        val isInitialLoading: Boolean = true,
+        val trackerDescriptions: Map<String, String> = emptyMap()
     )
 
     private val _uiState = MutableStateFlow(UiState())
     val uiState: StateFlow<UiState> = _uiState.asStateFlow()
+
+    private var lastClearedHistory: List<HistoryEntry>? = null
 
     init {
         viewModelScope.launch {
@@ -41,17 +44,17 @@ class HistoryScreenViewModel(
             combine(
                 historyRepository.historyFlow,
                 settingsRepository.totalCleanedCount,
-                settingsRepository.totalTrackersBlocked
-            ) { history, count, blocked ->
-                Triple(history, count, blocked)
-            }.collect { triple ->
+                settingsRepository.totalTrackersBlocked,
+                settingsRepository.trackerDescriptions
+            ) { history, count, blocked, descriptions ->
                 _uiState.update { it.copy(
-                    history = triple.first,
-                    totalCleanedCount = triple.second,
-                    totalTrackersBlocked = triple.third,
+                    history = history,
+                    totalCleanedCount = count,
+                    totalTrackersBlocked = blocked,
+                    trackerDescriptions = descriptions,
                     isInitialLoading = false
                 ) }
-            }
+            }.collect {}
         }
     }
 
@@ -65,8 +68,23 @@ class HistoryScreenViewModel(
 
     fun clearHistory() {
         viewModelScope.launch {
+            val currentHistory = _uiState.value.history
+            if (currentHistory.isNotEmpty()) {
+                lastClearedHistory = currentHistory
+            }
             historyRepository.clearAll()
             _uiState.update { it.copy(showClearConfirmation = false) }
+        }
+    }
+
+    fun undoClearHistory() {
+        val backup = lastClearedHistory
+        if (backup != null) {
+            viewModelScope.launch {
+                val jsonStr = kotlinx.serialization.json.Json.encodeToString(backup)
+                historyRepository.importFromJson(jsonStr)
+                lastClearedHistory = null
+            }
         }
     }
 

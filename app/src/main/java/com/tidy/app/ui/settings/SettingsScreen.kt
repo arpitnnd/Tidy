@@ -304,8 +304,10 @@ fun SettingsScreen(
                                     )
                                 )
 
-                                val isDomainValid = state.domainInput.trim().run {
-                                    isNotEmpty() && contains(".") && !contains(" ")
+                                val isDomainValid = remember(state.domainInput) {
+                                    state.domainInput.trim().run {
+                                        isNotEmpty() && contains(".") && !contains(" ")
+                                    }
                                 }
 
                                 FilledIconButton(
@@ -441,10 +443,12 @@ fun SettingsScreen(
                                     )
                                 )
 
-                                val isParamWhitelistValid = state.newParamWhitelistDomain.trim().run {
-                                    isNotEmpty() && contains(".") && !contains(" ")
-                                } && state.newParamWhitelistParam.trim().run {
-                                    isNotEmpty() && !contains(" ") && !contains("?") && !contains("&") && !contains("=")
+                                val isParamWhitelistValid = remember(state.newParamWhitelistDomain, state.newParamWhitelistParam) {
+                                    state.newParamWhitelistDomain.trim().run {
+                                        isNotEmpty() && contains(".") && !contains(" ")
+                                    } && state.newParamWhitelistParam.trim().run {
+                                        isNotEmpty() && !contains(" ") && !contains("?") && !contains("&") && !contains("=")
+                                    }
                                 }
 
                                 FilledIconButton(
@@ -564,8 +568,10 @@ fun SettingsScreen(
                                     )
                                 )
 
-                                val isParamValid = state.paramInput.trim().run {
-                                    isNotEmpty() && !contains(" ") && !contains("?") && !contains("&") && !contains("=")
+                                val isParamValid = remember(state.paramInput) {
+                                    state.paramInput.trim().run {
+                                        isNotEmpty() && !contains(" ") && !contains("?") && !contains("&") && !contains("=")
+                                    }
                                 }
 
                                 FilledIconButton(

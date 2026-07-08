@@ -320,6 +320,7 @@ fun HistoryScreen(
                 items(state.history, key = { it.id }) { entry ->
                     HistoryItem(
                         entry = entry,
+                        trackerDescriptions = state.trackerDescriptions,
                         onShowSnackbar = { msg ->
                             scope.launch { snackbarHostState.showSnackbar(msg) }
                         }
@@ -354,7 +355,19 @@ fun HistoryScreen(
             },
             confirmButton = {
                 Button(
-                    onClick = { viewModel.clearHistory() },
+                    onClick = {
+                        viewModel.clearHistory()
+                        scope.launch {
+                            val result = snackbarHostState.showSnackbar(
+                                message = context.getString(R.string.history_cleared_toast),
+                                actionLabel = context.getString(R.string.history_undo_action),
+                                duration = SnackbarDuration.Short
+                            )
+                            if (result == SnackbarResult.ActionPerformed) {
+                                viewModel.undoClearHistory()
+                            }
+                        }
+                    },
                     colors = ButtonDefaults.buttonColors(
                         containerColor = MaterialTheme.colorScheme.error
                     )
@@ -481,6 +494,7 @@ private fun BandwidthCard(
 @Composable
 private fun HistoryItem(
     entry: HistoryEntry,
+    trackerDescriptions: Map<String, String>,
     onShowSnackbar: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -562,6 +576,30 @@ private fun HistoryItem(
                 color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
             )
 
+            val originalUri = remember(entry.originalUrl) {
+                try {
+                    android.net.Uri.parse(entry.originalUrl)
+                } catch (e: Exception) {
+                    null
+                }
+            }
+            val cleanedUri = remember(entry.cleanedUrl) {
+                try {
+                    android.net.Uri.parse(entry.cleanedUrl)
+                } catch (e: Exception) {
+                    null
+                }
+            }
+            val removedParams = remember(originalUri, cleanedUri) {
+                if (originalUri != null && cleanedUri != null) {
+                    val originalQueryKeys = try { originalUri.queryParameterNames } catch (e: Exception) { emptySet<String>() }
+                    val cleanedQueryKeys = try { cleanedUri.queryParameterNames } catch (e: Exception) { emptySet<String>() }
+                    originalQueryKeys.filter { it !in cleanedQueryKeys }
+                } else {
+                    emptyList()
+                }
+            }
+
             AnimatedVisibility(visible = expanded) {
                 Column(
                     verticalArrangement = Arrangement.spacedBy(8.dp),
@@ -584,6 +622,45 @@ private fun HistoryItem(
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
+                    }
+
+                    if (removedParams.isNotEmpty()) {
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = "Removed Parameters",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f),
+                            fontWeight = FontWeight.Bold
+                        )
+                        Spacer(modifier = Modifier.height(2.dp))
+                        Column(
+                            verticalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
+                            removedParams.forEach { param ->
+                                val desc = trackerDescriptions[param.lowercase().trim()] ?: stringResource(R.string.details_no_explanation)
+                                Column(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .background(
+                                            color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.2f),
+                                            shape = RoundedCornerShape(8.dp)
+                                        )
+                                        .padding(8.dp)
+                                ) {
+                                    Text(
+                                        text = param,
+                                        style = MaterialTheme.typography.bodySmall,
+                                        fontWeight = FontWeight.Bold,
+                                        color = MaterialTheme.colorScheme.primary
+                                    )
+                                    Text(
+                                        text = desc,
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
+                            }
+                        }
                     }
 
                     Row(

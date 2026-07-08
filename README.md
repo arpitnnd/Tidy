@@ -4,175 +4,161 @@
 [![Platform](https://img.shields.io/badge/Platform-Android-green.svg)](#)
 [![Kotlin](https://img.shields.io/badge/Kotlin-Multiplatform-purple.svg)](#)
 
-A beautiful, privacy-first, offline-first Android app built with **Kotlin Multiplatform (KMP)** and **Jetpack Compose** designed to strip tracking garbage (`utm_*`, `fbclid`, `gclid`, etc.) from URLs before you share them.
+Most links you share carry tracking parameters — click IDs, campaign
+tags, referral codes. Small strings that quietly record where you found
+a link, when you shared it, and who you sent it to. You never added
+them. They're just there.
 
-Tidy values your digital hygiene, offering robust whitelisting mechanics, automatic short URL resolution, and seamless clipboard automation—all running entirely on-device with zero remote server logging.
+Tidy removes them before the link leaves your phone.
 
----
-
-## Key Features 🚀
-
-- **Local & Offline-First**: All URL cleaning is performed 100% locally on your phone. No logins, no trackers, and no external API dependencies.
-- **Inline Selection Cleaning (`PROCESS_TEXT`)**: Clean URLs in-place from any third-party app via the system text-selection toolbar (Tidy+ only).
-- **GitHub-hosted Remote Blocklist Sync**: Periodic background synchronization of the parameter blocklist via ETag cache headers.
-- **Unified Bottom Sheet Details**: Displays parameter descriptions, one-tap whitelisting, and prefilled issue reporting templates for stripped parameters.
-- **Smart Short URL Expansion**: Prepend protocols and resolve shortened links (e.g. `bit.ly`, `tinyurl.com`, `t.co`) to their final destinations before cleaning, bypassing aggressive redirect blockades.
-- **Mobile Subdomain Removal**: Automatically strip `m.` or `mobile.` subdomains from cleaned links (preserving short domains like `m.me` that lack a second dot in their host).
-- **Domain-Specific Parameter Whitelisting**: Allow specific parameters on certain domains (e.g., keep the `v` parameter on `youtube.com` while stripping it globally).
-- **One-Tap Whitelist Shortcuts**: Instantly whitelist a parameter for the current domain by tapping its chip in the "Removed Parameters" results details card.
-- **Advanced Share Automation**:
-  - **Auto-copy when shared**: Tidy automatically cleans and copies shared URLs to your clipboard.
-  - **Auto-close after copying**: The app closes itself automatically after copying to return you back to your previous app immediately.
-- **Quick Settings Tile ("Tidy Clipboard")**: Tap a tile in your system shade to instantly clean whatever URL is currently on your clipboard in the background, without opening the app.
-- **Zero-Friction Launch Auto-Clean**: Instantly clean your clipboard URL, copy it back, and exit the app on launch. Includes a double-launch escape hatch (bypasses auto-clean if reopened within 3 seconds) to access settings.
-- **Debounced Auto-Clean on Typing**: Automatically cleans URLs in the input field as you type or paste without requiring manual clicks.
-- **Privacy Dashboard & Local History**: 
-  - Tracks statistics like *URLs Cleaned*, *Trackers Blocked*, and *Estimated Bandwidth Saved*.
-  - Detailed, interactive local history cards with individual "Open", "Copy", and "Copy Original" actions.
-  - JSON Backup import and export to secure your stats locally.
-- **Accessible Modern Design**: Built following **Material 3 Expressive guidelines** with a quiet, nature-inspired palette (grounded forest slates, moss charcoal, and sage green). Fully responsive bottom sheet input dialogs and a full-width ergonomic details toggle row.
+It's a small Android app, built carefully rather than quickly, for
+people who'd rather know exactly what their phone is doing than hope
+it's fine. Cleaning happens entirely on-device. The rules are yours to
+read and override. Nothing about your links ever reaches a server —
+Tidy's, or anyone else's.
 
 ---
 
-## Tidy vs. Tidy+
+## What it does
 
-Tidy's cleaning engine, history, and core privacy guarantees are fully open
-source and always will be. Some convenience features that aren't essential
-to the core promise are part of an optional, one-time **Tidy+** unlock —
-this funds continued development without compromising what Tidy is for.
+Share a link to Tidy, or paste one in, and it comes back clean —
+tracking parameters gone, short links (`bit.ly`, `t.co`) unwound to
+where they actually lead, `m.`/`mobile.` subdomains dropped. It happens
+as you type. No button to hunt for.
 
-| | **Tidy** (FOSS) | **Tidy+** (one-time unlock) |
+You stay in charge of the rules, not just the outcome:
+
+- **Know what was removed, and why.** Tap any stripped parameter to see
+  what it actually was — `fbclid`, for instance, is Facebook's way of
+  tying a click back to you. Whitelist it for that one domain in a
+  single tap, or flag a rule as wrong straight into a prefilled GitHub
+  issue.
+- **Whitelisting with nuance.** Keep `v` on `youtube.com` while
+  stripping it everywhere else. Add your own rules where the defaults
+  don't fit.
+- **A record, entirely yours.** The Privacy Dashboard counts URLs
+  cleaned, trackers blocked, and bandwidth saved — unlimited history,
+  per-entry open/copy actions, full JSON backup and restore. It never
+  leaves your phone unless you export it yourself.
+
+### Without even opening the app
+
+- **Quick Settings tile** — clean whatever's on your clipboard from the
+  notification shade, no app launch required.
+- **Launch auto-clean** — open Tidy and your clipboard link is cleaned,
+  copied back, and the app is gone before it's had time to matter.
+- **Share automation** (Tidy+) — a shared link gets cleaned, copied, and
+  Tidy closes itself, dropping you right back where you were.
+- **Clean from anywhere** (Tidy+) — select a URL in any app, tap *Clean
+  with Tidy* in the selection toolbar. No switching apps to do it.
+
+---
+
+## The one network call
+
+Tidy's tracker blocklist lives in this repository. The app checks in
+every few days for updates — a plain, read-only pull of public rules,
+so it keeps catching new trackers without waiting on you to update the
+app. Nothing about you or your links travels the other way. On first
+install, before it's ever fetched anything, Tidy already works fully
+offline using its bundled rules. Every change to the blocklist is
+public: [see the history for yourself](../../commits/main/blocklist).
+
+Short-link expansion needs the network too, by nature — unwinding
+`bit.ly/xyz` means asking where it goes. That request travels straight
+from your phone to the link's own server. Nothing of Tidy's sits in
+between.
+
+That's the whole list. Two calls, both explainable in one sentence, both
+one-way.
+
+---
+
+## No crash reporting, no analytics — on purpose
+
+There's no Firebase in here. No Crashlytics, no analytics SDK, nothing
+phoning home in the background.
+
+If Tidy crashes, the report stays on your device. Find it under
+**Settings → Diagnostics & Crashes** — read it, delete it, or share it
+yourself through the system share sheet if you want to help. Tidy never
+sends anything without you choosing to.
+
+An app that claims zero remote logging shouldn't ask you to trust that
+blindly. The code's right here — go check.
+
+---
+
+## Tidy and Tidy+
+
+Tidy is free and open source, and free isn't a trial here. Everything
+that gives you control — the cleaning engine, custom rules, whitelist
+profiles, unlimited history, your own backups — stays free, for good.
+
+**Tidy+** is a one-time unlock on Google Play for people who already
+trust how Tidy behaves and want a few less taps: auto-copy and
+auto-close on share, cleaning from any text field, extra themes. It's
+also how this stays a real, maintained project instead of an app that
+quietly stops getting updates — no ads, no subscription, no data
+collected to sell instead.
+
+| | **Tidy** | **Tidy+** |
 |---|---|---|
-| Local URL cleaning & tracker stripping | ✅ | ✅ |
-| Short-URL unwrapping | ✅ | ✅ |
-| Domain whitelisting, incl. custom/regex rules | ✅ | ✅ |
-| Multiple whitelist profiles | ✅ | ✅ |
-| Full history & Privacy Dashboard | ✅ Unlimited | ✅ Unlimited |
-| JSON backup & restore | ✅ | ✅ |
+| Cleaning engine, short-link expansion | ✅ | ✅ |
+| Custom rules, whitelist profiles | ✅ | ✅ |
+| Unlimited history, dashboard, backup/restore | ✅ | ✅ |
+| Quick Settings tile, launch auto-clean | ✅ | ✅ |
 | Auto-copy & auto-close on share | — | ✅ |
 | Inline text-selection cleaning | — | ✅ |
-| Bulk clipboard cleaning | — | ✅ |
 | Extra themes | — | ✅ |
-| Available on | GitHub Releases (direct APK) | Google Play (free install, unlock via in-app purchase) |
 
-A few things worth being upfront about:
+## Installing
 
-- **The free version isn't a trial.** Everything that gives you control —
-  cleaning, custom rules, whitelist profiles, full history, your own
-  backups — is in the free tier, permanently, no asterisks.
-- **Tidy+ is about saving time, not unlocking trust.** Auto-copy, auto-close,
-  inline selection cleaning, and bulk actions exist for people who already know how the app behaves
-  and just want fewer taps. Nothing in there changes what gets cleaned or
-  who can see your data.
-- **Tidy+ is a one-time purchase, not a subscription.** Since everything
-  runs on-device with no ongoing server cost, recurring billing wouldn't be
-  honest.
-- **The core app's source stays GPL-licensed and forkable.** The Tidy+
-  module is closed-source and Play-only, which is what makes a paid unlock
-  viable at all — anyone can build the GitHub version themselves, and we'd
-  rather you know that than discover it later.
-- **The GitHub-distributed build will never gate features behind a
-  paywall.** If something genuinely core to privacy gets added later, it
-  ships free, in that build, no exceptions.
+Same app, two doors in:
+
+- **[GitHub Releases](../../releases)** — open source, no Play account
+  needed. You update it yourself, whenever you check back.
+- **[Google Play](#)** — free to install, updates itself, Tidy+
+  available if you want it.
+
+They're signed separately and install as two distinct apps. Switching
+from GitHub to Play later takes one export and one restore — Tidy walks
+you through it on first launch.
 
 ---
 
-## Which build should I install?
+## Design
 
-Both are the same app under the hood. Pick based on how you want updates
-handled:
-
-- **GitHub Releases (APK)** — fully open source, no Play account needed.
-  Updates are manual: watch the repo or check back for new releases.
-- **Google Play** — same core app, plus the Tidy+ unlock if you want it.
-  Updates install automatically, same as any other Play app.
-
-Already on the GitHub build and want to move to Play later? Your data
-moves with you via the existing backup/export — see below.
+Built to Material 3 Expressive, in a quiet, nature-leaning palette —
+forest slates, moss charcoal, sage green. Inputs sit low enough for a
+thumb to reach without adjusting your grip. Nothing here is trying to
+be noticed. A tool you'll open twenty times a day should feel like part
+of the phone, not an occasion.
 
 ---
 
-## Crash Reporting & Analytics — By Design, Not By Accident
+## For developers
 
-You won't find Firebase Crashlytics, Google Analytics, or any third-party
-telemetry SDK in this codebase. That's not an oversight — it's the same
-"zero remote logging" principle that governs everything else in Tidy.
+Kotlin Multiplatform, split cleanly between core logic and the Android
+client:
 
-Instead:
+- **`:shared`** — `UrlCleaner` (the parameter-stripping and whitelisting
+  engine), `SettingsRepository` (DataStore-backed rules, stats, and
+  automation settings).
+- **`:app`** — Compose UI (Navigation3), share-intent handling, the
+  Quick Settings `TileService`, and `UrlExpander` for redirect
+  resolution.
 
-- **Crashes** are caught locally using [ACRA](https://github.com/ACRA/acra),
-  an open-source crash handler. If Tidy crashes, the report is written to
-  your device only. On next launch, you'll see a small prompt offering to
-  show you the report or share it yourself, manually. To prevent continuous popup alerts, dismissing the prompt hides it for the current app session.
-- **Diagnostics & Log Access**: Users can always inspect, share, or delete the last crash report at any time via a dedicated "Diagnostics & Crashes" section in the Settings panel.
-- **Usage analytics** don't exist, full stop. The Privacy Dashboard already
-  gives *you* the stats that matter (URLs cleaned, trackers blocked) —
-  there's no separate copy being sent to us, and no toggle anywhere that
-  sends it either.
-- **Remote Blocklist Updates**: Tidy periodically performs a read-only background fetch to synchronize its parameter blocklist from GitHub. This fetch transmits absolutely no client identifiers, usage statistics, or cleaned URL data. It is a one-way download of public parsing rules so your app can stay up-to-date against new trackers without needing manual updates. The app is fully functional offline on first install using its bundled fallback rules.
-- **Performance monitoring** happens on our end during development (Android
-  Studio Profiler, Macrobenchmark), never in the shipped app.
-- On the **Play Store build only**, we rely on Android Vitals in Play
-  Console — a Google-provided view of crash/ANR rates collected at the OS
-  level for any app distributed through Play. This requires no SDK and no
-  code in Tidy; it's not present at all in the GitHub-distributed build.
+**Requirements:** JDK 17+, Android SDK 26+, Android Studio Ladybug or
+newer.
 
-If you've ever wondered why an app this small doesn't have a "send crash
-data" checkbox buried in onboarding — this is why. The absence is the point.
-
----
-
-## Architecture & Codebase Structure 🏗️
-
-The project utilizes a decoupled Kotlin Multiplatform architecture dividing core logic and the Android presentation client:
-
-- **`:shared` (Core Logic)**:
-  - `UrlCleaner`: The regex parameter scrubbing and domain whitelisting core engine.
-  - `SettingsRepository`: Manages whitelists, custom blacklists, stats, and automation configurations backed by Jetpack DataStore Preferences.
-  - `PlatformDataStore`: Platform-specific expected declarations for DataStore instantiation.
-- **`:app` (Android Application)**:
-  - `MainActivity`: Intercepts shared text intents (`ACTION_SEND`) and orchestrates background automation.
-  - `Navigation`: Implements screen routing using Jetpack Navigation3.
-  - `ui/main/`: Main dashboard, manual input bottom sheet, results cards, and the `MainScreenViewModel`.
-  - `ui/settings/`: Management panel for whitelists, blacklists, automation switches, and custom switch styles.
-  - `ui/history/`: Analytics cards, bandwidth savings estimator, import/export buttons, and the interactive historical log.
-  - `data/UrlExpander`: Handles async HTTP GET-redirect resolution (following up to 5 hops with connection timeout safeguards).
-  - `data/TidyTileService`: Implements the Quick Settings Tile for zero-friction background clipboard cleaning.
-
----
-
-## Technical Stack 🛠️
-
-- **Language**: Kotlin Multiplatform (KMP)
-- **UI Framework**: Jetpack Compose (Compose Multiplatform)
-- **Data Storage**: Jetpack DataStore Preferences
-- **Navigation**: Jetpack Navigation3
-- **Build System**: Gradle Kotlin DSL (`.gradle.kts`)
-
----
-
-## Getting Started 💻
-
-### Prerequisites
-- JDK 17 or higher
-- Android SDK (API Level 26+)
-- Android Studio Ladybug (or newer)
-
-### Build and Run
-1. Clone this repository.
-2. Build and install the debug application to an active emulator or connected device:
-   ```bash
-   ./gradlew installDebug
-   ```
-
-### Running Unit Tests
-To run JVM unit tests for both shared business logic and presentation view-models:
 ```bash
-./gradlew testDebugUnitTest
+./gradlew installDebug        # build & install debug
+./gradlew testDebugUnitTest   # run unit tests
 ```
 
 ---
 
-## License 📄
+## License
 
-Tidy is open-source software licensed under the **Apache License 2.0**. See the [LICENSE](LICENSE) file for details.
+Apache License 2.0 — see [LICENSE](LICENSE).

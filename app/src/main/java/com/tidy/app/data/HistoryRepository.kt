@@ -39,11 +39,21 @@ class HistoryRepository(
         prettyPrint = true
     }
 
+    private var cachedEntries: List<HistoryEntry>? = null
+
+    private fun getOrLoadEntries(): List<HistoryEntry> {
+        val cached = cachedEntries
+        if (cached != null) return cached
+        val entries = readFromFile()
+        cachedEntries = entries
+        _historyFlow.value = entries
+        return entries
+    }
+
     suspend fun loadHistory() {
         withContext(Dispatchers.IO) {
             mutex.withLock {
-                val entries = readFromFile()
-                _historyFlow.value = entries
+                getOrLoadEntries()
             }
         }
     }
@@ -51,8 +61,9 @@ class HistoryRepository(
     suspend fun addEntry(entry: HistoryEntry) {
         withContext(Dispatchers.IO) {
             mutex.withLock {
-                val current = readFromFile().toMutableList()
+                val current = getOrLoadEntries().toMutableList()
                 current.add(0, entry) // newest first
+                cachedEntries = current
                 writeToFile(current)
                 _historyFlow.value = current
             }
@@ -62,8 +73,10 @@ class HistoryRepository(
     suspend fun clearAll() {
         withContext(Dispatchers.IO) {
             mutex.withLock {
-                writeToFile(emptyList())
-                _historyFlow.value = emptyList()
+                val empty = emptyList<HistoryEntry>()
+                cachedEntries = empty
+                writeToFile(empty)
+                _historyFlow.value = empty
             }
         }
     }
@@ -71,7 +84,7 @@ class HistoryRepository(
     suspend fun exportToJson(): String {
         return withContext(Dispatchers.IO) {
             mutex.withLock {
-                if (historyFile.exists()) historyFile.readText() else "[]"
+                json.encodeToString(getOrLoadEntries())
             }
         }
     }
@@ -81,11 +94,12 @@ class HistoryRepository(
             mutex.withLock {
                 try {
                     val imported = parseJson(jsonStr)
-                    val current = readFromFile().toMutableList()
+                    val current = getOrLoadEntries().toMutableList()
                     val existingIds = current.map { it.id }.toSet()
                     val newEntries = imported.filter { it.id !in existingIds }
                     current.addAll(0, newEntries)
                     current.sortByDescending { it.timestamp }
+                    cachedEntries = current
                     writeToFile(current)
                     _historyFlow.value = current
                     newEntries.size
