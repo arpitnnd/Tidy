@@ -28,7 +28,8 @@ type. No button to hunt for.
 
 You stay in charge of the rules, not just the outcome:
 
-- **Know what was removed, and why.** Tap any stripped parameter to see
+- **Know what was removed, and why.** Tap any stripped parameter (on the
+  dashboard, in your history, or inside the default blocklist) to see
   what it actually was. `fbclid`, for instance, is Facebook's way of
   tying a click back to you. Whitelist it for that one domain in a
   single tap, or flag a rule as wrong straight into a prefilled GitHub
