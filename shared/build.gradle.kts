@@ -9,12 +9,12 @@ kotlin {
         namespace = "com.tidy.app.shared"
         compileSdk = 37
         minSdk = 24
-        
+
         withHostTestBuilder {
             sourceSetTreeName = "test"
         }
     }
-    
+
     sourceSets {
         commonMain {
             dependencies {

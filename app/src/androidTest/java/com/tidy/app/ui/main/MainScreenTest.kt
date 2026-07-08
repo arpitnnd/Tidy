@@ -10,22 +10,23 @@ import org.junit.Test
 /** UI tests for [com.tidy.app.ui.main.MainScreen]. */
 class MainScreenTest {
 
-  @get:Rule val composeTestRule = createAndroidComposeRule<ComponentActivity>()
+    @get:Rule
+    val composeTestRule = createAndroidComposeRule<ComponentActivity>()
 
-  @Before
-  fun setup() {
-    composeTestRule.setContent {
-      MainScreen(
-        sharedUrl = null,
-        crashReportText = null,
-        onSettingsClick = {},
-        onHistoryClick = {}
-      )
+    @Before
+    fun setup() {
+        composeTestRule.setContent {
+            MainScreen(
+                sharedUrl = null,
+                crashReportText = null,
+                onSettingsClick = {},
+                onHistoryClick = {}
+            )
+        }
     }
-  }
 
-  @Test
-  fun welcomeTitle_exists() {
-    composeTestRule.onNodeWithText("Tidy Up Your URLs").assertExists()
-  }
+    @Test
+    fun welcomeTitle_exists() {
+        composeTestRule.onNodeWithText("Tidy Up Your URLs").assertExists()
+    }
 }

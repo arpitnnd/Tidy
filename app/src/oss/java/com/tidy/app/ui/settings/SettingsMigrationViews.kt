@@ -41,8 +41,10 @@ object SettingsMigrationViews {
     fun SettingsUpgradeRow(onUpgradeClick: () -> Unit) {
         val context = LocalContext.current
         val settingsRepository = TidyURLApp.instance.settingsRepository
-        val dismissed by settingsRepository.migrationFollowupDismissed.collectAsStateWithLifecycle(initialValue = false)
-        
+        val dismissed by settingsRepository.migrationFollowupDismissed.collectAsStateWithLifecycle(
+            initialValue = false
+        )
+
         var showFollowup by remember { mutableStateOf(false) }
 
         LaunchedEffect(Unit) {
@@ -53,7 +55,8 @@ object SettingsMigrationViews {
                 false
             }
             val backupFile = File(context.filesDir, "TidyBackup.json")
-            val isBackupOld = backupFile.exists() && (System.currentTimeMillis() - backupFile.lastModified() > 24 * 60 * 60 * 1000)
+            val isBackupOld =
+                backupFile.exists() && (System.currentTimeMillis() - backupFile.lastModified() > 24 * 60 * 60 * 1000)
             showFollowup = playInstalled && isBackupOld && !dismissed
         }
 
@@ -181,7 +184,7 @@ object SettingsMigrationViews {
         val scope = rememberCoroutineScope()
         var currentPage by remember { mutableStateOf(1) }
         var backupFileState by remember { mutableStateOf<File?>(null) }
-        
+
         Dialog(
             onDismissRequest = onDismiss,
             properties = DialogProperties(usePlatformDefaultWidth = false)
@@ -232,7 +235,9 @@ object SettingsMigrationViews {
                                 Card(
                                     shape = RoundedCornerShape(12.dp),
                                     colors = CardDefaults.cardColors(
-                                        containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+                                        containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(
+                                            alpha = 0.5f
+                                        )
                                     ),
                                     modifier = Modifier.fillMaxWidth()
                                 ) {
@@ -258,13 +263,18 @@ object SettingsMigrationViews {
                                 // Run silent backup export
                                 scope.launch {
                                     try {
-                                        val json = TidyURLApp.instance.historyRepository.exportToJson()
+                                        val json =
+                                            TidyURLApp.instance.historyRepository.exportToJson()
                                         val backupFile = File(context.filesDir, "TidyBackup.json")
                                         backupFile.writeText(json)
                                         backupFileState = backupFile
                                         currentPage = 2
                                     } catch (e: Exception) {
-                                        Toast.makeText(context, "Backup failed: ${e.message}", Toast.LENGTH_SHORT).show()
+                                        Toast.makeText(
+                                            context,
+                                            "Backup failed: ${e.message}",
+                                            Toast.LENGTH_SHORT
+                                        ).show()
                                     }
                                 }
                             },
@@ -292,7 +302,9 @@ object SettingsMigrationViews {
                             Card(
                                 shape = RoundedCornerShape(12.dp),
                                 colors = CardDefaults.cardColors(
-                                    containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+                                    containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(
+                                        alpha = 0.5f
+                                    )
                                 ),
                                 modifier = Modifier.fillMaxWidth()
                             ) {
@@ -317,7 +329,12 @@ object SettingsMigrationViews {
                                         putExtra(Intent.EXTRA_STREAM, uri)
                                         addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
                                     }
-                                    context.startActivity(Intent.createChooser(shareIntent, "Share Tidy Backup"))
+                                    context.startActivity(
+                                        Intent.createChooser(
+                                            shareIntent,
+                                            "Share Tidy Backup"
+                                        )
+                                    )
                                 },
                                 modifier = Modifier.fillMaxWidth(),
                                 shape = RoundedCornerShape(16.dp),
@@ -340,7 +357,8 @@ object SettingsMigrationViews {
                                     context.startActivity(playIntent)
                                 } catch (e: Exception) {
                                     val webIntent = Intent(Intent.ACTION_VIEW).apply {
-                                        data = Uri.parse("https://play.google.com/store/apps/details?id=$playId")
+                                        data =
+                                            Uri.parse("https://play.google.com/store/apps/details?id=$playId")
                                         addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                                     }
                                     context.startActivity(webIntent)

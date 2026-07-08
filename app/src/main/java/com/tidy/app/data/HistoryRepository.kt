@@ -10,7 +10,6 @@ import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
-import kotlinx.serialization.encodeToString
 import java.io.File
 import java.util.UUID
 
@@ -34,7 +33,7 @@ class HistoryRepository(
     private val _historyFlow = MutableStateFlow<List<HistoryEntry>>(emptyList())
     val historyFlow: StateFlow<List<HistoryEntry>> = _historyFlow.asStateFlow()
 
-    private val json = Json { 
+    private val json = Json {
         ignoreUnknownKeys = true
         prettyPrint = true
     }

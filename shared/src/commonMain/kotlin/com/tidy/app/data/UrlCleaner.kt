@@ -11,7 +11,7 @@ data class TrackerEntry(
 class UrlCleaner {
     companion object {
         val DEFAULT_TRACKING_PARAMS = setOf(
-            "utm_source", "utm_medium", "utm_campaign", "utm_term", "utm_content", "utm_id", 
+            "utm_source", "utm_medium", "utm_campaign", "utm_term", "utm_content", "utm_id",
             "utm_source_platform", "utm_marketing_tactic",
             "fbclid", "gclid", "msclkid", "yclid", "dclid",
             "si", "igsh",
@@ -52,7 +52,10 @@ class UrlCleaner {
         val isWhitelisted = whitelistedDomains.any { domain ->
             val cleanDomain = domain.trim().lowercase()
             if (cleanDomain.isEmpty()) false
-            else host.equals(cleanDomain, ignoreCase = true) || host.endsWith(".$cleanDomain", ignoreCase = true)
+            else host.equals(cleanDomain, ignoreCase = true) || host.endsWith(
+                ".$cleanDomain",
+                ignoreCase = true
+            )
         }
 
         if (isWhitelisted) {
@@ -84,9 +87,10 @@ class UrlCleaner {
             val parts = param.split('=', limit = 2)
             val key = parts[0]
             val keyLower = key.lowercase().trim()
-            
+
             val isDefaultTracking = trackingParams.contains(keyLower) || keyLower.startsWith("utm_")
-            val isCustomBlacklisted = customBlacklistParams.any { it.trim().lowercase() == keyLower }
+            val isCustomBlacklisted =
+                customBlacklistParams.any { it.trim().lowercase() == keyLower }
 
             val isParamWhitelisted = domainWhitelistedParams.any { entry ->
                 val entryParts = entry.split(':', limit = 2)
@@ -117,24 +121,24 @@ class UrlCleaner {
     private fun removeMobileSubdomain(urlStr: String): String {
         val protoIndex = urlStr.indexOf("://")
         val startIndex = if (protoIndex != -1) protoIndex + 3 else 0
-        
+
         var slashIndex = urlStr.indexOf('/', startIndex)
         var qIndex = urlStr.indexOf('?', startIndex)
         var hIndex = urlStr.indexOf('#', startIndex)
-        
+
         val endIndex = listOf(slashIndex, qIndex, hIndex)
             .filter { it != -1 }
             .minOrNull() ?: urlStr.length
-            
+
         val host = urlStr.substring(startIndex, endIndex)
         val hostLower = host.lowercase()
-        
+
         val newHost = when {
             hostLower.startsWith("m.") -> host.substring(2)
             hostLower.startsWith("mobile.") -> host.substring(7)
             else -> null
         }
-        
+
         return if (newHost != null && newHost.contains(".")) {
             urlStr.substring(0, startIndex) + newHost + urlStr.substring(endIndex)
         } else {

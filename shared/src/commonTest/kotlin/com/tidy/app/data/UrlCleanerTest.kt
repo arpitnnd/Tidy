@@ -10,9 +10,10 @@ class UrlCleanerTest {
 
     @Test
     fun testCleanDefaultParams() {
-        val original = "https://example.com/page?utm_source=newsletter&utm_medium=email&fbclid=12345&si=abc"
+        val original =
+            "https://example.com/page?utm_source=newsletter&utm_medium=email&fbclid=12345&si=abc"
         val result = cleaner.clean(original)
-        
+
         assertEquals("https://example.com/page", result.cleanedUrl)
         assertEquals(4, result.removedParams.size)
         assertTrue(result.removedParams.contains("utm_source"))
@@ -25,7 +26,7 @@ class UrlCleanerTest {
     fun testPreserveOtherParams() {
         val original = "https://example.com/search?q=kmp&utm_source=google&page=2"
         val result = cleaner.clean(original)
-        
+
         assertEquals("https://example.com/search?q=kmp&page=2", result.cleanedUrl)
         assertEquals(1, result.removedParams.size)
         assertEquals("utm_source", result.removedParams[0])
@@ -38,7 +39,7 @@ class UrlCleanerTest {
             urlStr = original,
             whitelistedDomains = setOf("google.com")
         )
-        
+
         assertEquals(original, result.cleanedUrl)
         assertEquals(0, result.removedParams.size)
     }
@@ -50,7 +51,7 @@ class UrlCleanerTest {
             urlStr = original,
             customBlacklistParams = setOf("custom_tracker")
         )
-        
+
         assertEquals("https://example.com/product?id=99", result.cleanedUrl)
         assertEquals(2, result.removedParams.size)
         assertTrue(result.removedParams.contains("custom_tracker"))

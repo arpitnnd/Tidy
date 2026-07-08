@@ -28,7 +28,10 @@ object FlavorConfig {
         // No-op for OSS
     }
 
-    fun getPremiumColorScheme(themeName: String, darkTheme: Boolean): androidx.compose.material3.ColorScheme? {
+    fun getPremiumColorScheme(
+        themeName: String,
+        darkTheme: Boolean
+    ): androidx.compose.material3.ColorScheme? {
         return null
     }
 

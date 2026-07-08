@@ -6,8 +6,8 @@ import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.longPreferencesKey
-import androidx.datastore.preferences.core.stringSetPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
+import androidx.datastore.preferences.core.stringSetPreferencesKey
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.serialization.json.Json
@@ -20,11 +20,13 @@ class SettingsRepository(private val dataStore: DataStore<Preferences>) {
         val KEY_AUTO_COPY_ON_SHARE = booleanPreferencesKey("auto_copy_on_share")
         val KEY_AUTO_CLOSE_ON_SHARE = booleanPreferencesKey("auto_close_on_share")
         val KEY_AUTO_EXPAND_SHORT_URLS = booleanPreferencesKey("auto_expand_short_urls")
-        val KEY_AUTO_REMOVE_MOBILE_SUBDOMAINS = booleanPreferencesKey("auto_remove_mobile_subdomains")
+        val KEY_AUTO_REMOVE_MOBILE_SUBDOMAINS =
+            booleanPreferencesKey("auto_remove_mobile_subdomains")
         val KEY_FIRST_LAUNCH_DONE = booleanPreferencesKey("first_launch_done")
         val KEY_TOTAL_CLEANED_COUNT = intPreferencesKey("total_cleaned_count")
         val KEY_TOTAL_TRACKERS_BLOCKED = intPreferencesKey("total_trackers_blocked")
-        val KEY_AUTO_CLEAN_CLIPBOARD_ON_LAUNCH = booleanPreferencesKey("auto_clean_clipboard_on_launch")
+        val KEY_AUTO_CLEAN_CLIPBOARD_ON_LAUNCH =
+            booleanPreferencesKey("auto_clean_clipboard_on_launch")
         val KEY_AUTO_CLEAN_ON_INPUT = booleanPreferencesKey("auto_clean_on_input")
         val KEY_LAST_CLEANED_URL = stringPreferencesKey("last_cleaned_url")
         val KEY_DONT_ASK_AGAIN_CRASH = booleanPreferencesKey("dont_ask_again_crash")
@@ -34,7 +36,7 @@ class SettingsRepository(private val dataStore: DataStore<Preferences>) {
         val KEY_BLOCKLIST_JSON = stringPreferencesKey("blocklist_json")
         val KEY_BLOCKLIST_ETAG = stringPreferencesKey("blocklist_etag")
         val KEY_BLOCKLIST_LAST_FETCH_TIME = longPreferencesKey("blocklist_last_fetch_time")
-        
+
         const val DEFAULT_BLOCKLIST_JSON = """[
   {"name": "utm_source", "description": "Google Analytics campaign source parameter, used to track referrer website/app."},
   {"name": "utm_medium", "description": "Google Analytics campaign medium parameter, used to identify marketing channel (e.g. email, CPC)."},

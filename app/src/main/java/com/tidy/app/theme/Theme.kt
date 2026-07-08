@@ -65,11 +65,13 @@ fun TidyURLTheme(
     content: @Composable () -> Unit,
 ) {
     val settingsRepository = com.tidy.app.TidyURLApp.instance.settingsRepository
-    val selectedThemeState = settingsRepository.selectedTheme.collectAsStateWithLifecycle(initialValue = "slate")
+    val selectedThemeState =
+        settingsRepository.selectedTheme.collectAsStateWithLifecycle(initialValue = "slate")
     val selectedTheme = selectedThemeState.value
 
     val entitlementManager = com.tidy.app.TidyURLApp.instance.entitlementManager
-    val isPlusUnlockedState = entitlementManager.isPlusUnlocked.collectAsStateWithLifecycle(initialValue = false)
+    val isPlusUnlockedState =
+        entitlementManager.isPlusUnlocked.collectAsStateWithLifecycle(initialValue = false)
     val isPlusUnlocked = isPlusUnlockedState.value
 
     val context = androidx.compose.ui.platform.LocalContext.current
@@ -82,9 +84,11 @@ fun TidyURLTheme(
                 if (darkTheme) DarkColorScheme else LightColorScheme
             }
         }
+
         "slate" -> {
             if (darkTheme) DarkColorScheme else LightColorScheme
         }
+
         else -> {
             com.tidy.app.FlavorConfig.getPremiumColorScheme(selectedTheme, darkTheme)
                 ?: (if (darkTheme) DarkColorScheme else LightColorScheme)

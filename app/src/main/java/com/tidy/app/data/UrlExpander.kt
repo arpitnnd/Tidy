@@ -7,8 +7,8 @@ import java.net.URL
 
 object UrlExpander {
     private val SHORT_URL_DOMAINS = setOf(
-        "bit.ly", "tinyurl.com", "t.co", "rebrand.ly", "shorturl.at", 
-        "is.gd", "buff.ly", "bit.do", "lnkd.in", "db.tt", "qr.ae", 
+        "bit.ly", "tinyurl.com", "t.co", "rebrand.ly", "shorturl.at",
+        "is.gd", "buff.ly", "bit.do", "lnkd.in", "db.tt", "qr.ae",
         "goo.gl", "ow.ly", "tiny.cc", "t.ly", "cutt.ly"
     )
 
@@ -34,7 +34,11 @@ object UrlExpander {
         if (cached != null) {
             return@withContext cached
         }
-        if (!currentUrl.startsWith("http://", ignoreCase = true) && !currentUrl.startsWith("https://", ignoreCase = true)) {
+        if (!currentUrl.startsWith(
+                "http://",
+                ignoreCase = true
+            ) && !currentUrl.startsWith("https://", ignoreCase = true)
+        ) {
             currentUrl = "https://$currentUrl"
         }
         val maxHops = 5
@@ -50,20 +54,24 @@ object UrlExpander {
                 connection.connectTimeout = timeoutMs
                 connection.readTimeout = timeoutMs
                 connection.instanceFollowRedirects = false
-                
+
                 // Add a modern user agent
-                connection.setRequestProperty("User-Agent", "Mozilla/5.0 (Linux; Android 10) Tidy/1.0")
+                connection.setRequestProperty(
+                    "User-Agent",
+                    "Mozilla/5.0 (Linux; Android 10) Tidy/1.0"
+                )
 
                 val responseCode = connection.responseCode
                 if (responseCode in 300..399) {
                     val location = connection.getHeaderField("Location")
                     if (!location.isNullOrEmpty()) {
-                        currentUrl = if (location.startsWith("http://") || location.startsWith("https://")) {
-                            location
-                        } else {
-                            val base = URL(currentUrl)
-                            URL(base, location).toString()
-                        }
+                        currentUrl =
+                            if (location.startsWith("http://") || location.startsWith("https://")) {
+                                location
+                            } else {
+                                val base = URL(currentUrl)
+                                URL(base, location).toString()
+                            }
                         hop++
                     } else {
                         break

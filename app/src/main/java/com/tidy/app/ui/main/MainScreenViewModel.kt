@@ -81,16 +81,18 @@ class MainScreenViewModel(
                     autoCleanInput = array[6] as Boolean
                 )
             }.collect { updates ->
-                _uiState.update { it.copy(
-                    totalCleanedCount = updates.count,
-                    totalTrackersBlocked = updates.blocked,
-                    firstLaunchDone = updates.done,
-                    autoExpandShortUrls = updates.autoExpand,
-                    autoRemoveMobileSubdomains = updates.autoRemoveMobile,
-                    domainWhitelistedParams = updates.domainParams,
-                    autoCleanOnInput = updates.autoCleanInput,
-                    isInitialLoading = false
-                ) }
+                _uiState.update {
+                    it.copy(
+                        totalCleanedCount = updates.count,
+                        totalTrackersBlocked = updates.blocked,
+                        firstLaunchDone = updates.done,
+                        autoExpandShortUrls = updates.autoExpand,
+                        autoRemoveMobileSubdomains = updates.autoRemoveMobile,
+                        domainWhitelistedParams = updates.domainParams,
+                        autoCleanOnInput = updates.autoCleanInput,
+                        isInitialLoading = false
+                    )
+                }
             }
         }
     }
@@ -118,7 +120,11 @@ class MainScreenViewModel(
     fun cleanUrl(url: String, isShared: Boolean = false, originalShortUrl: String? = null) {
         var trimmed = url.trim()
         if (trimmed.isEmpty()) return
-        if (!trimmed.startsWith("http://", ignoreCase = true) && !trimmed.startsWith("https://", ignoreCase = true)) {
+        if (!trimmed.startsWith("http://", ignoreCase = true) && !trimmed.startsWith(
+                "https://",
+                ignoreCase = true
+            )
+        ) {
             trimmed = "https://$trimmed"
         }
         viewModelScope.launch {
@@ -126,14 +132,14 @@ class MainScreenViewModel(
             try {
                 val isShort = UrlExpander.isShortUrl(trimmed)
                 val autoExpand = settingsRepository.autoExpandShortUrls.first()
-                
+
                 val didAutoExpand = isShort && autoExpand
                 val resolvedUrl = if (didAutoExpand) {
                     UrlExpander.resolve(trimmed)
                 } else {
                     trimmed
                 }
-                
+
                 val whitelist = settingsRepository.whitelistedDomains.first()
                 val customBlacklist = settingsRepository.blacklistedParams.first()
                 val domainParams = settingsRepository.domainWhitelistedParams.first()
@@ -145,9 +151,10 @@ class MainScreenViewModel(
                     domainWhitelistedParams = domainParams,
                     removeMobileSubdomains = autoRemoveMobile
                 )
-                
+
                 val initialOriginal = originalShortUrl ?: trimmed
-                val expandedVal = if (originalShortUrl != null || didAutoExpand) resolvedUrl else null
+                val expandedVal =
+                    if (originalShortUrl != null || didAutoExpand) resolvedUrl else null
 
                 _uiState.update {
                     it.copy(
@@ -176,8 +183,16 @@ class MainScreenViewModel(
                 )
 
                 if (isShared) {
-                    com.tidy.app.FlavorConfig.handleShareAutomation(result.cleanedUrl, settingsRepository) { autoClose ->
-                        _automationEvents.tryEmit(AutomationAction.CopyAndClose(result.cleanedUrl, autoClose))
+                    com.tidy.app.FlavorConfig.handleShareAutomation(
+                        result.cleanedUrl,
+                        settingsRepository
+                    ) { autoClose ->
+                        _automationEvents.tryEmit(
+                            AutomationAction.CopyAndClose(
+                                result.cleanedUrl,
+                                autoClose
+                            )
+                        )
                     }
                 }
             } catch (e: Throwable) {
@@ -239,14 +254,23 @@ class MainScreenViewModel(
     }
 
     fun clear() {
-        _uiState.update { UiState(firstLaunchDone = it.firstLaunchDone, totalCleanedCount = it.totalCleanedCount, totalTrackersBlocked = it.totalTrackersBlocked) }
+        _uiState.update {
+            UiState(
+                firstLaunchDone = it.firstLaunchDone,
+                totalCleanedCount = it.totalCleanedCount,
+                totalTrackersBlocked = it.totalTrackersBlocked
+            )
+        }
     }
 
     fun copyToClipboard(context: Context) {
         val cleaned = _uiState.value.cleanedUrl
         if (cleaned.isNotEmpty()) {
             val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-            val clip = ClipData.newPlainText(context.getString(com.tidy.app.R.string.main_cleaned_url), cleaned)
+            val clip = ClipData.newPlainText(
+                context.getString(com.tidy.app.R.string.main_cleaned_url),
+                cleaned
+            )
             clipboard.setPrimaryClip(clip)
             _uiState.update { it.copy(copySuccess = true) }
             viewModelScope.launch {

@@ -12,10 +12,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import java.io.File
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
 
 class HistoryScreenViewModel(
     private val historyRepository: HistoryRepository = TidyURLApp.instance.historyRepository,
@@ -47,13 +43,15 @@ class HistoryScreenViewModel(
                 settingsRepository.totalTrackersBlocked,
                 settingsRepository.trackerDescriptions
             ) { history, count, blocked, descriptions ->
-                _uiState.update { it.copy(
-                    history = history,
-                    totalCleanedCount = count,
-                    totalTrackersBlocked = blocked,
-                    trackerDescriptions = descriptions,
-                    isInitialLoading = false
-                ) }
+                _uiState.update {
+                    it.copy(
+                        history = history,
+                        totalCleanedCount = count,
+                        totalTrackersBlocked = blocked,
+                        trackerDescriptions = descriptions,
+                        isInitialLoading = false
+                    )
+                }
             }.collect {}
         }
     }

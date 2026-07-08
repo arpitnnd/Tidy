@@ -4,14 +4,13 @@ import android.app.Application
 import com.tidy.app.data.HistoryRepository
 import com.tidy.app.data.SettingsRepository
 import com.tidy.app.data.createPlatformDataStore
-import org.acra.ACRA
-import org.acra.config.CoreConfigurationBuilder
-import org.acra.data.StringFormat
-import org.acra.ReportField
-
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import org.acra.ACRA
+import org.acra.ReportField
+import org.acra.config.CoreConfigurationBuilder
+import org.acra.data.StringFormat
 
 class TidyURLApp : Application() {
     lateinit var settingsRepository: SettingsRepository

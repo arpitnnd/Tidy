@@ -1,7 +1,5 @@
 package com.tidy.app.data
 
-import kotlin.jvm.JvmStatic
-
 object SharedDependencies {
     @JvmStatic
     @Volatile

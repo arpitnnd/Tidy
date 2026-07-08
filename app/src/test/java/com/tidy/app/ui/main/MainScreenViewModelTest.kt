@@ -106,7 +106,7 @@ class MainScreenViewModelTest {
     @Test
     fun testMarkFirstLaunchDone() = runTest {
         viewModel.markFirstLaunchDone()
-        
+
         val firstLaunchDone = settingsRepository.firstLaunchDone.first()
         assertTrue(firstLaunchDone)
     }

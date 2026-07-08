@@ -10,13 +10,13 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:windowSoftInputMode="adjustResize"
-        android:theme="@style/Theme.TidyURL">
+        android:theme="@style/Theme.TidyURL"
+        android:windowSoftInputMode="adjustResize">
         <activity
             android:name=".MainActivity"
-            android:theme="@style/Theme.TidyURL.Starting"
+            android:exported="true"
             android:launchMode="singleTop"
-            android:exported="true">
+            android:theme="@style/Theme.TidyURL.Starting">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
@@ -29,10 +29,10 @@
         </activity>
         <service
             android:name=".data.TidyTileService"
+            android:exported="true"
             android:icon="@mipmap/ic_launcher"
             android:label="Tidy Clipboard"
-            android:permission="android.permission.BIND_QUICK_SETTINGS_TILE"
-            android:exported="true">
+            android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">
             <intent-filter>
                 <action android:name="android.service.quicksettings.action.QS_TILE" />
             </intent-filter>

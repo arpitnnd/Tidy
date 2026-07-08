@@ -4,10 +4,14 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.tidy.app.TidyURLApp
 import com.tidy.app.data.SettingsRepository
-import kotlinx.coroutines.flow.*
-import kotlinx.coroutines.launch
-
 import com.tidy.app.data.TrackerEntry
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 
 class SettingsScreenViewModel(
     private val settingsRepository: SettingsRepository = TidyURLApp.instance.settingsRepository
@@ -127,7 +131,10 @@ class SettingsScreenViewModel(
 
     fun addParam() {
         val param = _uiState.value.paramInput.trim()
-        if (param.isNotEmpty() && !param.contains(" ") && !param.contains("?") && !param.contains("&") && !param.contains("=")) {
+        if (param.isNotEmpty() && !param.contains(" ") && !param.contains("?") && !param.contains("&") && !param.contains(
+                "="
+            )
+        ) {
             viewModelScope.launch {
                 settingsRepository.addBlacklistedParam(param)
                 _uiState.update { it.copy(paramInput = "") }
@@ -176,10 +183,18 @@ class SettingsScreenViewModel(
     fun addDomainWhitelistedParam() {
         val domain = _uiState.value.newParamWhitelistDomain.trim().lowercase()
         val param = _uiState.value.newParamWhitelistParam.trim().lowercase()
-        if (domain.isNotEmpty() && param.isNotEmpty() && domain.contains(".") && !domain.contains(" ") && !param.contains(" ")) {
+        if (domain.isNotEmpty() && param.isNotEmpty() && domain.contains(".") && !domain.contains(" ") && !param.contains(
+                " "
+            )
+        ) {
             viewModelScope.launch {
                 settingsRepository.addDomainWhitelistedParam(domain, param)
-                _uiState.update { it.copy(newParamWhitelistDomain = "", newParamWhitelistParam = "") }
+                _uiState.update {
+                    it.copy(
+                        newParamWhitelistDomain = "",
+                        newParamWhitelistParam = ""
+                    )
+                }
             }
         }
     }

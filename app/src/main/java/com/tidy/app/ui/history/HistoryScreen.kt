@@ -7,48 +7,82 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.defaultMinSize
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.automirrored.filled.OpenInNew
-import com.tidy.app.ui.components.TooltipWrapper
+import androidx.compose.material.icons.filled.ContentCopy
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.outlined.DeleteSweep
 import androidx.compose.material.icons.outlined.FileDownload
 import androidx.compose.material.icons.outlined.FileUpload
-import androidx.compose.material.icons.outlined.DeleteSweep
 import androidx.compose.material.icons.outlined.Link
 import androidx.compose.material.icons.outlined.Shield
 import androidx.compose.material.icons.outlined.Speed
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.compose.animation.core.*
-import androidx.compose.ui.draw.drawBehind
-import androidx.compose.ui.geometry.Offset
+import com.tidy.app.R
 import com.tidy.app.data.HistoryEntry
+import com.tidy.app.ui.components.TooltipWrapper
+import com.tidy.app.ui.components.shimmer
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
-import androidx.compose.ui.res.stringResource
-import com.tidy.app.R
-import com.tidy.app.ui.components.shimmer
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -148,7 +182,8 @@ fun HistoryScreen(
                     // Export
                     TooltipWrapper(tooltipText = stringResource(R.string.tooltip_export)) {
                         IconButton(onClick = {
-                            val dateStr = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())
+                            val dateStr =
+                                SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())
                             exportLauncher.launch("tidy_history_$dateStr.json")
                         }) {
                             Icon(
@@ -191,150 +226,150 @@ fun HistoryScreen(
                 contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-            // Analytics Section
-            item {
-                Text(
-                    text = stringResource(R.string.history_dashboard),
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.ExtraBold,
-                    color = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.padding(vertical = 4.dp)
-                )
-            }
-
-            if (state.isInitialLoading) {
+                // Analytics Section
                 item {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(10.dp)
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .weight(1f)
-                                .height(108.dp)
-                                .clip(RoundedCornerShape(20.dp))
-                                .shimmer()
-                        )
-                        Box(
-                            modifier = Modifier
-                                .weight(1f)
-                                .height(108.dp)
-                                .clip(RoundedCornerShape(20.dp))
-                                .shimmer()
-                        )
+                    Text(
+                        text = stringResource(R.string.history_dashboard),
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.ExtraBold,
+                        color = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.padding(vertical = 4.dp)
+                    )
+                }
+
+                if (state.isInitialLoading) {
+                    item {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(10.dp)
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .height(108.dp)
+                                    .clip(RoundedCornerShape(20.dp))
+                                    .shimmer()
+                            )
+                            Box(
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .height(108.dp)
+                                    .clip(RoundedCornerShape(20.dp))
+                                    .shimmer()
+                            )
+                        }
                     }
-                }
-                item {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(84.dp)
-                            .clip(RoundedCornerShape(20.dp))
-                            .shimmer()
-                    )
-                }
-            } else {
-                item {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(10.dp)
-                    ) {
-                        StatsCard(
-                            title = stringResource(R.string.history_urls_cleaned),
-                            value = "${state.totalCleanedCount}",
-                            icon = Icons.Outlined.Link,
-                            color = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.weight(1f)
-                        )
-                        StatsCard(
-                            title = stringResource(R.string.history_trackers_blocked),
-                            value = "${state.totalTrackersBlocked}",
-                            icon = Icons.Outlined.Shield,
-                            color = MaterialTheme.colorScheme.tertiary,
-                            modifier = Modifier.weight(1f)
-                        )
-                    }
-                }
-                item {
-                    BandwidthCard(
-                        trackersCount = state.totalTrackersBlocked,
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                }
-            }
-
-            // History Section
-            item {
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    text = stringResource(R.string.history_clean_history),
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.ExtraBold,
-                    color = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.padding(vertical = 4.dp)
-                )
-            }
-
-            if (state.isInitialLoading) {
-                items(3) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(76.dp)
-                            .clip(RoundedCornerShape(16.dp))
-                            .shimmer()
-                    )
-                }
-            } else if (state.history.isEmpty()) {
-                item {
-                    Card(
-                        shape = RoundedCornerShape(16.dp),
-                        colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
-                        ),
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Column(
+                    item {
+                        Box(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(32.dp),
-                            horizontalAlignment = Alignment.CenterHorizontally
+                                .height(84.dp)
+                                .clip(RoundedCornerShape(20.dp))
+                                .shimmer()
+                        )
+                    }
+                } else {
+                    item {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(10.dp)
                         ) {
-                            Text(
-                                text = stringResource(R.string.history_no_history),
-                                style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            StatsCard(
+                                title = stringResource(R.string.history_urls_cleaned),
+                                value = "${state.totalCleanedCount}",
+                                icon = Icons.Outlined.Link,
+                                color = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.weight(1f)
                             )
-                            Spacer(modifier = Modifier.height(4.dp))
-                            Text(
-                                text = stringResource(R.string.history_no_history_desc),
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
-                                textAlign = TextAlign.Center
+                            StatsCard(
+                                title = stringResource(R.string.history_trackers_blocked),
+                                value = "${state.totalTrackersBlocked}",
+                                icon = Icons.Outlined.Shield,
+                                color = MaterialTheme.colorScheme.tertiary,
+                                modifier = Modifier.weight(1f)
                             )
                         }
                     }
+                    item {
+                        BandwidthCard(
+                            trackersCount = state.totalTrackersBlocked,
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    }
                 }
-            } else {
-                items(state.history, key = { it.id }) { entry ->
-                    HistoryItem(
-                        entry = entry,
-                        trackerDescriptions = state.trackerDescriptions,
-                        onShowSnackbar = { msg ->
-                            scope.launch { snackbarHostState.showSnackbar(msg) }
-                        }
+
+                // History Section
+                item {
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = stringResource(R.string.history_clean_history),
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.ExtraBold,
+                        color = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.padding(vertical = 4.dp)
                     )
                 }
-            }
 
-            // Bottom spacing
-            item {
-                Spacer(modifier = Modifier.height(16.dp))
+                if (state.isInitialLoading) {
+                    items(3) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(76.dp)
+                                .clip(RoundedCornerShape(16.dp))
+                                .shimmer()
+                        )
+                    }
+                } else if (state.history.isEmpty()) {
+                    item {
+                        Card(
+                            shape = RoundedCornerShape(16.dp),
+                            colors = CardDefaults.cardColors(
+                                containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
+                            ),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(32.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                                Text(
+                                    text = stringResource(R.string.history_no_history),
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                                Spacer(modifier = Modifier.height(4.dp))
+                                Text(
+                                    text = stringResource(R.string.history_no_history_desc),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                                    textAlign = TextAlign.Center
+                                )
+                            }
+                        }
+                    }
+                } else {
+                    items(state.history, key = { it.id }) { entry ->
+                        HistoryItem(
+                            entry = entry,
+                            trackerDescriptions = state.trackerDescriptions,
+                            onShowSnackbar = { msg ->
+                                scope.launch { snackbarHostState.showSnackbar(msg) }
+                            }
+                        )
+                    }
+                }
+
+                // Bottom spacing
+                item {
+                    Spacer(modifier = Modifier.height(16.dp))
+                }
             }
         }
     }
-}
 
     // Clear confirmation dialog
     if (state.showClearConfirmation) {
@@ -348,7 +383,10 @@ fun HistoryScreen(
                 )
             },
             title = {
-                Text(stringResource(R.string.history_clear_dialog_title), fontWeight = FontWeight.Bold)
+                Text(
+                    stringResource(R.string.history_clear_dialog_title),
+                    fontWeight = FontWeight.Bold
+                )
             },
             text = {
                 Text(stringResource(R.string.history_clear_dialog_text, state.history.size))
@@ -538,7 +576,10 @@ private fun HistoryItem(
                         modifier = Modifier.padding(start = 8.dp)
                     ) {
                         Text(
-                            text = stringResource(R.string.history_item_removed_count, entry.removedParamsCount),
+                            text = stringResource(
+                                R.string.history_item_removed_count,
+                                entry.removedParamsCount
+                            ),
                             style = MaterialTheme.typography.labelSmall,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onPrimaryContainer,
@@ -592,8 +633,16 @@ private fun HistoryItem(
             }
             val removedParams = remember(originalUri, cleanedUri) {
                 if (originalUri != null && cleanedUri != null) {
-                    val originalQueryKeys = try { originalUri.queryParameterNames } catch (e: Exception) { emptySet<String>() }
-                    val cleanedQueryKeys = try { cleanedUri.queryParameterNames } catch (e: Exception) { emptySet<String>() }
+                    val originalQueryKeys = try {
+                        originalUri.queryParameterNames
+                    } catch (e: Exception) {
+                        emptySet<String>()
+                    }
+                    val cleanedQueryKeys = try {
+                        cleanedUri.queryParameterNames
+                    } catch (e: Exception) {
+                        emptySet<String>()
+                    }
                     originalQueryKeys.filter { it !in cleanedQueryKeys }
                 } else {
                     emptyList()
@@ -608,7 +657,7 @@ private fun HistoryItem(
                         .padding(top = 8.dp)
                 ) {
                     HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.15f))
-                    
+
                     Column {
                         Text(
                             text = stringResource(R.string.main_original_url),
@@ -637,12 +686,17 @@ private fun HistoryItem(
                             verticalArrangement = Arrangement.spacedBy(6.dp)
                         ) {
                             removedParams.forEach { param ->
-                                val desc = trackerDescriptions[param.lowercase().trim()] ?: stringResource(R.string.details_no_explanation)
+                                val desc =
+                                    trackerDescriptions[param.lowercase().trim()] ?: stringResource(
+                                        R.string.details_no_explanation
+                                    )
                                 Column(
                                     modifier = Modifier
                                         .fillMaxWidth()
                                         .background(
-                                            color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.2f),
+                                            color = MaterialTheme.colorScheme.surfaceVariant.copy(
+                                                alpha = 0.2f
+                                            ),
                                             shape = RoundedCornerShape(8.dp)
                                         )
                                         .padding(8.dp)
@@ -671,8 +725,12 @@ private fun HistoryItem(
                         TooltipWrapper(tooltipText = stringResource(R.string.tooltip_copy_original)) {
                             TextButton(
                                 onClick = {
-                                    val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
-                                    val clip = android.content.ClipData.newPlainText("Original URL", entry.originalUrl)
+                                    val clipboard =
+                                        context.getSystemService(Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
+                                    val clip = android.content.ClipData.newPlainText(
+                                        "Original URL",
+                                        entry.originalUrl
+                                    )
                                     clipboard.setPrimaryClip(clip)
                                     onShowSnackbar(context.getString(R.string.main_copied))
                                 },
@@ -685,7 +743,10 @@ private fun HistoryItem(
                                     modifier = Modifier.size(16.dp)
                                 )
                                 Spacer(modifier = Modifier.width(4.dp))
-                                Text(stringResource(R.string.history_copy_original), style = MaterialTheme.typography.labelMedium)
+                                Text(
+                                    stringResource(R.string.history_copy_original),
+                                    style = MaterialTheme.typography.labelMedium
+                                )
                             }
                         }
 
@@ -693,8 +754,12 @@ private fun HistoryItem(
                         TooltipWrapper(tooltipText = stringResource(R.string.tooltip_copy_clean)) {
                             TextButton(
                                 onClick = {
-                                    val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
-                                    val clip = android.content.ClipData.newPlainText(context.getString(R.string.main_cleaned_url), entry.cleanedUrl)
+                                    val clipboard =
+                                        context.getSystemService(Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
+                                    val clip = android.content.ClipData.newPlainText(
+                                        context.getString(R.string.main_cleaned_url),
+                                        entry.cleanedUrl
+                                    )
                                     clipboard.setPrimaryClip(clip)
                                     onShowSnackbar(context.getString(R.string.main_copied))
                                 },
@@ -707,7 +772,10 @@ private fun HistoryItem(
                                     modifier = Modifier.size(16.dp)
                                 )
                                 Spacer(modifier = Modifier.width(4.dp))
-                                Text(stringResource(R.string.main_copy), style = MaterialTheme.typography.labelMedium)
+                                Text(
+                                    stringResource(R.string.main_copy),
+                                    style = MaterialTheme.typography.labelMedium
+                                )
                             }
                         }
 
@@ -716,7 +784,10 @@ private fun HistoryItem(
                             TextButton(
                                 onClick = {
                                     try {
-                                        val intent = Intent(Intent.ACTION_VIEW, android.net.Uri.parse(entry.cleanedUrl)).apply {
+                                        val intent = Intent(
+                                            Intent.ACTION_VIEW,
+                                            android.net.Uri.parse(entry.cleanedUrl)
+                                        ).apply {
                                             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                                         }
                                         context.startActivity(intent)
@@ -733,7 +804,10 @@ private fun HistoryItem(
                                     modifier = Modifier.size(16.dp)
                                 )
                                 Spacer(modifier = Modifier.width(4.dp))
-                                Text(stringResource(R.string.history_open), style = MaterialTheme.typography.labelMedium)
+                                Text(
+                                    stringResource(R.string.history_open),
+                                    style = MaterialTheme.typography.labelMedium
+                                )
                             }
                         }
                     }

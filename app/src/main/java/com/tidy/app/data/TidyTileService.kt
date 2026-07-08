@@ -5,8 +5,8 @@ import android.content.ClipboardManager
 import android.content.Context
 import android.service.quicksettings.TileService
 import android.widget.Toast
-import com.tidy.app.TidyURLApp
 import com.tidy.app.R
+import com.tidy.app.TidyURLApp
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 
@@ -18,8 +18,19 @@ class TidyTileService : TileService() {
         if (clipboard.hasPrimaryClip()) {
             val item = clipboard.primaryClip?.getItemAt(0)
             val text = item?.text?.toString()?.trim()
-            if (text != null && (text.startsWith("http://", ignoreCase = true) || text.startsWith("https://", ignoreCase = true) || (text.contains(".") && !text.contains(" ")))) {
-                val formattedText = if (!text.startsWith("http://", ignoreCase = true) && !text.startsWith("https://", ignoreCase = true)) {
+            if (text != null && (text.startsWith(
+                    "http://",
+                    ignoreCase = true
+                ) || text.startsWith(
+                    "https://",
+                    ignoreCase = true
+                ) || (text.contains(".") && !text.contains(" ")))
+            ) {
+                val formattedText = if (!text.startsWith(
+                        "http://",
+                        ignoreCase = true
+                    ) && !text.startsWith("https://", ignoreCase = true)
+                ) {
                     "https://$text"
                 } else {
                     text
@@ -42,17 +53,36 @@ class TidyTileService : TileService() {
                     runBlocking {
                         settings.setLastCleanedUrl(cleanResult.cleanedUrl)
                     }
-                    val clip = ClipData.newPlainText(getString(R.string.main_cleaned_url), cleanResult.cleanedUrl)
+                    val clip = ClipData.newPlainText(
+                        getString(R.string.main_cleaned_url),
+                        cleanResult.cleanedUrl
+                    )
                     clipboard.setPrimaryClip(clip)
-                    Toast.makeText(applicationContext, getString(R.string.toast_cleaned_copied), Toast.LENGTH_SHORT).show()
+                    Toast.makeText(
+                        applicationContext,
+                        getString(R.string.toast_cleaned_copied),
+                        Toast.LENGTH_SHORT
+                    ).show()
                 } else {
-                    Toast.makeText(applicationContext, getString(R.string.toast_already_clean), Toast.LENGTH_SHORT).show()
+                    Toast.makeText(
+                        applicationContext,
+                        getString(R.string.toast_already_clean),
+                        Toast.LENGTH_SHORT
+                    ).show()
                 }
             } else {
-                Toast.makeText(applicationContext, getString(R.string.toast_no_url_in_clipboard), Toast.LENGTH_SHORT).show()
+                Toast.makeText(
+                    applicationContext,
+                    getString(R.string.toast_no_url_in_clipboard),
+                    Toast.LENGTH_SHORT
+                ).show()
             }
         } else {
-            Toast.makeText(applicationContext, getString(R.string.toast_clipboard_empty), Toast.LENGTH_SHORT).show()
+            Toast.makeText(
+                applicationContext,
+                getString(R.string.toast_clipboard_empty),
+                Toast.LENGTH_SHORT
+            ).show()
         }
     }
 }

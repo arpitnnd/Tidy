@@ -3,27 +3,43 @@ package com.tidy.app.ui.main
 import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
-import com.tidy.app.TidyURLApp
-import com.tidy.app.FlavorConfig
-import com.tidy.app.data.UrlCleaner
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.flow.first
-import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.animation.animateContentSize
-import com.tidy.app.ui.components.TooltipWrapper
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.OpenInNew
 import androidx.compose.material.icons.filled.Check
@@ -31,36 +47,66 @@ import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Share
-import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.outlined.Block
 import androidx.compose.material.icons.outlined.CleaningServices
+import androidx.compose.material.icons.outlined.CloudOff
 import androidx.compose.material.icons.outlined.ContentPaste
 import androidx.compose.material.icons.outlined.History
-import androidx.compose.material.icons.outlined.Lock
-import androidx.compose.material.icons.outlined.Shield
-import androidx.compose.material.icons.outlined.Speed
-import androidx.compose.material.icons.outlined.CloudOff
-import androidx.compose.material.icons.outlined.Block
-import androidx.compose.material.icons.outlined.OpenInNew
 import androidx.compose.material.icons.outlined.Link
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material.icons.outlined.Lock
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.AssistChip
+import androidx.compose.material3.AssistChipDefaults
+import androidx.compose.material3.BottomSheetDefaults
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExtendedFloatingActionButton
+import androidx.compose.material3.FabPosition
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.VerticalDivider
+import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveable
-import kotlinx.coroutines.delay
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.animation.core.*
-import androidx.compose.ui.draw.drawBehind
-import androidx.compose.ui.geometry.Offset
-import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
@@ -70,9 +116,17 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.tidy.app.FlavorConfig
 import com.tidy.app.R
+import com.tidy.app.TidyURLApp
+import com.tidy.app.data.UrlCleaner
+import com.tidy.app.ui.components.TooltipWrapper
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
@@ -93,13 +147,17 @@ fun MainScreen(
     val snackbarHostState = remember { SnackbarHostState() }
 
     val settingsRepository = TidyURLApp.instance.settingsRepository
-    val dontAskAgainCrash by settingsRepository.dontAskAgainCrash.collectAsStateWithLifecycle(initialValue = false)
-    
+    val dontAskAgainCrash by settingsRepository.dontAskAgainCrash.collectAsStateWithLifecycle(
+        initialValue = false
+    )
+
     val entitlementManager = TidyURLApp.instance.entitlementManager
     val isPlusUnlocked by entitlementManager.isPlusUnlocked.collectAsStateWithLifecycle(initialValue = false)
     var showUpsellSheet by remember { mutableStateOf(showPlusUpsell) }
     var bulkClipboardUrls by remember { mutableStateOf<List<String>?>(null) }
-    val trackerDescriptions by settingsRepository.trackerDescriptions.collectAsStateWithLifecycle(initialValue = emptyMap())
+    val trackerDescriptions by settingsRepository.trackerDescriptions.collectAsStateWithLifecycle(
+        initialValue = emptyMap()
+    )
     val lastCleanedUrl by settingsRepository.lastCleanedUrl.collectAsStateWithLifecycle(initialValue = "")
 
     // Auto-detect clipboard URL on resume
@@ -151,10 +209,16 @@ fun MainScreen(
         viewModel.automationEvents.collect { event ->
             when (event) {
                 is MainScreenViewModel.AutomationAction.CopyAndClose -> {
-                    val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-                    val clip = android.content.ClipData.newPlainText("Cleaned URL", event.cleanedUrl)
+                    val clipboard =
+                        context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                    val clip =
+                        android.content.ClipData.newPlainText("Cleaned URL", event.cleanedUrl)
                     clipboard.setPrimaryClip(clip)
-                    android.widget.Toast.makeText(context, context.getString(R.string.toast_cleaned_copied), android.widget.Toast.LENGTH_SHORT).show()
+                    android.widget.Toast.makeText(
+                        context,
+                        context.getString(R.string.toast_cleaned_copied),
+                        android.widget.Toast.LENGTH_SHORT
+                    ).show()
                     if (event.close) {
                         activity?.finishAndRemoveTask()
                     }
@@ -175,7 +239,8 @@ fun MainScreen(
                     return@LifecycleEventObserver
                 }
                 try {
-                    val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                    val clipboard =
+                        context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
                     if (clipboard.hasPrimaryClip()) {
                         val item = clipboard.primaryClip?.getItemAt(0)
                         val text = item?.text?.toString()?.trim()
@@ -282,7 +347,10 @@ fun MainScreen(
                             .fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
-                        TooltipWrapper(tooltipText = stringResource(R.string.tooltip_copy_clean), modifier = Modifier.weight(1f)) {
+                        TooltipWrapper(
+                            tooltipText = stringResource(R.string.tooltip_copy_clean),
+                            modifier = Modifier.weight(1f)
+                        ) {
                             Button(
                                 onClick = {
                                     viewModel.copyToClipboard(context)
@@ -313,14 +381,19 @@ fun MainScreen(
                                 )
                                 Spacer(modifier = Modifier.width(8.dp))
                                 Text(
-                                    text = if (state.copySuccess) stringResource(R.string.main_copied) else stringResource(R.string.main_copy),
+                                    text = if (state.copySuccess) stringResource(R.string.main_copied) else stringResource(
+                                        R.string.main_copy
+                                    ),
                                     fontWeight = FontWeight.Bold,
                                     style = MaterialTheme.typography.labelLarge
                                 )
                             }
                         }
 
-                        TooltipWrapper(tooltipText = stringResource(R.string.tooltip_share_clean), modifier = Modifier.weight(1f)) {
+                        TooltipWrapper(
+                            tooltipText = stringResource(R.string.tooltip_share_clean),
+                            modifier = Modifier.weight(1f)
+                        ) {
                             Button(
                                 onClick = { viewModel.shareUrl(context) },
                                 modifier = Modifier.fillMaxWidth(),
@@ -331,9 +404,17 @@ fun MainScreen(
                                 ),
                                 contentPadding = PaddingValues(vertical = 14.dp)
                             ) {
-                                Icon(Icons.Filled.Share, contentDescription = null, modifier = Modifier.size(20.dp))
+                                Icon(
+                                    Icons.Filled.Share,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(20.dp)
+                                )
                                 Spacer(modifier = Modifier.width(8.dp))
-                                Text(stringResource(R.string.main_share), fontWeight = FontWeight.Bold, style = MaterialTheme.typography.labelLarge)
+                                Text(
+                                    stringResource(R.string.main_share),
+                                    fontWeight = FontWeight.Bold,
+                                    style = MaterialTheme.typography.labelLarge
+                                )
                             }
                         }
                     }
@@ -383,224 +464,262 @@ fun MainScreen(
                         .verticalScroll(rememberScrollState()),
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                var showDetails by remember { mutableStateOf(false) }
-                val gradientBrush = Brush.linearGradient(
-                    colors = listOf(
-                        MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.8f),
-                        MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.5f)
-                    )
-                )
-
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clip(RoundedCornerShape(24.dp))
-                        .background(gradientBrush)
-                        .border(
-                            width = 1.dp,
-                            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f),
-                            shape = RoundedCornerShape(24.dp)
+                    var showDetails by remember { mutableStateOf(false) }
+                    val gradientBrush = Brush.linearGradient(
+                        colors = listOf(
+                            MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.8f),
+                            MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.5f)
                         )
-                ) {
-                    Column(
+                    )
+
+                    Box(
                         modifier = Modifier
-                            .padding(20.dp)
-                            .animateContentSize(animationSpec = androidx.compose.animation.core.spring(stiffness = androidx.compose.animation.core.Spring.StiffnessMediumLow)),
-                        verticalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        val domainToWhitelist = remember(state.originalUrl) {
-                            extractDomain(state.originalUrl)
-                        }
-
-                        Row(
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Text(
-                                text = stringResource(R.string.main_cleaned_url),
-                                style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.onPrimaryContainer
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(24.dp))
+                            .background(gradientBrush)
+                            .border(
+                                width = 1.dp,
+                                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f),
+                                shape = RoundedCornerShape(24.dp)
                             )
+                    ) {
+                        Column(
+                            modifier = Modifier
+                                .padding(20.dp)
+                                .animateContentSize(
+                                    animationSpec = androidx.compose.animation.core.spring(
+                                        stiffness = androidx.compose.animation.core.Spring.StiffnessMediumLow
+                                    )
+                                ),
+                            verticalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            val domainToWhitelist = remember(state.originalUrl) {
+                                extractDomain(state.originalUrl)
+                            }
 
-                            val removedCount = state.removedParams.size
-                            val badgeColor = if (removedCount > 0) {
-                                MaterialTheme.colorScheme.primaryContainer
-                            } else {
-                                MaterialTheme.colorScheme.surfaceVariant
-                            }
-                            val badgeTextColor = if (removedCount > 0) {
-                                MaterialTheme.colorScheme.onPrimaryContainer
-                            } else {
-                                MaterialTheme.colorScheme.onSurfaceVariant
-                            }
-                            Surface(
-                                shape = RoundedCornerShape(12.dp),
-                                color = badgeColor
+                            Row(
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier.fillMaxWidth()
                             ) {
                                 Text(
-                                    text = if (removedCount > 0) stringResource(R.string.history_item_removed_count, removedCount) else stringResource(R.string.history_item_clean),
+                                    text = stringResource(R.string.main_cleaned_url),
+                                    style = MaterialTheme.typography.titleMedium,
                                     fontWeight = FontWeight.Bold,
-                                    style = MaterialTheme.typography.labelSmall,
-                                    color = badgeTextColor,
-                                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
+                                    color = MaterialTheme.colorScheme.onPrimaryContainer
                                 )
-                            }
-                        }
 
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(8.dp),
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Text(
-                                text = state.cleanedUrl,
-                                style = MaterialTheme.typography.bodyMedium,
-                                fontWeight = FontWeight.SemiBold,
-                                color = MaterialTheme.colorScheme.onPrimaryContainer,
-                                maxLines = 5,
-                                overflow = TextOverflow.Ellipsis,
-                                modifier = Modifier.weight(1f)
-                            )
-                            if (state.canExpand) {
-                                TooltipWrapper(tooltipText = stringResource(R.string.main_expand_url)) {
+                                val removedCount = state.removedParams.size
+                                val badgeColor = if (removedCount > 0) {
+                                    MaterialTheme.colorScheme.primaryContainer
+                                } else {
+                                    MaterialTheme.colorScheme.surfaceVariant
+                                }
+                                val badgeTextColor = if (removedCount > 0) {
+                                    MaterialTheme.colorScheme.onPrimaryContainer
+                                } else {
+                                    MaterialTheme.colorScheme.onSurfaceVariant
+                                }
+                                Surface(
+                                    shape = RoundedCornerShape(12.dp),
+                                    color = badgeColor
+                                ) {
+                                    Text(
+                                        text = if (removedCount > 0) stringResource(
+                                            R.string.history_item_removed_count,
+                                            removedCount
+                                        ) else stringResource(R.string.history_item_clean),
+                                        fontWeight = FontWeight.Bold,
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = badgeTextColor,
+                                        modifier = Modifier.padding(
+                                            horizontal = 10.dp,
+                                            vertical = 4.dp
+                                        )
+                                    )
+                                }
+                            }
+
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Text(
+                                    text = state.cleanedUrl,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = MaterialTheme.colorScheme.onPrimaryContainer,
+                                    maxLines = 5,
+                                    overflow = TextOverflow.Ellipsis,
+                                    modifier = Modifier.weight(1f)
+                                )
+                                if (state.canExpand) {
+                                    TooltipWrapper(tooltipText = stringResource(R.string.main_expand_url)) {
+                                        IconButton(
+                                            onClick = { viewModel.expandShortUrl() },
+                                            enabled = !state.isExpanding,
+                                            colors = IconButtonDefaults.iconButtonColors(
+                                                contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                                            )
+                                        ) {
+                                            if (state.isExpanding) {
+                                                CircularProgressIndicator(
+                                                    modifier = Modifier.size(20.dp),
+                                                    color = MaterialTheme.colorScheme.onPrimaryContainer,
+                                                    strokeWidth = 2.dp
+                                                )
+                                            } else {
+                                                Icon(
+                                                    imageVector = Icons.Outlined.Link,
+                                                    contentDescription = stringResource(R.string.main_expand_url)
+                                                )
+                                            }
+                                        }
+                                    }
+                                }
+                                TooltipWrapper(tooltipText = stringResource(R.string.tooltip_open_browser)) {
                                     IconButton(
-                                        onClick = { viewModel.expandShortUrl() },
-                                        enabled = !state.isExpanding,
+                                        onClick = {
+                                            try {
+                                                val intent = Intent(
+                                                    Intent.ACTION_VIEW,
+                                                    android.net.Uri.parse(state.cleanedUrl)
+                                                ).apply {
+                                                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                                                }
+                                                context.startActivity(intent)
+                                            } catch (e: Exception) {
+                                                scope.launch {
+                                                    snackbarHostState.showSnackbar(
+                                                        context.getString(
+                                                            R.string.toast_no_browser_app
+                                                        )
+                                                    )
+                                                }
+                                            }
+                                        },
                                         colors = IconButtonDefaults.iconButtonColors(
                                             contentColor = MaterialTheme.colorScheme.onPrimaryContainer
                                         )
                                     ) {
-                                        if (state.isExpanding) {
-                                            CircularProgressIndicator(
-                                                modifier = Modifier.size(20.dp),
-                                                color = MaterialTheme.colorScheme.onPrimaryContainer,
-                                                strokeWidth = 2.dp
-                                            )
-                                        } else {
-                                            Icon(
-                                                imageVector = Icons.Outlined.Link,
-                                                contentDescription = stringResource(R.string.main_expand_url)
-                                            )
-                                        }
+                                        Icon(
+                                            imageVector = Icons.AutoMirrored.Filled.OpenInNew,
+                                            contentDescription = "Open in browser"
+                                        )
                                     }
                                 }
                             }
-                            TooltipWrapper(tooltipText = stringResource(R.string.tooltip_open_browser)) {
-                                IconButton(
-                                    onClick = {
-                                        try {
-                                            val intent = Intent(Intent.ACTION_VIEW, android.net.Uri.parse(state.cleanedUrl)).apply {
-                                                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                                            }
-                                            context.startActivity(intent)
-                                        } catch (e: Exception) {
-                                            scope.launch {
-                                                snackbarHostState.showSnackbar(context.getString(R.string.toast_no_browser_app))
-                                            }
-                                        }
-                                    },
-                                    colors = IconButtonDefaults.iconButtonColors(
-                                        contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+
+                            TooltipWrapper(
+                                tooltipText = stringResource(if (showDetails) R.string.main_hide_details else R.string.main_show_details),
+                                modifier = Modifier.align(Alignment.CenterHorizontally)
+                            ) {
+                                TextButton(
+                                    onClick = { showDetails = !showDetails },
+                                    contentPadding = PaddingValues(
+                                        horizontal = 16.dp,
+                                        vertical = 6.dp
                                     )
                                 ) {
                                     Icon(
-                                        imageVector = Icons.AutoMirrored.Filled.OpenInNew,
-                                        contentDescription = "Open in browser"
+                                        imageVector = if (showDetails) Icons.Filled.KeyboardArrowUp else Icons.Filled.KeyboardArrowDown,
+                                        contentDescription = null,
+                                        modifier = Modifier.size(20.dp),
+                                        tint = MaterialTheme.colorScheme.onPrimaryContainer
                                     )
-                                }
-                            }
-                        }
-
-                        TooltipWrapper(
-                            tooltipText = stringResource(if (showDetails) R.string.main_hide_details else R.string.main_show_details),
-                            modifier = Modifier.align(Alignment.CenterHorizontally)
-                        ) {
-                            TextButton(
-                                onClick = { showDetails = !showDetails },
-                                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 6.dp)
-                            ) {
-                                Icon(
-                                    imageVector = if (showDetails) Icons.Filled.KeyboardArrowUp else Icons.Filled.KeyboardArrowDown,
-                                    contentDescription = null,
-                                    modifier = Modifier.size(20.dp),
-                                    tint = MaterialTheme.colorScheme.onPrimaryContainer
-                                )
-                                Spacer(modifier = Modifier.width(6.dp))
-                                Text(
-                                    text = if (showDetails) stringResource(R.string.main_hide_details) else stringResource(R.string.main_show_details),
-                                    style = MaterialTheme.typography.labelLarge,
-                                    color = MaterialTheme.colorScheme.onPrimaryContainer,
-                                    fontWeight = FontWeight.Bold
-                                )
-                            }
-                        }
-
-                        AnimatedVisibility(visible = showDetails) {
-                            Column(
-                                verticalArrangement = Arrangement.spacedBy(12.dp),
-                                modifier = Modifier.fillMaxWidth().padding(top = 4.dp)
-                            ) {
-                                Column {
+                                    Spacer(modifier = Modifier.width(6.dp))
                                     Text(
-                                        text = stringResource(R.string.main_original_url),
-                                        style = MaterialTheme.typography.labelSmall,
-                                        color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.6f),
+                                        text = if (showDetails) stringResource(R.string.main_hide_details) else stringResource(
+                                            R.string.main_show_details
+                                        ),
+                                        style = MaterialTheme.typography.labelLarge,
+                                        color = MaterialTheme.colorScheme.onPrimaryContainer,
                                         fontWeight = FontWeight.Bold
                                     )
-                                    Spacer(modifier = Modifier.height(2.dp))
-                                    Text(
-                                        text = state.originalUrl,
-                                        style = MaterialTheme.typography.bodySmall,
-                                        color = MaterialTheme.colorScheme.onPrimaryContainer
-                                    )
                                 }
+                            }
 
-                                if (state.expandedUrl != null) {
+                            AnimatedVisibility(visible = showDetails) {
+                                Column(
+                                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(top = 4.dp)
+                                ) {
                                     Column {
                                         Text(
-                                            text = stringResource(R.string.main_expanded_url),
+                                            text = stringResource(R.string.main_original_url),
                                             style = MaterialTheme.typography.labelSmall,
-                                            color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.6f),
+                                            color = MaterialTheme.colorScheme.onPrimaryContainer.copy(
+                                                alpha = 0.6f
+                                            ),
                                             fontWeight = FontWeight.Bold
                                         )
                                         Spacer(modifier = Modifier.height(2.dp))
                                         Text(
-                                            text = state.expandedUrl!!,
+                                            text = state.originalUrl,
                                             style = MaterialTheme.typography.bodySmall,
                                             color = MaterialTheme.colorScheme.onPrimaryContainer
                                         )
                                     }
-                                }
 
-                                if (state.removedParams.isNotEmpty()) {
-                                    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                                        Text(
-                                            text = stringResource(R.string.main_removed_parameters),
-                                            style = MaterialTheme.typography.labelSmall,
-                                            color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.6f),
-                                            fontWeight = FontWeight.Bold
-                                        )
-                                        FlowRow(
-                                            horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                            verticalArrangement = Arrangement.spacedBy(8.dp),
-                                            modifier = Modifier.fillMaxWidth()
-                                        ) {
-                                            state.removedParams.forEach { param ->
-                                                AssistChip(
-                                                    onClick = { paramToWhitelist = param },
-                                                    label = { Text(param, style = MaterialTheme.typography.bodySmall) },
-                                                    colors = AssistChipDefaults.assistChipColors(
-                                                        containerColor = MaterialTheme.colorScheme.secondaryContainer,
-                                                        labelColor = MaterialTheme.colorScheme.onSecondaryContainer
-                                                    ),
-                                                    shape = RoundedCornerShape(12.dp),
-                                                    border = BorderStroke(
-                                                        width = 1.dp,
-                                                        color = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
+                                    if (state.expandedUrl != null) {
+                                        Column {
+                                            Text(
+                                                text = stringResource(R.string.main_expanded_url),
+                                                style = MaterialTheme.typography.labelSmall,
+                                                color = MaterialTheme.colorScheme.onPrimaryContainer.copy(
+                                                    alpha = 0.6f
+                                                ),
+                                                fontWeight = FontWeight.Bold
+                                            )
+                                            Spacer(modifier = Modifier.height(2.dp))
+                                            Text(
+                                                text = state.expandedUrl!!,
+                                                style = MaterialTheme.typography.bodySmall,
+                                                color = MaterialTheme.colorScheme.onPrimaryContainer
+                                            )
+                                        }
+                                    }
+
+                                    if (state.removedParams.isNotEmpty()) {
+                                        Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                                            Text(
+                                                text = stringResource(R.string.main_removed_parameters),
+                                                style = MaterialTheme.typography.labelSmall,
+                                                color = MaterialTheme.colorScheme.onPrimaryContainer.copy(
+                                                    alpha = 0.6f
+                                                ),
+                                                fontWeight = FontWeight.Bold
+                                            )
+                                            FlowRow(
+                                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                                verticalArrangement = Arrangement.spacedBy(8.dp),
+                                                modifier = Modifier.fillMaxWidth()
+                                            ) {
+                                                state.removedParams.forEach { param ->
+                                                    AssistChip(
+                                                        onClick = { paramToWhitelist = param },
+                                                        label = {
+                                                            Text(
+                                                                param,
+                                                                style = MaterialTheme.typography.bodySmall
+                                                            )
+                                                        },
+                                                        colors = AssistChipDefaults.assistChipColors(
+                                                            containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                                                            labelColor = MaterialTheme.colorScheme.onSecondaryContainer
+                                                        ),
+                                                        shape = RoundedCornerShape(12.dp),
+                                                        border = BorderStroke(
+                                                            width = 1.dp,
+                                                            color = MaterialTheme.colorScheme.outline.copy(
+                                                                alpha = 0.3f
+                                                            )
+                                                        )
                                                     )
-                                                )
+                                                }
                                             }
                                         }
                                     }
@@ -609,7 +728,6 @@ fun MainScreen(
                         }
                     }
                 }
-            }
             } else {
                 // DECLUTTERED Welcome State
                 BoxWithConstraints(
@@ -629,16 +747,22 @@ fun MainScreen(
                         if (!showIntro) {
                             Column(
                                 horizontalAlignment = Alignment.CenterHorizontally,
-                                modifier = Modifier.fillMaxWidth().animateContentSize()
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .animateContentSize()
                             ) {
                                 Spacer(modifier = Modifier.height(24.dp))
-                                
+
                                 // Logo
                                 Box(
                                     modifier = Modifier
                                         .size(80.dp)
                                         .clip(RoundedCornerShape(24.dp))
-                                        .background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f)),
+                                        .background(
+                                            MaterialTheme.colorScheme.primaryContainer.copy(
+                                                alpha = 0.4f
+                                            )
+                                        ),
                                     contentAlignment = Alignment.Center
                                 ) {
                                     Icon(
@@ -649,7 +773,7 @@ fun MainScreen(
                                     )
                                 }
                                 Spacer(modifier = Modifier.height(20.dp))
-                                
+
                                 // Title & Tagline
                                 Text(
                                     text = stringResource(R.string.welcome_title),
@@ -685,11 +809,18 @@ fun MainScreen(
                                         color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)
                                     ) {
                                         Text(
-                                            text = stringResource(R.string.main_stats_summary, state.totalCleanedCount, state.totalTrackersBlocked),
+                                            text = stringResource(
+                                                R.string.main_stats_summary,
+                                                state.totalCleanedCount,
+                                                state.totalTrackersBlocked
+                                            ),
                                             style = MaterialTheme.typography.labelMedium,
                                             fontWeight = FontWeight.SemiBold,
                                             color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+                                            modifier = Modifier.padding(
+                                                horizontal = 16.dp,
+                                                vertical = 8.dp
+                                            )
                                         )
                                     }
                                 }
@@ -702,21 +833,30 @@ fun MainScreen(
                                     horizontalArrangement = Arrangement.SpaceEvenly,
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
-                                    TrustMarkerCompact(icon = Icons.Outlined.CloudOff, text = stringResource(R.string.welcome_local_title))
+                                    TrustMarkerCompact(
+                                        icon = Icons.Outlined.CloudOff,
+                                        text = stringResource(R.string.welcome_local_title)
+                                    )
                                     VerticalDivider(
                                         modifier = Modifier
                                             .height(16.dp)
                                             .width(1.dp),
                                         color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
                                     )
-                                    TrustMarkerCompact(icon = Icons.Outlined.Lock, text = stringResource(R.string.welcome_privacy_title))
+                                    TrustMarkerCompact(
+                                        icon = Icons.Outlined.Lock,
+                                        text = stringResource(R.string.welcome_privacy_title)
+                                    )
                                     VerticalDivider(
                                         modifier = Modifier
                                             .height(16.dp)
                                             .width(1.dp),
                                         color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
                                     )
-                                    TrustMarkerCompact(icon = Icons.Outlined.Block, text = stringResource(R.string.welcome_free_title))
+                                    TrustMarkerCompact(
+                                        icon = Icons.Outlined.Block,
+                                        text = stringResource(R.string.welcome_free_title)
+                                    )
                                 }
                             }
                         }
@@ -734,8 +874,9 @@ fun MainScreen(
                                         val whitelist = settings.whitelistedDomains.first()
                                         val customBlacklist = settings.blacklistedParams.first()
                                         val domainParams = settings.domainWhitelistedParams.first()
-                                        val removeMobile = settings.autoRemoveMobileSubdomains.first()
-                                        
+                                        val removeMobile =
+                                            settings.autoRemoveMobileSubdomains.first()
+
                                         val cleaned = urls.map { url ->
                                             UrlCleaner().clean(
                                                 urlStr = url,
@@ -745,15 +886,24 @@ fun MainScreen(
                                                 removeMobileSubdomains = removeMobile
                                             ).cleanedUrl
                                         }
-                                        
+
                                         val joinedCleaned = cleaned.joinToString("\n")
-                                        
-                                        val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-                                        val clip = android.content.ClipData.newPlainText("Cleaned URLs", joinedCleaned)
+
+                                        val clipboard =
+                                            context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                                        val clip = android.content.ClipData.newPlainText(
+                                            "Cleaned URLs",
+                                            joinedCleaned
+                                        )
                                         clipboard.setPrimaryClip(clip)
-                                        
+
                                         scope.launch {
-                                            snackbarHostState.showSnackbar(context.getString(R.string.plus_toast_bulk_cleaned, urls.size))
+                                            snackbarHostState.showSnackbar(
+                                                context.getString(
+                                                    R.string.plus_toast_bulk_cleaned,
+                                                    urls.size
+                                                )
+                                            )
                                         }
                                         bulkClipboardUrls = null
                                     }
@@ -762,8 +912,14 @@ fun MainScreen(
                         )
 
                         // Input card on welcome (pushed to bottom)
-                        Column(modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp)) {
-                            InputCard(state, viewModel, clipboardUrl, onDismissClipboard = { clipboardUrl = null })
+                        Column(modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 24.dp)) {
+                            InputCard(
+                                state,
+                                viewModel,
+                                clipboardUrl,
+                                onDismissClipboard = { clipboardUrl = null })
                         }
                     }
                 }
@@ -777,7 +933,8 @@ fun MainScreen(
                 kotlinx.coroutines.delay(350)
                 try {
                     focusRequester.requestFocus()
-                } catch (e: Exception) {}
+                } catch (e: Exception) {
+                }
             }
 
             ModalBottomSheet(
@@ -807,13 +964,24 @@ fun MainScreen(
                     OutlinedTextField(
                         value = state.inputUrl,
                         onValueChange = { viewModel.onUrlInput(it) },
-                        placeholder = { Text(stringResource(R.string.welcome_placeholder), maxLines = 1, overflow = TextOverflow.Ellipsis) },
-                        modifier = Modifier.fillMaxWidth().focusRequester(focusRequester),
+                        placeholder = {
+                            Text(
+                                stringResource(R.string.welcome_placeholder),
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .focusRequester(focusRequester),
                         shape = RoundedCornerShape(16.dp),
                         trailingIcon = {
                             if (state.inputUrl.isNotEmpty()) {
                                 IconButton(onClick = { viewModel.onUrlInput("") }) {
-                                    Icon(Icons.Filled.Clear, contentDescription = stringResource(R.string.settings_collapse))
+                                    Icon(
+                                        Icons.Filled.Clear,
+                                        contentDescription = stringResource(R.string.settings_collapse)
+                                    )
                                 }
                             }
                         },
@@ -871,7 +1039,10 @@ fun MainScreen(
                                 strokeWidth = 2.dp
                             )
                         } else {
-                            Text(stringResource(R.string.button_clean_url), fontWeight = FontWeight.Bold)
+                            Text(
+                                stringResource(R.string.button_clean_url),
+                                fontWeight = FontWeight.Bold
+                            )
                         }
                     }
                 }
@@ -962,7 +1133,10 @@ fun MainScreen(
                         ),
                         contentPadding = PaddingValues(vertical = 14.dp)
                     ) {
-                        Text(stringResource(R.string.welcome_get_started), fontWeight = FontWeight.Bold)
+                        Text(
+                            stringResource(R.string.welcome_get_started),
+                            fontWeight = FontWeight.Bold
+                        )
                     }
 
                     FlavorConfig.OnboardingExtra {
@@ -1055,26 +1229,37 @@ fun MainScreen(
                                     putExtra(Intent.EXTRA_TEXT, crashReportText)
                                     type = "text/plain"
                                 }
-                                val shareIntent = Intent.createChooser(sendIntent, "Share Crash Report")
+                                val shareIntent =
+                                    Intent.createChooser(sendIntent, "Share Crash Report")
                                 context.startActivity(shareIntent)
                                 onDismissCrashReport()
                             },
                             modifier = Modifier.weight(1f),
                             shape = RoundedCornerShape(16.dp)
                         ) {
-                            Text(stringResource(R.string.crash_share_log), fontWeight = FontWeight.Bold)
+                            Text(
+                                stringResource(R.string.crash_share_log),
+                                fontWeight = FontWeight.Bold
+                            )
                         }
 
                         Button(
                             onClick = {
-                                val clipboard = context.getSystemService(android.content.Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
-                                val clip = android.content.ClipData.newPlainText("Crash Report", crashReportText)
+                                val clipboard =
+                                    context.getSystemService(android.content.Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
+                                val clip = android.content.ClipData.newPlainText(
+                                    "Crash Report",
+                                    crashReportText
+                                )
                                 clipboard.setPrimaryClip(clip)
                                 scope.launch {
                                     snackbarHostState.showSnackbar(context.getString(R.string.crash_toast_copied))
                                 }
-                                
-                                val intent = Intent(Intent.ACTION_VIEW, android.net.Uri.parse("https://github.com/arpitnnd/Tidy/issues/new?title=Crash%20Report&body=Paste%20copied%20crash%20log%20here")).apply {
+
+                                val intent = Intent(
+                                    Intent.ACTION_VIEW,
+                                    android.net.Uri.parse("https://github.com/arpitnnd/Tidy/issues/new?title=Crash%20Report&body=Paste%20copied%20crash%20log%20here")
+                                ).apply {
                                     addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                                 }
                                 try {
@@ -1089,7 +1274,10 @@ fun MainScreen(
                             modifier = Modifier.weight(1f),
                             shape = RoundedCornerShape(16.dp)
                         ) {
-                            Text(stringResource(R.string.crash_report_github), fontWeight = FontWeight.Bold)
+                            Text(
+                                stringResource(R.string.crash_report_github),
+                                fontWeight = FontWeight.Bold
+                            )
                         }
                     }
 
@@ -1111,7 +1299,10 @@ fun MainScreen(
                             .fillMaxWidth()
                             .heightIn(max = 300.dp)
                             .verticalScroll(rememberScrollState())
-                            .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(8.dp))
+                            .background(
+                                MaterialTheme.colorScheme.surfaceVariant,
+                                RoundedCornerShape(8.dp)
+                            )
                             .padding(12.dp)
                     ) {
                         Text(
@@ -1134,7 +1325,8 @@ fun MainScreen(
     if (paramToWhitelist != null) {
         val param = paramToWhitelist!!
         val domain = extractDomain(state.originalUrl)
-        val description = trackerDescriptions[param] ?: stringResource(R.string.details_no_explanation)
+        val description =
+            trackerDescriptions[param] ?: stringResource(R.string.details_no_explanation)
 
         ModalBottomSheet(
             onDismissRequest = { paramToWhitelist = null },
@@ -1164,7 +1356,9 @@ fun MainScreen(
                 )
 
                 Row(
-                    modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 8.dp),
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     OutlinedButton(
@@ -1180,7 +1374,10 @@ fun MainScreen(
                         modifier = Modifier.weight(1f),
                         shape = RoundedCornerShape(16.dp)
                     ) {
-                        Text(stringResource(R.string.details_report_issue), fontWeight = FontWeight.Bold)
+                        Text(
+                            stringResource(R.string.details_report_issue),
+                            fontWeight = FontWeight.Bold
+                        )
                     }
 
                     Button(
@@ -1191,7 +1388,10 @@ fun MainScreen(
                         modifier = Modifier.weight(1f),
                         shape = RoundedCornerShape(16.dp)
                     ) {
-                        Text(stringResource(R.string.details_always_keep), fontWeight = FontWeight.Bold)
+                        Text(
+                            stringResource(R.string.details_always_keep),
+                            fontWeight = FontWeight.Bold
+                        )
                     }
                 }
             }
@@ -1276,7 +1476,9 @@ private fun InputCard(
                 containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)
             ),
             border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.12f)),
-            modifier = Modifier.fillMaxWidth().animateContentSize()
+            modifier = Modifier
+                .fillMaxWidth()
+                .animateContentSize()
         ) {
             Column(
                 modifier = Modifier.padding(16.dp),
@@ -1285,14 +1487,23 @@ private fun InputCard(
                 OutlinedTextField(
                     value = state.inputUrl,
                     onValueChange = { viewModel.onUrlInput(it) },
-                    placeholder = { Text(stringResource(R.string.welcome_placeholder), maxLines = 1, overflow = TextOverflow.Ellipsis) },
+                    placeholder = {
+                        Text(
+                            stringResource(R.string.welcome_placeholder),
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    },
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(16.dp),
                     trailingIcon = {
                         if (state.inputUrl.isNotEmpty()) {
                             TooltipWrapper(tooltipText = stringResource(R.string.tooltip_clear_input)) {
                                 IconButton(onClick = { viewModel.clear() }) {
-                                    Icon(Icons.Filled.Clear, contentDescription = stringResource(R.string.settings_collapse))
+                                    Icon(
+                                        Icons.Filled.Clear,
+                                        contentDescription = stringResource(R.string.settings_collapse)
+                                    )
                                 }
                             }
                         }
@@ -1324,7 +1535,9 @@ private fun InputCard(
                                 viewModel.cleanUrl(url)
                                 onDismissClipboard()
                             },
-                            modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 4.dp)
                         )
                     }
                 }
@@ -1347,7 +1560,10 @@ private fun InputCard(
                                 strokeWidth = 2.dp
                             )
                         } else {
-                            Text(stringResource(R.string.button_clean_url), fontWeight = FontWeight.Bold)
+                            Text(
+                                stringResource(R.string.button_clean_url),
+                                fontWeight = FontWeight.Bold
+                            )
                         }
                     }
                 }
@@ -1371,7 +1587,9 @@ private fun ClipboardActionBanner(
         modifier = modifier
     ) {
         Row(
-            modifier = Modifier.padding(12.dp).fillMaxWidth(),
+            modifier = Modifier
+                .padding(12.dp)
+                .fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
@@ -1440,7 +1658,11 @@ private fun extractDomain(url: String): String {
     return temp.trim().lowercase()
 }
 
-private fun launchGitHubBugReport(context: android.content.Context, param: String, domain: String): Boolean {
+private fun launchGitHubBugReport(
+    context: android.content.Context,
+    param: String,
+    domain: String
+): Boolean {
     val title = "Broken parameter: $param on $domain"
     val body = """
 **Parameter:** $param
@@ -1453,7 +1675,8 @@ The parameter `$param` was removed from `$domain`, which broke the site or remov
     return try {
         val encodedTitle = java.net.URLEncoder.encode(title, "UTF-8")
         val encodedBody = java.net.URLEncoder.encode(body, "UTF-8")
-        val urlStr = "https://github.com/arpitnnd/Tidy/issues/new?title=$encodedTitle&body=$encodedBody&labels=bug-report"
+        val urlStr =
+            "https://github.com/arpitnnd/Tidy/issues/new?title=$encodedTitle&body=$encodedBody&labels=bug-report"
 
         val intent = Intent(Intent.ACTION_VIEW, android.net.Uri.parse(urlStr)).apply {
             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
@@ -1497,7 +1720,11 @@ private fun isValidInputUrl(url: String): Boolean {
 
 private fun looksLikeUrl(text: String): Boolean {
     val trimmed = text.trim()
-    if (trimmed.startsWith("http://", ignoreCase = true) || trimmed.startsWith("https://", ignoreCase = true)) {
+    if (trimmed.startsWith("http://", ignoreCase = true) || trimmed.startsWith(
+            "https://",
+            ignoreCase = true
+        )
+    ) {
         return true
     }
     if (trimmed.contains(" ") || !trimmed.contains(".")) return false

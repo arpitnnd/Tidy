@@ -55,15 +55,27 @@ class MainActivity : ComponentActivity() {
             val now = System.currentTimeMillis()
             val settings = TidyURLApp.instance.settingsRepository
             val shouldAutoClean = runBlocking { settings.autoCleanClipboardOnLaunch.first() }
-            val isFromHistory = (intent?.flags?.and(Intent.FLAG_ACTIVITY_LAUNCHED_FROM_HISTORY) ?: 0) != 0
+            val isFromHistory =
+                (intent?.flags?.and(Intent.FLAG_ACTIVITY_LAUNCHED_FROM_HISTORY) ?: 0) != 0
             val isFreshLaunch = savedInstanceState == null && !isFromHistory
             if (shouldAutoClean && isFreshLaunch && (now - lastExitTimestamp > 3000)) {
                 val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
                 if (clipboard.hasPrimaryClip()) {
                     val item = clipboard.primaryClip?.getItemAt(0)
                     val text = item?.text?.toString()?.trim()
-                    if (text != null && (text.startsWith("http://", ignoreCase = true) || text.startsWith("https://", ignoreCase = true) || (text.contains(".") && !text.contains(" ")))) {
-                        val formattedText = if (!text.startsWith("http://", ignoreCase = true) && !text.startsWith("https://", ignoreCase = true)) {
+                    if (text != null && (text.startsWith(
+                            "http://",
+                            ignoreCase = true
+                        ) || text.startsWith(
+                            "https://",
+                            ignoreCase = true
+                        ) || (text.contains(".") && !text.contains(" ")))
+                    ) {
+                        val formattedText = if (!text.startsWith(
+                                "http://",
+                                ignoreCase = true
+                            ) && !text.startsWith("https://", ignoreCase = true)
+                        ) {
                             "https://$text"
                         } else {
                             text
@@ -72,8 +84,10 @@ class MainActivity : ComponentActivity() {
                         if (formattedText != lastCleaned) {
                             val whitelist = runBlocking { settings.whitelistedDomains.first() }
                             val customBlacklist = runBlocking { settings.blacklistedParams.first() }
-                            val domainParams = runBlocking { settings.domainWhitelistedParams.first() }
-                            val removeMobile = runBlocking { settings.autoRemoveMobileSubdomains.first() }
+                            val domainParams =
+                                runBlocking { settings.domainWhitelistedParams.first() }
+                            val removeMobile =
+                                runBlocking { settings.autoRemoveMobileSubdomains.first() }
                             val cleanResult = UrlCleaner().clean(
                                 urlStr = formattedText,
                                 whitelistedDomains = whitelist,
@@ -85,9 +99,16 @@ class MainActivity : ComponentActivity() {
                                 runBlocking {
                                     settings.setLastCleanedUrl(cleanResult.cleanedUrl)
                                 }
-                                val clip = ClipData.newPlainText(getString(R.string.main_cleaned_url), cleanResult.cleanedUrl)
+                                val clip = ClipData.newPlainText(
+                                    getString(R.string.main_cleaned_url),
+                                    cleanResult.cleanedUrl
+                                )
                                 clipboard.setPrimaryClip(clip)
-                                Toast.makeText(this, getString(R.string.toast_cleaned_copied), Toast.LENGTH_SHORT).show()
+                                Toast.makeText(
+                                    this,
+                                    getString(R.string.toast_cleaned_copied),
+                                    Toast.LENGTH_SHORT
+                                ).show()
                                 lastExitTimestamp = now
                                 finish()
                                 return
