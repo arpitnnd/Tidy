@@ -4,6 +4,9 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.background
 import androidx.compose.ui.graphics.Brush
@@ -32,6 +35,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -120,7 +124,7 @@ fun SettingsScreen(
             Text(
                 text = stringResource(R.string.rules_title),
                 style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.ExtraBold,
+                fontWeight = FontWeight.SemiBold,
                 color = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.padding(start = 4.dp, top = 8.dp)
             )
@@ -132,9 +136,9 @@ fun SettingsScreen(
 
             if (showDefaultBlocklistSheet) {
                 val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-                val scrollState = rememberScrollState()
+                val lazyListState = rememberLazyListState()
                 val dividerAlpha by animateFloatAsState(
-                    targetValue = if (scrollState.value > 0) 0.12f else 0f,
+                    targetValue = if (lazyListState.firstVisibleItemIndex > 0 || lazyListState.firstVisibleItemScrollOffset > 0) 0.12f else 0f,
                     label = "BlocklistDividerAlpha"
                 )
 
@@ -149,11 +153,12 @@ fun SettingsScreen(
                             .fillMaxWidth()
                             .padding(horizontal = 24.dp)
                             .navigationBarsPadding(),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                        horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Row(
-                            modifier = Modifier.fillMaxWidth(),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(top = 8.dp, bottom = 8.dp),
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
@@ -194,22 +199,25 @@ fun SettingsScreen(
                             text = stringResource(R.string.dialog_default_blocklist_desc),
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.align(Alignment.Start)
+                            modifier = Modifier
+                                .align(Alignment.Start)
+                                .padding(bottom = 8.dp)
                         )
 
                         HorizontalDivider(
                             color = MaterialTheme.colorScheme.outline.copy(alpha = dividerAlpha),
-                            modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)
+                            modifier = Modifier.fillMaxWidth()
                         )
 
-                        Column(
+                        LazyColumn(
+                            state = lazyListState,
+                            contentPadding = PaddingValues(top = 8.dp),
                             verticalArrangement = Arrangement.spacedBy(12.dp),
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .weight(1f, fill = false)
-                                .verticalScroll(scrollState)
                         ) {
-                            state.trackers.forEach { tracker ->
+                            items(state.trackers) { tracker ->
                                 Column(
                                     modifier = Modifier
                                         .fillMaxWidth()
@@ -227,10 +235,11 @@ fun SettingsScreen(
                                         color = MaterialTheme.colorScheme.onSurfaceVariant
                                     )
                                 }
-                                HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.08f))
                             }
 
-                            Spacer(modifier = Modifier.height(32.dp))
+                            item {
+                                Spacer(modifier = Modifier.height(32.dp))
+                            }
                         }
                     }
                 }
@@ -244,15 +253,16 @@ fun SettingsScreen(
                 modifier = Modifier.fillMaxWidth().animateContentSize()
             ) {
                 Column(
-                    modifier = Modifier.padding(20.dp),
-                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                    modifier = Modifier.padding(12.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     // 1. Bypass List Row (Clickable Row Header)
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
+                            .clip(RoundedCornerShape(12.dp))
                             .clickable { isBypassListExpanded = !isBypassListExpanded }
-                            .padding(vertical = 4.dp),
+                            .padding(horizontal = 8.dp, vertical = 12.dp),
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
@@ -260,9 +270,10 @@ fun SettingsScreen(
                             Text(
                                 text = stringResource(R.string.settings_bypass_list),
                                 style = MaterialTheme.typography.bodyLarge,
-                                fontWeight = FontWeight.Bold,
+                                fontWeight = FontWeight.SemiBold,
                                 color = MaterialTheme.colorScheme.onSurface
                             )
+                            Spacer(modifier = Modifier.height(2.dp))
                             val summaryText = if (state.whitelistedDomains.isEmpty()) {
                                 stringResource(R.string.settings_no_domains_bypassed)
                             } else {
@@ -290,7 +301,7 @@ fun SettingsScreen(
                     if (isBypassListExpanded) {
                         Column(
                             verticalArrangement = Arrangement.spacedBy(12.dp),
-                            modifier = Modifier.fillMaxWidth().padding(top = 4.dp, bottom = 8.dp)
+                            modifier = Modifier.fillMaxWidth().padding(start = 8.dp, end = 8.dp, bottom = 12.dp)
                         ) {
                             Text(
                                 text = stringResource(R.string.settings_bypass_desc),
@@ -371,14 +382,18 @@ fun SettingsScreen(
                         }
                     }
 
-                    HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.12f))
+                    HorizontalDivider(
+                        color = MaterialTheme.colorScheme.outline.copy(alpha = 0.12f),
+                        modifier = Modifier.padding(horizontal = 8.dp)
+                    )
 
                     // 2. Parameter Whitelist Row (Clickable Row Header)
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
+                            .clip(RoundedCornerShape(12.dp))
                             .clickable { isParamWhitelistExpanded = !isParamWhitelistExpanded }
-                            .padding(vertical = 4.dp),
+                            .padding(horizontal = 8.dp, vertical = 12.dp),
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
@@ -386,9 +401,10 @@ fun SettingsScreen(
                             Text(
                                 text = stringResource(R.string.settings_param_whitelist_title),
                                 style = MaterialTheme.typography.bodyLarge,
-                                fontWeight = FontWeight.Bold,
+                                fontWeight = FontWeight.SemiBold,
                                 color = MaterialTheme.colorScheme.onSurface
                             )
+                            Spacer(modifier = Modifier.height(2.dp))
                             val summaryText = if (state.domainWhitelistedParams.isEmpty()) {
                                 stringResource(R.string.settings_no_params_whitelisted)
                             } else {
@@ -416,7 +432,7 @@ fun SettingsScreen(
                     if (isParamWhitelistExpanded) {
                         Column(
                             verticalArrangement = Arrangement.spacedBy(12.dp),
-                            modifier = Modifier.fillMaxWidth().padding(top = 4.dp, bottom = 8.dp)
+                            modifier = Modifier.fillMaxWidth().padding(start = 8.dp, end = 8.dp, bottom = 12.dp)
                         ) {
                             Text(
                                 text = stringResource(R.string.settings_param_whitelist_desc),
@@ -513,14 +529,18 @@ fun SettingsScreen(
                         }
                     }
 
-                    HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.12f))
+                    HorizontalDivider(
+                        color = MaterialTheme.colorScheme.outline.copy(alpha = 0.12f),
+                        modifier = Modifier.padding(horizontal = 8.dp)
+                    )
 
                     // 3. Custom Blacklisted Parameters Row (Clickable Row Header)
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
+                            .clip(RoundedCornerShape(12.dp))
                             .clickable { isCustomParamsExpanded = !isCustomParamsExpanded }
-                            .padding(vertical = 4.dp),
+                            .padding(horizontal = 8.dp, vertical = 12.dp),
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
@@ -528,9 +548,10 @@ fun SettingsScreen(
                             Text(
                                 text = stringResource(R.string.settings_custom_params_title),
                                 style = MaterialTheme.typography.bodyLarge,
-                                fontWeight = FontWeight.Bold,
+                                fontWeight = FontWeight.SemiBold,
                                 color = MaterialTheme.colorScheme.onSurface
                             )
+                            Spacer(modifier = Modifier.height(2.dp))
                             val summaryText = if (state.blacklistedParams.isEmpty()) {
                                 stringResource(R.string.settings_no_custom_params_text)
                             } else {
@@ -554,7 +575,7 @@ fun SettingsScreen(
                     if (isCustomParamsExpanded) {
                         Column(
                             verticalArrangement = Arrangement.spacedBy(12.dp),
-                            modifier = Modifier.fillMaxWidth().padding(top = 4.dp, bottom = 8.dp)
+                            modifier = Modifier.fillMaxWidth().padding(start = 8.dp, end = 8.dp, bottom = 12.dp)
                         ) {
                             Text(
                                 text = stringResource(R.string.settings_custom_params_desc),
@@ -635,14 +656,18 @@ fun SettingsScreen(
                         }
                     }
 
-                    HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.12f))
+                    HorizontalDivider(
+                        color = MaterialTheme.colorScheme.outline.copy(alpha = 0.12f),
+                        modifier = Modifier.padding(horizontal = 8.dp)
+                    )
 
                     // 4. Default Blocklist Row (Clickable Row Header to trigger Dialog)
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
+                            .clip(RoundedCornerShape(12.dp))
                             .clickable { showDefaultBlocklistSheet = true }
-                            .padding(vertical = 4.dp),
+                            .padding(horizontal = 8.dp, vertical = 12.dp),
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
@@ -650,9 +675,10 @@ fun SettingsScreen(
                             Text(
                                 text = stringResource(R.string.settings_default_blocklist_title),
                                 style = MaterialTheme.typography.bodyLarge,
-                                fontWeight = FontWeight.Bold,
+                                fontWeight = FontWeight.SemiBold,
                                 color = MaterialTheme.colorScheme.onSurface
                             )
+                            Spacer(modifier = Modifier.height(2.dp))
                             Text(
                                 text = stringResource(R.string.settings_default_blocklist_desc),
                                 style = MaterialTheme.typography.bodySmall,
@@ -670,9 +696,9 @@ fun SettingsScreen(
 
             // Appearance Theme Selector
             Text(
-                text = "Appearance",
+                text = "App Theme",
                 style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.ExtraBold,
+                fontWeight = FontWeight.SemiBold,
                 color = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.padding(start = 4.dp, top = 8.dp)
             )
@@ -685,14 +711,9 @@ fun SettingsScreen(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Column(
-                    modifier = Modifier.padding(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                    modifier = Modifier.padding(12.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    Text(
-                        text = "Customise Tidy's visual theme",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
 
                     val themes = remember {
                         buildList {
@@ -709,30 +730,16 @@ fun SettingsScreen(
                     val selectedThemeState = settingsRepository.selectedTheme.collectAsStateWithLifecycle(initialValue = "slate")
                     val selectedTheme = selectedThemeState.value
 
-                    themes.forEach { (themeKey, themeName) ->
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable {
-                                    if (themeKey == "slate" || isPlusUnlocked) {
-                                        scope.launch {
-                                            settingsRepository.setSelectedTheme(themeKey)
-                                        }
-                                    } else {
-                                        showUpsellSheet = true
-                                    }
-                                }
-                                .padding(vertical = 4.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.SpaceBetween
-                        ) {
+                    Column(
+                        verticalArrangement = Arrangement.spacedBy(2.dp),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        themes.forEach { (themeKey, themeName) ->
                             Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(12.dp)
-                            ) {
-                                RadioButton(
-                                    selected = (selectedTheme == themeKey),
-                                    onClick = {
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clip(RoundedCornerShape(12.dp))
+                                    .clickable {
                                         if (themeKey == "slate" || isPlusUnlocked) {
                                             scope.launch {
                                                 settingsRepository.setSelectedTheme(themeKey)
@@ -741,20 +748,40 @@ fun SettingsScreen(
                                             showUpsellSheet = true
                                         }
                                     }
-                                )
-                                Text(
-                                    text = themeName,
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = MaterialTheme.colorScheme.onSurface
-                                )
-                            }
-                            if (themeKey != "slate" && !isPlusUnlocked) {
-                                Icon(
-                                    imageVector = androidx.compose.material.icons.Icons.Outlined.Lock,
-                                    contentDescription = "Premium Theme",
-                                    tint = MaterialTheme.colorScheme.primary,
-                                    modifier = Modifier.size(16.dp)
-                                )
+                                    .padding(start = 0.dp, end = 8.dp, top = 8.dp, bottom = 8.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                                ) {
+                                    RadioButton(
+                                        selected = (selectedTheme == themeKey),
+                                        onClick = {
+                                            if (themeKey == "slate" || isPlusUnlocked) {
+                                                scope.launch {
+                                                    settingsRepository.setSelectedTheme(themeKey)
+                                                }
+                                            } else {
+                                                showUpsellSheet = true
+                                            }
+                                        }
+                                    )
+                                    Text(
+                                        text = themeName,
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        color = MaterialTheme.colorScheme.onSurface
+                                    )
+                                }
+                                if (themeKey != "slate" && !isPlusUnlocked) {
+                                    Icon(
+                                        imageVector = androidx.compose.material.icons.Icons.Outlined.Lock,
+                                        contentDescription = "Premium Theme",
+                                        tint = MaterialTheme.colorScheme.primary,
+                                        modifier = Modifier.size(16.dp)
+                                    )
+                                }
                             }
                         }
                     }
@@ -764,7 +791,7 @@ fun SettingsScreen(
             Text(
                 text = stringResource(R.string.settings_automation),
                 style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.ExtraBold,
+                fontWeight = FontWeight.SemiBold,
                 color = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.padding(start = 4.dp, top = 8.dp)
             )
@@ -778,18 +805,22 @@ fun SettingsScreen(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Column(
-                    modifier = Modifier.padding(20.dp),
-                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                    modifier = Modifier.padding(12.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
 
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .run {
-                                if (!isPlusUnlocked) {
-                                    clickable { showUpsellSheet = true }
-                                } else this
-                            },
+                            .clip(RoundedCornerShape(12.dp))
+                            .clickable {
+                                if (isPlusUnlocked) {
+                                    viewModel.setAutoCopyOnShare(!state.autoCopyOnShare)
+                                } else {
+                                    showUpsellSheet = true
+                                }
+                            }
+                            .padding(horizontal = 8.dp, vertical = 12.dp),
                         horizontalArrangement = Arrangement.spacedBy(16.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
@@ -822,30 +853,29 @@ fun SettingsScreen(
                         }
                         Switch(
                             checked = state.autoCopyOnShare && isPlusUnlocked,
-                            onCheckedChange = {
-                                if (isPlusUnlocked) {
-                                    viewModel.setAutoCopyOnShare(it)
-                                } else {
-                                    showUpsellSheet = true
-                                }
-                            },
+                            onCheckedChange = null,
                             colors = clearSwitchColors()
                         )
                     }
 
                     HorizontalDivider(
                         color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f),
-                        thickness = 1.dp
+                        thickness = 1.dp,
+                        modifier = Modifier.padding(horizontal = 8.dp)
                     )
 
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .run {
+                            .clip(RoundedCornerShape(12.dp))
+                            .clickable {
                                 if (!isPlusUnlocked) {
-                                    clickable { showUpsellSheet = true }
-                                } else this
-                            },
+                                    showUpsellSheet = true
+                                } else if (state.autoCopyOnShare) {
+                                    viewModel.setAutoCloseOnShare(!state.autoCloseOnShare)
+                                }
+                            }
+                            .padding(horizontal = 8.dp, vertical = 12.dp),
                         horizontalArrangement = Arrangement.spacedBy(16.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
@@ -858,7 +888,7 @@ fun SettingsScreen(
                                     text = stringResource(R.string.settings_close_shared_title),
                                     style = MaterialTheme.typography.bodyMedium,
                                     fontWeight = FontWeight.SemiBold,
-                                    color = MaterialTheme.colorScheme.onSurface
+                                    color = if (state.autoCopyOnShare || !isPlusUnlocked) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
                                 )
                                 if (!isPlusUnlocked) {
                                     Icon(
@@ -873,18 +903,12 @@ fun SettingsScreen(
                             Text(
                                 text = stringResource(R.string.settings_close_shared_desc),
                                 style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                color = if (state.autoCopyOnShare || !isPlusUnlocked) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.38f)
                             )
                         }
                         Switch(
                             checked = state.autoCloseOnShare && isPlusUnlocked,
-                            onCheckedChange = {
-                                if (isPlusUnlocked) {
-                                    viewModel.setAutoCloseOnShare(it)
-                                } else {
-                                    showUpsellSheet = true
-                                }
-                            },
+                            onCheckedChange = null,
                             enabled = (state.autoCopyOnShare && isPlusUnlocked) || !isPlusUnlocked,
                             colors = clearSwitchColors()
                         )
@@ -896,7 +920,11 @@ fun SettingsScreen(
                     )
 
                     Row(
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(12.dp))
+                            .clickable { viewModel.setAutoExpandShortUrls(!state.autoExpandShortUrls) }
+                            .padding(horizontal = 8.dp, vertical = 12.dp),
                         horizontalArrangement = Arrangement.spacedBy(16.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
@@ -916,18 +944,23 @@ fun SettingsScreen(
                         }
                         Switch(
                             checked = state.autoExpandShortUrls,
-                            onCheckedChange = { viewModel.setAutoExpandShortUrls(it) },
+                            onCheckedChange = null,
                             colors = clearSwitchColors()
                         )
                     }
 
                     HorizontalDivider(
                         color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f),
-                        thickness = 1.dp
+                        thickness = 1.dp,
+                        modifier = Modifier.padding(horizontal = 8.dp)
                     )
 
                     Row(
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(12.dp))
+                            .clickable { viewModel.setAutoRemoveMobileSubdomains(!state.autoRemoveMobileSubdomains) }
+                            .padding(horizontal = 8.dp, vertical = 12.dp),
                         horizontalArrangement = Arrangement.spacedBy(16.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
@@ -947,18 +980,23 @@ fun SettingsScreen(
                         }
                         Switch(
                             checked = state.autoRemoveMobileSubdomains,
-                            onCheckedChange = { viewModel.setAutoRemoveMobileSubdomains(it) },
+                            onCheckedChange = null,
                             colors = clearSwitchColors()
                         )
                     }
 
                     HorizontalDivider(
                         color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f),
-                        thickness = 1.dp
+                        thickness = 1.dp,
+                        modifier = Modifier.padding(horizontal = 8.dp)
                     )
 
                     Row(
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(12.dp))
+                            .clickable { viewModel.setAutoCleanClipboardOnLaunch(!state.autoCleanClipboardOnLaunch) }
+                            .padding(horizontal = 8.dp, vertical = 12.dp),
                         horizontalArrangement = Arrangement.spacedBy(16.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
@@ -978,18 +1016,23 @@ fun SettingsScreen(
                         }
                         Switch(
                             checked = state.autoCleanClipboardOnLaunch,
-                            onCheckedChange = { viewModel.setAutoCleanClipboardOnLaunch(it) },
+                            onCheckedChange = null,
                             colors = clearSwitchColors()
                         )
                     }
 
                     HorizontalDivider(
                         color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f),
-                        thickness = 1.dp
+                        thickness = 1.dp,
+                        modifier = Modifier.padding(horizontal = 8.dp)
                     )
 
                     Row(
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(12.dp))
+                            .clickable { viewModel.setAutoCleanOnInput(!state.autoCleanOnInput) }
+                            .padding(horizontal = 8.dp, vertical = 12.dp),
                         horizontalArrangement = Arrangement.spacedBy(16.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
@@ -1009,7 +1052,7 @@ fun SettingsScreen(
                         }
                         Switch(
                             checked = state.autoCleanOnInput,
-                            onCheckedChange = { viewModel.setAutoCleanOnInput(it) },
+                            onCheckedChange = null,
                             colors = clearSwitchColors()
                         )
                     }
@@ -1040,7 +1083,7 @@ fun SettingsScreen(
                 Text(
                     text = stringResource(R.string.settings_diagnostics_title),
                     style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.ExtraBold,
+                    fontWeight = FontWeight.SemiBold,
                     color = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.padding(start = 4.dp, top = 8.dp)
                 )
@@ -1053,13 +1096,15 @@ fun SettingsScreen(
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Column(
-                        modifier = Modifier.padding(20.dp),
-                        verticalArrangement = Arrangement.spacedBy(16.dp)
+                        modifier = Modifier.padding(12.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .clickable { showSettingsCrashDialog = true },
+                                .clip(RoundedCornerShape(12.dp))
+                                .clickable { showSettingsCrashDialog = true }
+                                .padding(horizontal = 8.dp, vertical = 12.dp),
                             horizontalArrangement = Arrangement.spacedBy(16.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
@@ -1190,6 +1235,7 @@ fun SettingsScreen(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
+                    .clip(RoundedCornerShape(12.dp))
                     .clickable {
                         val url = if (com.tidy.app.BuildConfig.FLAVOR == "play") {
                             "https://play.google.com/store/apps/details?id=${context.packageName}"
@@ -1207,7 +1253,7 @@ fun SettingsScreen(
                             }
                         }
                     }
-                    .padding(vertical = 16.dp),
+                    .padding(horizontal = 12.dp, vertical = 8.dp),
                 contentAlignment = Alignment.Center
             ) {
                 Text(

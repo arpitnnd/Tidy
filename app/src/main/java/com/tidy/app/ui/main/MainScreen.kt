@@ -1015,12 +1015,16 @@ fun MainScreen(
                     // Don't ask again toggle
                     var dontAskChecked by remember { mutableStateOf(dontAskAgainCrash) }
                     Row(
-                        modifier = Modifier.fillMaxWidth().clickable {
-                            dontAskChecked = !dontAskChecked
-                            scope.launch {
-                                settingsRepository.setDontAskAgainCrash(dontAskChecked)
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(8.dp))
+                            .clickable {
+                                dontAskChecked = !dontAskChecked
+                                scope.launch {
+                                    settingsRepository.setDontAskAgainCrash(dontAskChecked)
+                                }
                             }
-                        }.padding(vertical = 8.dp),
+                            .padding(horizontal = 8.dp, vertical = 8.dp),
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
