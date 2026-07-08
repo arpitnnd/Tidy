@@ -113,9 +113,12 @@
 
     <!-- Remote Blocklist & Issues -->
     <string name="rules_title">Rules</string>
-    <string name="rules_blocklist_title">Blocklist and rule updates</string>
-    <string name="settings_view_blocklist_changes_title">Blocklist sync history</string>
-    <string name="settings_view_blocklist_changes_desc">Inspect the chronological list of tracker changes and additions on GitHub</string>
+    <string name="settings_default_blocklist_title">Default blocklist</string>
+    <string name="settings_default_blocklist_desc">View default parameters stripped by Tidy and check for updates</string>
+    <string name="dialog_default_blocklist_title">Default blocklist</string>
+    <string name="dialog_default_blocklist_desc">Tidy automatically strips tracking parameters that are commonly used to track users across websites:</string>
+    <string name="dialog_default_blocklist_view_github">View updates on GitHub</string>
+    <string name="dialog_close">Close</string>
     <string name="details_no_explanation">No explanation available for this parameter</string>
     <string name="details_report_issue">Report issue</string>
     <string name="details_always_keep">Always keep</string>

@@ -5,6 +5,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.clickable
+import androidx.compose.animation.animateContentSize
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
@@ -116,415 +117,55 @@ fun SettingsScreen(
             )
 
             var isBypassListExpanded by remember { mutableStateOf(false) }
-
-            // Bypass List Collapsible Header
-            Surface(
-                onClick = { isBypassListExpanded = !isBypassListExpanded },
-                color = Color.Transparent,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth().padding(start = 4.dp, top = 8.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Column {
-                        Text(
-                            text = stringResource(R.string.settings_bypass_list),
-                            style = MaterialTheme.typography.bodyLarge,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
-                        val summaryText = if (state.whitelistedDomains.isEmpty()) {
-                            stringResource(R.string.settings_no_domains_bypassed)
-                        } else {
-                            val count = state.whitelistedDomains.size
-                            val unit = if (count == 1) {
-                                stringResource(R.string.settings_domain_bypassed_single)
-                            } else {
-                                stringResource(R.string.settings_domains_bypassed_plural)
-                            }
-                            "$count $unit"
-                        }
-                        Text(
-                            text = summaryText,
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                    IconButton(onClick = { isBypassListExpanded = !isBypassListExpanded }) {
-                        Icon(
-                            imageVector = if (isBypassListExpanded) Icons.Filled.KeyboardArrowUp else Icons.Filled.KeyboardArrowDown,
-                            contentDescription = if (isBypassListExpanded) stringResource(R.string.settings_collapse) else stringResource(R.string.settings_expand)
-                        )
-                    }
-                }
-            }
-
-            if (isBypassListExpanded) {
-                // Bypass Domains Card
-                Card(
-                    shape = RoundedCornerShape(24.dp),
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)
-                    ),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Column(
-                        modifier = Modifier.padding(16.dp),
-                        verticalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        Text(
-                            text = stringResource(R.string.settings_bypass_desc),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(8.dp),
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            OutlinedTextField(
-                                value = state.domainInput,
-                                onValueChange = { viewModel.onDomainInputChanged(it) },
-                                placeholder = { Text(stringResource(R.string.settings_placeholder_domain)) },
-                                modifier = Modifier.weight(1f),
-                                shape = RoundedCornerShape(12.dp),
-                                singleLine = true,
-                                colors = OutlinedTextFieldDefaults.colors(
-                                    focusedBorderColor = MaterialTheme.colorScheme.primary,
-                                    unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)
-                                )
-                            )
-
-                            val isDomainValid = state.domainInput.trim().run {
-                                isNotEmpty() && contains(".") && !contains(" ")
-                            }
-
-                            FilledIconButton(
-                                onClick = { viewModel.addDomain() },
-                                enabled = isDomainValid,
-                                shape = RoundedCornerShape(12.dp),
-                                modifier = Modifier.size(52.dp)
-                            ) {
-                                Icon(Icons.Filled.Add, contentDescription = stringResource(R.string.settings_add_domain_desc))
-                            }
-                        }
-
-                        if (state.whitelistedDomains.isNotEmpty()) {
-                            Spacer(modifier = Modifier.height(4.dp))
-                            FlowRow(
-                                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                verticalArrangement = Arrangement.spacedBy(8.dp),
-                                modifier = Modifier.fillMaxWidth()
-                            ) {
-                                state.whitelistedDomains.forEach { domain ->
-                                    InputChip(
-                                        selected = false,
-                                        onClick = {},
-                                        label = { Text(domain, style = MaterialTheme.typography.bodySmall) },
-                                        trailingIcon = {
-                                            IconButton(
-                                                onClick = { viewModel.removeDomain(domain) },
-                                                modifier = Modifier.size(24.dp)
-                                            ) {
-                                                Icon(
-                                                    Icons.Filled.Delete,
-                                                    contentDescription = stringResource(R.string.settings_collapse),
-                                                    modifier = Modifier.size(16.dp)
-                                                )
-                                            }
-                                        },
-                                        shape = RoundedCornerShape(12.dp)
-                                    )
-                                }
-                            }
-                        } else {
-                            Text(
-                                text = stringResource(R.string.settings_no_domains_bypassed_text),
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
-                                modifier = Modifier.padding(vertical = 4.dp)
-                            )
-                        }
-                    }
-                }
-            }
-
             var isParamWhitelistExpanded by remember { mutableStateOf(false) }
+            var isCustomParamsExpanded by remember { mutableStateOf(false) }
+            var showDefaultBlocklistDialog by remember { mutableStateOf(false) }
 
-            // Domain Parameter Whitelist Collapsible Header
-            Surface(
-                onClick = { isParamWhitelistExpanded = !isParamWhitelistExpanded },
-                color = Color.Transparent,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth().padding(start = 4.dp, top = 8.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Column {
+            if (showDefaultBlocklistDialog) {
+                AlertDialog(
+                    onDismissRequest = { showDefaultBlocklistDialog = false },
+                    title = {
                         Text(
-                            text = stringResource(R.string.settings_param_whitelist_title),
-                            style = MaterialTheme.typography.bodyLarge,
+                            text = stringResource(R.string.dialog_default_blocklist_title),
                             fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onSurface
+                            style = MaterialTheme.typography.titleMedium
                         )
-                        val summaryText = if (state.domainWhitelistedParams.isEmpty()) {
-                            stringResource(R.string.settings_no_params_whitelisted)
-                        } else {
-                            val count = state.domainWhitelistedParams.size
-                            val unit = if (count == 1) {
-                                stringResource(R.string.settings_param_whitelisted_single)
-                            } else {
-                                stringResource(R.string.settings_params_whitelisted_plural)
-                            }
-                            "$count $unit"
-                        }
-                        Text(
-                            text = summaryText,
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                    IconButton(onClick = { isParamWhitelistExpanded = !isParamWhitelistExpanded }) {
-                        Icon(
-                            imageVector = if (isParamWhitelistExpanded) Icons.Filled.KeyboardArrowUp else Icons.Filled.KeyboardArrowDown,
-                            contentDescription = if (isParamWhitelistExpanded) stringResource(R.string.settings_collapse) else stringResource(R.string.settings_expand)
-                        )
-                    }
-                }
-            }
-
-            if (isParamWhitelistExpanded) {
-                // Domain Parameter Whitelist Card
-                Card(
-                    shape = RoundedCornerShape(24.dp),
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)
-                    ),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Column(
-                        modifier = Modifier.padding(16.dp),
-                        verticalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        Text(
-                            text = stringResource(R.string.settings_param_whitelist_desc),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    },
+                    text = {
+                        Column(
+                            verticalArrangement = Arrangement.spacedBy(12.dp),
                             modifier = Modifier.fillMaxWidth()
                         ) {
-                            OutlinedTextField(
-                                value = state.newParamWhitelistDomain,
-                                onValueChange = { viewModel.onNewParamWhitelistDomainChanged(it) },
-                                placeholder = { Text(stringResource(R.string.settings_placeholder_domain)) },
-                                modifier = Modifier.weight(1f),
-                                shape = RoundedCornerShape(12.dp),
-                                singleLine = true,
-                                colors = OutlinedTextFieldDefaults.colors(
-                                    focusedBorderColor = MaterialTheme.colorScheme.primary,
-                                    unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)
-                                )
+                            Text(
+                                text = stringResource(R.string.dialog_default_blocklist_desc),
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
 
-                            OutlinedTextField(
-                                value = state.newParamWhitelistParam,
-                                onValueChange = { viewModel.onNewParamWhitelistParamChanged(it) },
-                                placeholder = { Text(stringResource(R.string.settings_placeholder_whitelist_param)) },
-                                modifier = Modifier.weight(1f),
-                                shape = RoundedCornerShape(12.dp),
-                                singleLine = true,
-                                colors = OutlinedTextFieldDefaults.colors(
-                                    focusedBorderColor = MaterialTheme.colorScheme.primary,
-                                    unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)
-                                )
+                            // List of default tracking params
+                            val defaultParams = listOf(
+                                "utm_source", "utm_medium", "utm_campaign", "utm_term", "utm_content", "utm_id",
+                                "fbclid", "gclid", "msclkid", "yclid", "dclid", "si", "igsh", "mc_eid"
                             )
 
-                            val isParamWhitelistValid = state.newParamWhitelistDomain.trim().run {
-                                isNotEmpty() && contains(".") && !contains(" ")
-                            } && state.newParamWhitelistParam.trim().run {
-                                isNotEmpty() && !contains(" ") && !contains("?") && !contains("&") && !contains("=")
-                            }
-
-                            FilledIconButton(
-                                onClick = { viewModel.addDomainWhitelistedParam() },
-                                enabled = isParamWhitelistValid,
-                                shape = RoundedCornerShape(12.dp),
-                                modifier = Modifier.size(52.dp)
-                            ) {
-                                Icon(Icons.Filled.Add, contentDescription = stringResource(R.string.settings_add_param_whitelist_desc))
-                            }
-                        }
-
-                        if (state.domainWhitelistedParams.isNotEmpty()) {
-                            Spacer(modifier = Modifier.height(4.dp))
                             FlowRow(
-                                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                verticalArrangement = Arrangement.spacedBy(8.dp),
-                                modifier = Modifier.fillMaxWidth()
+                                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                                verticalArrangement = Arrangement.spacedBy(6.dp),
+                                modifier = Modifier.fillMaxWidth().heightIn(max = 160.dp).verticalScroll(rememberScrollState())
                             ) {
-                                state.domainWhitelistedParams.forEach { entry ->
-                                    val displayLabel = entry.replace(":", " -> ")
-                                    InputChip(
-                                        selected = false,
+                                defaultParams.forEach { param ->
+                                    SuggestionChip(
                                         onClick = {},
-                                        label = { Text(displayLabel, style = MaterialTheme.typography.bodySmall) },
-                                        trailingIcon = {
-                                            IconButton(
-                                                onClick = { viewModel.removeDomainWhitelistedParam(entry) },
-                                                modifier = Modifier.size(24.dp)
-                                            ) {
-                                                Icon(
-                                                    Icons.Filled.Delete,
-                                                    contentDescription = stringResource(R.string.settings_collapse),
-                                                    modifier = Modifier.size(16.dp)
-                                                )
-                                            }
-                                        },
-                                        shape = RoundedCornerShape(12.dp)
+                                        label = { Text(param, style = MaterialTheme.typography.bodySmall) },
+                                        shape = RoundedCornerShape(8.dp)
                                     )
                                 }
                             }
-                        } else {
-                            Text(
-                                text = stringResource(R.string.settings_no_params_whitelisted_text),
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
-                                modifier = Modifier.padding(vertical = 4.dp)
-                            )
                         }
-                    }
-                }
-            }
-
-            Text(
-                text = stringResource(R.string.settings_custom_params_title),
-                style = MaterialTheme.typography.bodyLarge,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onSurface,
-                modifier = Modifier.padding(start = 4.dp, top = 8.dp)
-            )
-
-            // Custom Blacklisted Params Card
-            Card(
-                shape = RoundedCornerShape(24.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)
-                ),
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Column(
-                    modifier = Modifier.padding(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    Text(
-                        text = stringResource(R.string.settings_custom_params_desc),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        OutlinedTextField(
-                            value = state.paramInput,
-                            onValueChange = { viewModel.onParamInputChanged(it) },
-                            placeholder = { Text(stringResource(R.string.settings_placeholder_param)) },
-                            modifier = Modifier.weight(1f),
-                            shape = RoundedCornerShape(12.dp),
-                            singleLine = true,
-                            colors = OutlinedTextFieldDefaults.colors(
-                                focusedBorderColor = MaterialTheme.colorScheme.primary,
-                                unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)
-                            )
-                        )
-
-                        val isParamValid = state.paramInput.trim().run {
-                            isNotEmpty() && !contains(" ") && !contains("?") && !contains("&") && !contains("=")
-                        }
-
-                        FilledIconButton(
-                            onClick = { viewModel.addParam() },
-                            enabled = isParamValid,
-                            shape = RoundedCornerShape(12.dp),
-                            modifier = Modifier.size(52.dp)
-                        ) {
-                            Icon(Icons.Filled.Add, contentDescription = stringResource(R.string.settings_add_param_desc))
-                        }
-                    }
-
-                    if (state.blacklistedParams.isNotEmpty()) {
-                        Spacer(modifier = Modifier.height(4.dp))
-                        FlowRow(
-                            horizontalArrangement = Arrangement.spacedBy(8.dp),
-                            verticalArrangement = Arrangement.spacedBy(8.dp),
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            state.blacklistedParams.forEach { param ->
-                                InputChip(
-                                    selected = false,
-                                    onClick = {},
-                                    label = { Text(param, style = MaterialTheme.typography.bodySmall) },
-                                    trailingIcon = {
-                                        IconButton(
-                                            onClick = { viewModel.removeParam(param) },
-                                            modifier = Modifier.size(24.dp)
-                                        ) {
-                                            Icon(
-                                                Icons.Filled.Delete,
-                                                contentDescription = stringResource(R.string.settings_collapse),
-                                                modifier = Modifier.size(16.dp)
-                                            )
-                                        }
-                                    },
-                                    shape = RoundedCornerShape(12.dp)
-                                )
-                            }
-                        }
-                    } else {
-                        Text(
-                            text = stringResource(R.string.settings_no_custom_params_text),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
-                            modifier = Modifier.padding(vertical = 4.dp)
-                        )
-                    }
-                }
-            }
-
-            Text(
-                text = stringResource(R.string.settings_view_blocklist_changes_title),
-                style = MaterialTheme.typography.bodyLarge,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onSurface,
-                modifier = Modifier.padding(start = 4.dp, top = 8.dp)
-            )
-
-            Card(
-                shape = RoundedCornerShape(24.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)
-                ),
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Column(
-                    modifier = Modifier.padding(20.dp),
-                    verticalArrangement = Arrangement.spacedBy(16.dp)
-                ) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable {
+                    },
+                    confirmButton = {
+                        TextButton(
+                            onClick = {
                                 try {
                                     val intent = Intent(
                                         Intent.ACTION_VIEW,
@@ -538,20 +179,434 @@ fun SettingsScreen(
                                         snackbarHostState.showSnackbar(context.getString(R.string.crash_toast_browser_error))
                                     }
                                 }
-                            },
-                        horizontalArrangement = Arrangement.spacedBy(16.dp),
+                                showDefaultBlocklistDialog = false
+                            }
+                        ) {
+                            Text(stringResource(R.string.dialog_default_blocklist_view_github), fontWeight = FontWeight.Bold)
+                        }
+                    },
+                    dismissButton = {
+                        TextButton(onClick = { showDefaultBlocklistDialog = false }) {
+                            Text(stringResource(R.string.dialog_close))
+                        }
+                    },
+                    shape = RoundedCornerShape(28.dp)
+                )
+            }
+
+            Card(
+                shape = RoundedCornerShape(24.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)
+                ),
+                modifier = Modifier.fillMaxWidth().animateContentSize()
+            ) {
+                Column(
+                    modifier = Modifier.padding(20.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    // 1. Bypass List Row (Clickable Row Header)
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { isBypassListExpanded = !isBypassListExpanded }
+                            .padding(vertical = 4.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Column(modifier = Modifier.weight(1f)) {
                             Text(
-                                text = stringResource(R.string.settings_view_blocklist_changes_title),
-                                style = MaterialTheme.typography.bodyMedium,
-                                fontWeight = FontWeight.SemiBold,
+                                text = stringResource(R.string.settings_bypass_list),
+                                style = MaterialTheme.typography.bodyLarge,
+                                fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.onSurface
                             )
-                            Spacer(modifier = Modifier.height(2.dp))
+                            val summaryText = if (state.whitelistedDomains.isEmpty()) {
+                                stringResource(R.string.settings_no_domains_bypassed)
+                            } else {
+                                val count = state.whitelistedDomains.size
+                                val unit = if (count == 1) {
+                                    stringResource(R.string.settings_domain_bypassed_single)
+                                } else {
+                                    stringResource(R.string.settings_domains_bypassed_plural)
+                                }
+                                "$count $unit"
+                            }
                             Text(
-                                text = stringResource(R.string.settings_view_blocklist_changes_desc),
+                                text = summaryText,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                        Icon(
+                            imageVector = if (isBypassListExpanded) Icons.Filled.KeyboardArrowUp else Icons.Filled.KeyboardArrowDown,
+                            contentDescription = if (isBypassListExpanded) stringResource(R.string.settings_collapse) else stringResource(R.string.settings_expand),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+
+                    if (isBypassListExpanded) {
+                        Column(
+                            verticalArrangement = Arrangement.spacedBy(12.dp),
+                            modifier = Modifier.fillMaxWidth().padding(top = 4.dp, bottom = 8.dp)
+                        ) {
+                            Text(
+                                text = stringResource(R.string.settings_bypass_desc),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                OutlinedTextField(
+                                    value = state.domainInput,
+                                    onValueChange = { viewModel.onDomainInputChanged(it) },
+                                    placeholder = { Text(stringResource(R.string.settings_placeholder_domain)) },
+                                    modifier = Modifier.weight(1f),
+                                    shape = RoundedCornerShape(12.dp),
+                                    singleLine = true,
+                                    colors = OutlinedTextFieldDefaults.colors(
+                                        focusedBorderColor = MaterialTheme.colorScheme.primary,
+                                        unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)
+                                    )
+                                )
+
+                                val isDomainValid = state.domainInput.trim().run {
+                                    isNotEmpty() && contains(".") && !contains(" ")
+                                }
+
+                                FilledIconButton(
+                                    onClick = { viewModel.addDomain() },
+                                    enabled = isDomainValid,
+                                    shape = RoundedCornerShape(12.dp),
+                                    modifier = Modifier.size(52.dp)
+                                ) {
+                                    Icon(Icons.Filled.Add, contentDescription = stringResource(R.string.settings_add_domain_desc))
+                                }
+                            }
+
+                            if (state.whitelistedDomains.isNotEmpty()) {
+                                Spacer(modifier = Modifier.height(4.dp))
+                                FlowRow(
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    state.whitelistedDomains.forEach { domain ->
+                                        InputChip(
+                                            selected = false,
+                                            onClick = {},
+                                            label = { Text(domain, style = MaterialTheme.typography.bodySmall) },
+                                            trailingIcon = {
+                                                IconButton(
+                                                    onClick = { viewModel.removeDomain(domain) },
+                                                    modifier = Modifier.size(24.dp)
+                                                ) {
+                                                    Icon(
+                                                        Icons.Filled.Delete,
+                                                        contentDescription = stringResource(R.string.settings_collapse),
+                                                        modifier = Modifier.size(16.dp)
+                                                    )
+                                                }
+                                            },
+                                            shape = RoundedCornerShape(12.dp)
+                                        )
+                                    }
+                                }
+                            } else {
+                                Text(
+                                    text = stringResource(R.string.settings_no_domains_bypassed_text),
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                                    modifier = Modifier.padding(vertical = 4.dp)
+                                )
+                            }
+                        }
+                    }
+
+                    HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.12f))
+
+                    // 2. Parameter Whitelist Row (Clickable Row Header)
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { isParamWhitelistExpanded = !isParamWhitelistExpanded }
+                            .padding(vertical = 4.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = stringResource(R.string.settings_param_whitelist_title),
+                                style = MaterialTheme.typography.bodyLarge,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                            val summaryText = if (state.domainWhitelistedParams.isEmpty()) {
+                                stringResource(R.string.settings_no_params_whitelisted)
+                            } else {
+                                val count = state.domainWhitelistedParams.size
+                                val unit = if (count == 1) {
+                                    stringResource(R.string.settings_param_whitelisted_single)
+                                } else {
+                                    stringResource(R.string.settings_params_whitelisted_plural)
+                                }
+                                "$count $unit"
+                            }
+                            Text(
+                                text = summaryText,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                        Icon(
+                            imageVector = if (isParamWhitelistExpanded) Icons.Filled.KeyboardArrowUp else Icons.Filled.KeyboardArrowDown,
+                            contentDescription = if (isParamWhitelistExpanded) stringResource(R.string.settings_collapse) else stringResource(R.string.settings_expand),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+
+                    if (isParamWhitelistExpanded) {
+                        Column(
+                            verticalArrangement = Arrangement.spacedBy(12.dp),
+                            modifier = Modifier.fillMaxWidth().padding(top = 4.dp, bottom = 8.dp)
+                        ) {
+                            Text(
+                                text = stringResource(R.string.settings_param_whitelist_desc),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                OutlinedTextField(
+                                    value = state.newParamWhitelistDomain,
+                                    onValueChange = { viewModel.onNewParamWhitelistDomainChanged(it) },
+                                    placeholder = { Text(stringResource(R.string.settings_placeholder_domain)) },
+                                    modifier = Modifier.weight(1f),
+                                    shape = RoundedCornerShape(12.dp),
+                                    singleLine = true,
+                                    colors = OutlinedTextFieldDefaults.colors(
+                                        focusedBorderColor = MaterialTheme.colorScheme.primary,
+                                        unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)
+                                    )
+                                )
+
+                                OutlinedTextField(
+                                    value = state.newParamWhitelistParam,
+                                    onValueChange = { viewModel.onNewParamWhitelistParamChanged(it) },
+                                    placeholder = { Text(stringResource(R.string.settings_placeholder_whitelist_param)) },
+                                    modifier = Modifier.weight(1f),
+                                    shape = RoundedCornerShape(12.dp),
+                                    singleLine = true,
+                                    colors = OutlinedTextFieldDefaults.colors(
+                                        focusedBorderColor = MaterialTheme.colorScheme.primary,
+                                        unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)
+                                    )
+                                )
+
+                                val isParamWhitelistValid = state.newParamWhitelistDomain.trim().run {
+                                    isNotEmpty() && contains(".") && !contains(" ")
+                                } && state.newParamWhitelistParam.trim().run {
+                                    isNotEmpty() && !contains(" ") && !contains("?") && !contains("&") && !contains("=")
+                                }
+
+                                FilledIconButton(
+                                    onClick = { viewModel.addDomainWhitelistedParam() },
+                                    enabled = isParamWhitelistValid,
+                                    shape = RoundedCornerShape(12.dp),
+                                    modifier = Modifier.size(52.dp)
+                                ) {
+                                    Icon(Icons.Filled.Add, contentDescription = stringResource(R.string.settings_add_param_whitelist_desc))
+                                }
+                            }
+
+                            if (state.domainWhitelistedParams.isNotEmpty()) {
+                                Spacer(modifier = Modifier.height(4.dp))
+                                FlowRow(
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    state.domainWhitelistedParams.forEach { entry ->
+                                        val displayLabel = entry.replace(":", " -> ")
+                                        InputChip(
+                                            selected = false,
+                                            onClick = {},
+                                            label = { Text(displayLabel, style = MaterialTheme.typography.bodySmall) },
+                                            trailingIcon = {
+                                                IconButton(
+                                                    onClick = { viewModel.removeDomainWhitelistedParam(entry) },
+                                                    modifier = Modifier.size(24.dp)
+                                                ) {
+                                                    Icon(
+                                                        Icons.Filled.Delete,
+                                                        contentDescription = stringResource(R.string.settings_collapse),
+                                                        modifier = Modifier.size(16.dp)
+                                                    )
+                                                }
+                                            },
+                                            shape = RoundedCornerShape(12.dp)
+                                        )
+                                    }
+                                }
+                            } else {
+                                Text(
+                                    text = stringResource(R.string.settings_no_params_whitelisted_text),
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                                    modifier = Modifier.padding(vertical = 4.dp)
+                                )
+                            }
+                        }
+                    }
+
+                    HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.12f))
+
+                    // 3. Custom Blacklisted Parameters Row (Clickable Row Header)
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { isCustomParamsExpanded = !isCustomParamsExpanded }
+                            .padding(vertical = 4.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = stringResource(R.string.settings_custom_params_title),
+                                style = MaterialTheme.typography.bodyLarge,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                            val summaryText = if (state.blacklistedParams.isEmpty()) {
+                                stringResource(R.string.settings_no_custom_params_text)
+                            } else {
+                                val count = state.blacklistedParams.size
+                                val unit = if (count == 1) "parameter blacklisted" else "parameters blacklisted"
+                                "$count $unit"
+                            }
+                            Text(
+                                text = summaryText,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                        Icon(
+                            imageVector = if (isCustomParamsExpanded) Icons.Filled.KeyboardArrowUp else Icons.Filled.KeyboardArrowDown,
+                            contentDescription = if (isCustomParamsExpanded) stringResource(R.string.settings_collapse) else stringResource(R.string.settings_expand),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+
+                    if (isCustomParamsExpanded) {
+                        Column(
+                            verticalArrangement = Arrangement.spacedBy(12.dp),
+                            modifier = Modifier.fillMaxWidth().padding(top = 4.dp, bottom = 8.dp)
+                        ) {
+                            Text(
+                                text = stringResource(R.string.settings_custom_params_desc),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                OutlinedTextField(
+                                    value = state.paramInput,
+                                    onValueChange = { viewModel.onParamInputChanged(it) },
+                                    placeholder = { Text(stringResource(R.string.settings_placeholder_param)) },
+                                    modifier = Modifier.weight(1f),
+                                    shape = RoundedCornerShape(12.dp),
+                                    singleLine = true,
+                                    colors = OutlinedTextFieldDefaults.colors(
+                                        focusedBorderColor = MaterialTheme.colorScheme.primary,
+                                        unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)
+                                    )
+                                )
+
+                                val isParamValid = state.paramInput.trim().run {
+                                    isNotEmpty() && !contains(" ") && !contains("?") && !contains("&") && !contains("=")
+                                }
+
+                                FilledIconButton(
+                                    onClick = { viewModel.addParam() },
+                                    enabled = isParamValid,
+                                    shape = RoundedCornerShape(12.dp),
+                                    modifier = Modifier.size(52.dp)
+                                ) {
+                                    Icon(Icons.Filled.Add, contentDescription = stringResource(R.string.settings_add_param_desc))
+                                }
+                            }
+
+                            if (state.blacklistedParams.isNotEmpty()) {
+                                Spacer(modifier = Modifier.height(4.dp))
+                                FlowRow(
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    state.blacklistedParams.forEach { param ->
+                                        InputChip(
+                                            selected = false,
+                                            onClick = {},
+                                            label = { Text(param, style = MaterialTheme.typography.bodySmall) },
+                                            trailingIcon = {
+                                                IconButton(
+                                                    onClick = { viewModel.removeParam(param) },
+                                                    modifier = Modifier.size(24.dp)
+                                                ) {
+                                                    Icon(
+                                                        Icons.Filled.Delete,
+                                                        contentDescription = stringResource(R.string.settings_collapse),
+                                                        modifier = Modifier.size(16.dp)
+                                                    )
+                                                }
+                                            },
+                                            shape = RoundedCornerShape(12.dp)
+                                        )
+                                    }
+                                }
+                            } else {
+                                Text(
+                                    text = stringResource(R.string.settings_no_custom_params_text),
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                                    modifier = Modifier.padding(vertical = 4.dp)
+                                )
+                            }
+                        }
+                    }
+
+                    HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.12f))
+
+                    // 4. Default Blocklist Row (Clickable Row Header to trigger Dialog)
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { showDefaultBlocklistDialog = true }
+                            .padding(vertical = 4.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = stringResource(R.string.settings_default_blocklist_title),
+                                style = MaterialTheme.typography.bodyLarge,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                            Text(
+                                text = stringResource(R.string.settings_default_blocklist_desc),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )

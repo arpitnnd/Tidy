@@ -621,14 +621,15 @@ fun MainScreen(
                             .fillMaxWidth()
                             .widthIn(max = 650.dp)
                             .heightIn(min = minHeight)
-                            .verticalScroll(rememberScrollState()),
+                            .verticalScroll(rememberScrollState())
+                            .animateContentSize(),
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.SpaceBetween
                     ) {
                         if (!showIntro) {
                             Column(
                                 horizontalAlignment = Alignment.CenterHorizontally,
-                                modifier = Modifier.fillMaxWidth()
+                                modifier = Modifier.fillMaxWidth().animateContentSize()
                             ) {
                                 Spacer(modifier = Modifier.height(24.dp))
                                 
@@ -1271,7 +1272,7 @@ private fun InputCard(
                 containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)
             ),
             border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.12f)),
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth().animateContentSize()
         ) {
             Column(
                 modifier = Modifier.padding(16.dp),
