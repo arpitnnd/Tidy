@@ -20,6 +20,8 @@ import kotlinx.coroutines.flow.first
 object FlavorConfig {
     val isPlayFlavor: Boolean = true
 
+    val jsonInstance = kotlinx.serialization.json.Json { ignoreUnknownKeys = true }
+
     fun createEntitlementManager(context: android.content.Context): com.tidy.app.data.AndroidEntitlementManager {
         return PlayEntitlementManager(context)
     }
@@ -109,7 +111,7 @@ fun PlayOnboardingRestoreView(onDismiss: () -> Unit) {
                     if (json != null) {
                         val importedCount = historyRepository.importFromJson(json)
                         if (importedCount >= 0) {
-                            val list = kotlinx.serialization.json.Json { ignoreUnknownKeys = true }
+                            val list = FlavorConfig.jsonInstance
                                 .decodeFromString<List<com.tidy.app.data.HistoryEntry>>(json)
                             val totalTrackers = list.sumOf { it.removedParamsCount }
                             
