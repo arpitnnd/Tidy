@@ -160,7 +160,7 @@
     <string name="crash_toast_browser_error">Could not open browser</string>
 
     <!-- Plus Entitlements -->
-    <string name="plus_value_proposition">zero sub. pay once own forever</string>
+    <string name="plus_value_proposition">Zero subscription. Pay once, own forever.</string>
 
     <!-- History Import status -->
     <string name="history_import_success">Imported %1$d new entries</string>
