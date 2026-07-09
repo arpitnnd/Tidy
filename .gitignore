@@ -370,4 +370,6 @@ release/
 *.aar
 .idea/deploymentTargetDropDown.xml
 .idea/appInsightsSettings.xml
+.agents
+.agents/
 /feature-plus
