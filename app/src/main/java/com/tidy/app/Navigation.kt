@@ -45,11 +45,18 @@ fun MainNavigation(
                 entry<Settings> {
                     SettingsScreen(
                         onBackClick = { backStack.removeLastOrNull() },
+                        onAboutClick = { backStack.add(About) },
                         modifier = Modifier.systemBarsPadding()
                     )
                 }
                 entry<History> {
                     HistoryScreen(
+                        onBackClick = { backStack.removeLastOrNull() },
+                        modifier = Modifier.systemBarsPadding()
+                    )
+                }
+                entry<About> {
+                    com.tidy.app.ui.about.AboutScreen(
                         onBackClick = { backStack.removeLastOrNull() },
                         modifier = Modifier.systemBarsPadding()
                     )

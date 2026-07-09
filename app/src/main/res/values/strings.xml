@@ -1,4 +1,4 @@
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
     <string name="app_name">Tidy</string>
 
     <!-- Main Screen -->
@@ -28,7 +28,7 @@
     <string name="welcome_welcome_to">Welcome to Tidy</string>
     <string name="welcome_welcome_desc">Tidy removes tracking parameters from URLs, keeping your sharing private and clean</string>
     <string name="welcome_paste_prompt">Paste URL to clean</string>
-    <string name="welcome_placeholder">https://example.com/link?utm_source=...</string>
+    <string name="welcome_placeholder">https://example.com/link?utm_source=&#8230;</string>
 
     <string name="dialog_allow_param_title">Allow parameter?</string>
     <string name="dialog_allow_param_text">Always keep parameter \"%1$s\" on \"%2$s\"?</string>
@@ -100,7 +100,7 @@
     <string name="history_no_history">No history yet</string>
     <string name="history_no_history_desc">Cleaned URLs will appear here</string>
     <string name="history_clear_dialog_title">Clear all history?</string>
-    <string name="history_clear_dialog_text">Permanently delete all %1$d history entries? This cannot be undone.</string>
+    <string name="history_clear_dialog_text" tools:ignore="PluralsCandidate">Permanently delete all %1$d history entries? This cannot be undone.</string>
     <string name="history_clear_all">Clear all</string>
     <string name="history_cleared_toast">History cleared</string>
     <string name="history_undo_action">Undo</string>
@@ -109,9 +109,9 @@
     <string name="history_toast_exported">Exported successfully</string>
     <string name="history_toast_export_failed">Export failed</string>
     <string name="history_toast_import_failed">Failed to read file</string>
-    <string name="history_item_removed_count">%1$d removed</string>
+    <string name="history_item_removed_count" tools:ignore="PluralsCandidate">%1$d removed</string>
     <string name="history_item_clean">clean</string>
-    <string name="main_stats_summary">%1$d URLs cleaned · %2$d trackers blocked</string>
+    <string name="main_stats_summary" tools:ignore="PluralsCandidate">%1$d URLs cleaned · %2$d trackers blocked</string>
 
     <!-- Remote Blocklist & Issues -->
     <string name="rules_title">Rules</string>
@@ -165,10 +165,21 @@
     <string name="plus_value_proposition">Zero subscription. Pay once, own forever.</string>
 
     <!-- History Import status -->
-    <string name="history_import_success">Imported %1$d new entries</string>
+    <string name="history_import_success" tools:ignore="PluralsCandidate">Imported %1$d new entries</string>
     <string name="history_import_invalid">Import failed: invalid file format</string>
 
     <string name="toast_could_not_share">Could not share</string>
     <string name="toast_no_link_app">Could not open link</string>
     <string name="plus_toast_bulk_cleaned">Cleaned and copied %1$d URLs!</string>
+
+    <!-- About Screen -->
+    <string name="about_title">About Tidy</string>
+    <string name="about_maintainer_developer">Developer &amp; Maintainer</string>
+    <string name="about_designer">Designer</string>
+    <string name="about_license">License</string>
+    <string name="about_license_desc">Apache License 2.0</string>
+    <string name="about_links">Links</string>
+    <string name="about_link_github">GitHub Repository</string>
+    <string name="about_link_issues">Open Issues</string>
+    <string name="about_link_releases">GitHub Releases</string>
 </resources>

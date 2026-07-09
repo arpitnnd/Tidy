@@ -11,3 +11,6 @@ data object Settings : NavKey
 
 @Serializable
 data object History : NavKey
+
+@Serializable
+data object About : NavKey
