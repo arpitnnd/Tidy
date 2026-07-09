@@ -3,6 +3,7 @@ package com.tidy.app.ui.main
 import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
+import androidx.core.net.toUri
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.LinearEasing
@@ -146,6 +147,13 @@ fun MainScreen(
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
 
+    val toastCleanedCopied = stringResource(R.string.toast_cleaned_copied)
+    val toastCopied = stringResource(R.string.toast_copied)
+    val toastNoBrowserApp = stringResource(R.string.toast_no_browser_app)
+    val plusToastBulkCleanedTemplate = stringResource(R.string.plus_toast_bulk_cleaned)
+    val crashToastCopied = stringResource(R.string.crash_toast_copied)
+    val crashToastBrowserError = stringResource(R.string.crash_toast_browser_error)
+
     val settingsRepository = TidyURLApp.instance.settingsRepository
     val dontAskAgainCrash by settingsRepository.dontAskAgainCrash.collectAsStateWithLifecycle(
         initialValue = false
@@ -216,7 +224,7 @@ fun MainScreen(
                     clipboard.setPrimaryClip(clip)
                     android.widget.Toast.makeText(
                         context,
-                        context.getString(R.string.toast_cleaned_copied),
+                        toastCleanedCopied,
                         android.widget.Toast.LENGTH_SHORT
                     ).show()
                     if (event.close) {
@@ -355,7 +363,7 @@ fun MainScreen(
                                 onClick = {
                                     viewModel.copyToClipboard(context)
                                     scope.launch {
-                                        snackbarHostState.showSnackbar(context.getString(R.string.toast_copied))
+                                        snackbarHostState.showSnackbar(toastCopied)
                                     }
                                 },
                                 modifier = Modifier.fillMaxWidth(),
@@ -584,7 +592,7 @@ fun MainScreen(
                                             try {
                                                 val intent = Intent(
                                                     Intent.ACTION_VIEW,
-                                                    android.net.Uri.parse(state.cleanedUrl)
+                                                    state.cleanedUrl.toUri()
                                                 ).apply {
                                                     addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                                                 }
@@ -592,9 +600,7 @@ fun MainScreen(
                                             } catch (e: Exception) {
                                                 scope.launch {
                                                     snackbarHostState.showSnackbar(
-                                                        context.getString(
-                                                            R.string.toast_no_browser_app
-                                                        )
+                                                        toastNoBrowserApp
                                                     )
                                                 }
                                             }
@@ -899,10 +905,7 @@ fun MainScreen(
 
                                         scope.launch {
                                             snackbarHostState.showSnackbar(
-                                                context.getString(
-                                                    R.string.plus_toast_bulk_cleaned,
-                                                    urls.size
-                                                )
+                                                String.format(plusToastBulkCleanedTemplate, urls.size)
                                             )
                                         }
                                         bulkClipboardUrls = null
@@ -1253,12 +1256,12 @@ fun MainScreen(
                                 )
                                 clipboard.setPrimaryClip(clip)
                                 scope.launch {
-                                    snackbarHostState.showSnackbar(context.getString(R.string.crash_toast_copied))
+                                    snackbarHostState.showSnackbar(crashToastCopied)
                                 }
 
                                 val intent = Intent(
                                     Intent.ACTION_VIEW,
-                                    android.net.Uri.parse("https://github.com/arpitnnd/Tidy/issues/new?title=Crash%20Report&body=Paste%20copied%20crash%20log%20here")
+                                    "https://github.com/arpitnnd/Tidy/issues/new?title=Crash%20Report&body=Paste%20copied%20crash%20log%20here".toUri()
                                 ).apply {
                                     addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                                 }
@@ -1266,7 +1269,7 @@ fun MainScreen(
                                     context.startActivity(intent)
                                 } catch (e: Exception) {
                                     scope.launch {
-                                        snackbarHostState.showSnackbar(context.getString(R.string.crash_toast_browser_error))
+                                        snackbarHostState.showSnackbar(crashToastBrowserError)
                                     }
                                 }
                                 onDismissCrashReport()
@@ -1366,7 +1369,7 @@ fun MainScreen(
                             val success = launchGitHubBugReport(context, param, domain)
                             if (!success) {
                                 scope.launch {
-                                    snackbarHostState.showSnackbar(context.getString(R.string.crash_toast_browser_error))
+                                    snackbarHostState.showSnackbar(crashToastBrowserError)
                                 }
                             }
                             paramToWhitelist = null
@@ -1678,7 +1681,7 @@ The parameter `$param` was removed from `$domain`, which broke the site or remov
         val urlStr =
             "https://github.com/arpitnnd/Tidy/issues/new?title=$encodedTitle&body=$encodedBody&labels=bug-report"
 
-        val intent = Intent(Intent.ACTION_VIEW, android.net.Uri.parse(urlStr)).apply {
+        val intent = Intent(Intent.ACTION_VIEW, urlStr.toUri()).apply {
             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         }
         context.startActivity(intent)

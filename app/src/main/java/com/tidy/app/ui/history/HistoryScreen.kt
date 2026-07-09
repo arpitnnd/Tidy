@@ -3,6 +3,7 @@ package com.tidy.app.ui.history
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
+import androidx.core.net.toUri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
@@ -97,6 +98,17 @@ fun HistoryScreen(
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
 
+    val historyToastExported = stringResource(R.string.history_toast_exported)
+    val historyToastExportFailed = stringResource(R.string.history_toast_export_failed)
+    val historyToastImportFailed = stringResource(R.string.history_toast_import_failed)
+    val historyImportSuccessTemplate = stringResource(R.string.history_import_success)
+    val historyImportInvalid = stringResource(R.string.history_import_invalid)
+    val historyClearedToast = stringResource(R.string.history_cleared_toast)
+    val historyUndoAction = stringResource(R.string.history_undo_action)
+    val mainCopied = stringResource(R.string.main_copied)
+    val mainCleanedUrl = stringResource(R.string.main_cleaned_url)
+    val toastNoBrowserApp = stringResource(R.string.toast_no_browser_app)
+
     val exportLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.CreateDocument("application/json")
     ) { uri ->
@@ -107,9 +119,9 @@ fun HistoryScreen(
                     context.contentResolver.openOutputStream(it)?.bufferedWriter()?.use { writer ->
                         writer.write(json)
                     }
-                    scope.launch { snackbarHostState.showSnackbar(context.getString(R.string.history_toast_exported)) }
+                    scope.launch { snackbarHostState.showSnackbar(historyToastExported) }
                 } catch (e: Exception) {
-                    scope.launch { snackbarHostState.showSnackbar(context.getString(R.string.history_toast_export_failed)) }
+                    scope.launch { snackbarHostState.showSnackbar(historyToastExportFailed) }
                 }
             }
         }
@@ -127,15 +139,15 @@ fun HistoryScreen(
                     viewModel.importHistory(json) { count ->
                         scope.launch {
                             val msg = if (count >= 0) {
-                                context.getString(R.string.history_import_success, count)
+                                String.format(historyImportSuccessTemplate, count)
                             } else {
-                                context.getString(R.string.history_import_invalid)
+                                historyImportInvalid
                             }
                             snackbarHostState.showSnackbar(msg)
                         }
                     }
                 } catch (e: Exception) {
-                    scope.launch { snackbarHostState.showSnackbar(context.getString(R.string.history_toast_import_failed)) }
+                    scope.launch { snackbarHostState.showSnackbar(historyToastImportFailed) }
                 }
             }
         }
@@ -397,8 +409,8 @@ fun HistoryScreen(
                         viewModel.clearHistory()
                         scope.launch {
                             val result = snackbarHostState.showSnackbar(
-                                message = context.getString(R.string.history_cleared_toast),
-                                actionLabel = context.getString(R.string.history_undo_action),
+                                message = historyClearedToast,
+                                actionLabel = historyUndoAction,
                                 duration = SnackbarDuration.Short
                             )
                             if (result == SnackbarResult.ActionPerformed) {
@@ -542,6 +554,9 @@ private fun HistoryItem(
         dateFormat.format(Date(entry.timestamp))
     }
     val context = LocalContext.current
+    val mainCopied = stringResource(R.string.main_copied)
+    val mainCleanedUrl = stringResource(R.string.main_cleaned_url)
+    val toastNoBrowserApp = stringResource(R.string.toast_no_browser_app)
 
     Card(
         shape = RoundedCornerShape(16.dp),
@@ -619,14 +634,14 @@ private fun HistoryItem(
 
             val originalUri = remember(entry.originalUrl) {
                 try {
-                    android.net.Uri.parse(entry.originalUrl)
+                    entry.originalUrl.toUri()
                 } catch (e: Exception) {
                     null
                 }
             }
             val cleanedUri = remember(entry.cleanedUrl) {
                 try {
-                    android.net.Uri.parse(entry.cleanedUrl)
+                    entry.cleanedUrl.toUri()
                 } catch (e: Exception) {
                     null
                 }
@@ -716,7 +731,6 @@ private fun HistoryItem(
                             }
                         }
                     }
-
                     Row(
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
                         modifier = Modifier.fillMaxWidth()
@@ -732,7 +746,7 @@ private fun HistoryItem(
                                         entry.originalUrl
                                     )
                                     clipboard.setPrimaryClip(clip)
-                                    onShowSnackbar(context.getString(R.string.main_copied))
+                                    onShowSnackbar(mainCopied)
                                 },
                                 contentPadding = PaddingValues(horizontal = 12.dp, vertical = 4.dp),
                                 modifier = Modifier.defaultMinSize(minHeight = 1.dp)
@@ -749,7 +763,7 @@ private fun HistoryItem(
                                 )
                             }
                         }
-
+ 
                         // Copy Button
                         TooltipWrapper(tooltipText = stringResource(R.string.tooltip_copy_clean)) {
                             TextButton(
@@ -757,11 +771,11 @@ private fun HistoryItem(
                                     val clipboard =
                                         context.getSystemService(Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
                                     val clip = android.content.ClipData.newPlainText(
-                                        context.getString(R.string.main_cleaned_url),
+                                        mainCleanedUrl,
                                         entry.cleanedUrl
                                     )
                                     clipboard.setPrimaryClip(clip)
-                                    onShowSnackbar(context.getString(R.string.main_copied))
+                                    onShowSnackbar(mainCopied)
                                 },
                                 contentPadding = PaddingValues(horizontal = 12.dp, vertical = 4.dp),
                                 modifier = Modifier.defaultMinSize(minHeight = 1.dp)
@@ -786,13 +800,13 @@ private fun HistoryItem(
                                     try {
                                         val intent = Intent(
                                             Intent.ACTION_VIEW,
-                                            android.net.Uri.parse(entry.cleanedUrl)
+                                            entry.cleanedUrl.toUri()
                                         ).apply {
                                             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                                         }
                                         context.startActivity(intent)
                                     } catch (e: Exception) {
-                                        onShowSnackbar(context.getString(R.string.toast_no_browser_app))
+                                        onShowSnackbar(toastNoBrowserApp)
                                     }
                                 },
                                 contentPadding = PaddingValues(horizontal = 12.dp, vertical = 4.dp),
