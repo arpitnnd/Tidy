@@ -1067,7 +1067,7 @@ fun MainScreen(
                         .padding(bottom = 32.dp)
                         .navigationBarsPadding(),
                     horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
                     // Logo
                     Box(
@@ -1087,7 +1087,7 @@ fun MainScreen(
 
                     Text(
                         text = stringResource(R.string.welcome_welcome_to),
-                        style = MaterialTheme.typography.headlineSmall,
+                        style = MaterialTheme.typography.headlineMedium,
                         fontWeight = FontWeight.ExtraBold,
                         color = MaterialTheme.colorScheme.onSurface
                     )
@@ -1101,7 +1101,7 @@ fun MainScreen(
                     )
 
                     // Trust markers
-                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
                         TrustMarkerRow(
                             icon = Icons.Outlined.CloudOff,
                             title = stringResource(R.string.welcome_local_title),
@@ -1119,7 +1119,7 @@ fun MainScreen(
                         )
                     }
 
-                    Spacer(modifier = Modifier.height(4.dp))
+                    Spacer(modifier = Modifier.height(8.dp))
 
                     Button(
                         onClick = {
