@@ -355,74 +355,78 @@ fun MainScreen(
                             .fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
-                        TooltipWrapper(
-                            tooltipText = stringResource(R.string.tooltip_copy_clean),
-                            modifier = Modifier.weight(1f)
-                        ) {
-                            Button(
-                                onClick = {
-                                    viewModel.copyToClipboard(context)
-                                    scope.launch {
-                                        snackbarHostState.showSnackbar(toastCopied)
-                                    }
-                                },
-                                modifier = Modifier.fillMaxWidth(),
-                                shape = RoundedCornerShape(16.dp),
-                                colors = ButtonDefaults.buttonColors(
-                                    containerColor = if (state.copySuccess) {
-                                        MaterialTheme.colorScheme.tertiary
-                                    } else {
-                                        MaterialTheme.colorScheme.primary
-                                    },
-                                    contentColor = if (state.copySuccess) {
-                                        MaterialTheme.colorScheme.onTertiary
-                                    } else {
-                                        MaterialTheme.colorScheme.onPrimary
-                                    }
-                                ),
-                                contentPadding = PaddingValues(vertical = 14.dp)
+                        Box(modifier = Modifier.weight(1f)) {
+                            TooltipWrapper(
+                                tooltipText = stringResource(R.string.tooltip_copy_clean),
+                                modifier = Modifier.fillMaxWidth()
                             ) {
-                                Icon(
-                                    imageVector = if (state.copySuccess) Icons.Filled.Check else Icons.Filled.ContentCopy,
-                                    contentDescription = null,
-                                    modifier = Modifier.size(20.dp)
-                                )
-                                Spacer(modifier = Modifier.width(8.dp))
-                                Text(
-                                    text = if (state.copySuccess) stringResource(R.string.main_copied) else stringResource(
-                                        R.string.main_copy
+                                Button(
+                                    onClick = {
+                                        viewModel.copyToClipboard(context)
+                                        scope.launch {
+                                            snackbarHostState.showSnackbar(toastCopied)
+                                        }
+                                    },
+                                    modifier = Modifier.fillMaxWidth(),
+                                    shape = RoundedCornerShape(16.dp),
+                                    colors = ButtonDefaults.buttonColors(
+                                        containerColor = if (state.copySuccess) {
+                                            MaterialTheme.colorScheme.tertiary
+                                        } else {
+                                            MaterialTheme.colorScheme.primary
+                                        },
+                                        contentColor = if (state.copySuccess) {
+                                            MaterialTheme.colorScheme.onTertiary
+                                        } else {
+                                            MaterialTheme.colorScheme.onPrimary
+                                        }
                                     ),
-                                    fontWeight = FontWeight.Bold,
-                                    style = MaterialTheme.typography.labelLarge
-                                )
+                                    contentPadding = PaddingValues(vertical = 14.dp)
+                                ) {
+                                    Icon(
+                                        imageVector = if (state.copySuccess) Icons.Filled.Check else Icons.Filled.ContentCopy,
+                                        contentDescription = null,
+                                        modifier = Modifier.size(20.dp)
+                                    )
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                    Text(
+                                        text = if (state.copySuccess) stringResource(R.string.main_copied) else stringResource(
+                                            R.string.main_copy
+                                        ),
+                                        fontWeight = FontWeight.Bold,
+                                        style = MaterialTheme.typography.labelLarge
+                                    )
+                                }
                             }
                         }
 
-                        TooltipWrapper(
-                            tooltipText = stringResource(R.string.tooltip_share_clean),
-                            modifier = Modifier.weight(1f)
-                        ) {
-                            Button(
-                                onClick = { viewModel.shareUrl(context) },
-                                modifier = Modifier.fillMaxWidth(),
-                                shape = RoundedCornerShape(16.dp),
-                                colors = ButtonDefaults.buttonColors(
-                                    containerColor = MaterialTheme.colorScheme.primary,
-                                    contentColor = MaterialTheme.colorScheme.onPrimary
-                                ),
-                                contentPadding = PaddingValues(vertical = 14.dp)
+                        Box(modifier = Modifier.weight(1f)) {
+                            TooltipWrapper(
+                                tooltipText = stringResource(R.string.tooltip_share_clean),
+                                modifier = Modifier.fillMaxWidth()
                             ) {
-                                Icon(
-                                    Icons.Filled.Share,
-                                    contentDescription = null,
-                                    modifier = Modifier.size(20.dp)
-                                )
-                                Spacer(modifier = Modifier.width(8.dp))
-                                Text(
-                                    stringResource(R.string.main_share),
-                                    fontWeight = FontWeight.Bold,
-                                    style = MaterialTheme.typography.labelLarge
-                                )
+                                Button(
+                                    onClick = { viewModel.shareUrl(context) },
+                                    modifier = Modifier.fillMaxWidth(),
+                                    shape = RoundedCornerShape(16.dp),
+                                    colors = ButtonDefaults.buttonColors(
+                                        containerColor = MaterialTheme.colorScheme.primary,
+                                        contentColor = MaterialTheme.colorScheme.onPrimary
+                                    ),
+                                    contentPadding = PaddingValues(vertical = 14.dp)
+                                ) {
+                                    Icon(
+                                        Icons.Filled.Share,
+                                        contentDescription = null,
+                                        modifier = Modifier.size(20.dp)
+                                    )
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                    Text(
+                                        stringResource(R.string.main_share),
+                                        fontWeight = FontWeight.Bold,
+                                        style = MaterialTheme.typography.labelLarge
+                                    )
+                                }
                             }
                         }
                     }
@@ -494,11 +498,7 @@ fun MainScreen(
                         Column(
                             modifier = Modifier
                                 .padding(20.dp)
-                                .animateContentSize(
-                                    animationSpec = androidx.compose.animation.core.spring(
-                                        stiffness = androidx.compose.animation.core.Spring.StiffnessMediumLow
-                                    )
-                                ),
+                                .animateContentSize(),
                             verticalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
                             val domainToWhitelist = remember(state.originalUrl) {
@@ -619,28 +619,30 @@ fun MainScreen(
 
                             TooltipWrapper(
                                 tooltipText = stringResource(if (showDetails) R.string.main_hide_details else R.string.main_show_details),
-                                modifier = Modifier.align(Alignment.CenterHorizontally)
+                                modifier = Modifier.fillMaxWidth()
                             ) {
-                                TextButton(
-                                    onClick = { showDetails = !showDetails },
-                                    contentPadding = PaddingValues(
-                                        horizontal = 16.dp,
-                                        vertical = 6.dp
-                                    )
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .heightIn(min = 48.dp)
+                                        .clip(RoundedCornerShape(12.dp))
+                                        .clickable { showDetails = !showDetails }
+                                        .padding(horizontal = 8.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
                                 ) {
                                     Icon(
                                         imageVector = if (showDetails) Icons.Filled.KeyboardArrowUp else Icons.Filled.KeyboardArrowDown,
                                         contentDescription = null,
-                                        modifier = Modifier.size(20.dp),
-                                        tint = MaterialTheme.colorScheme.onPrimaryContainer
+                                        modifier = Modifier.size(24.dp),
+                                        tint = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
                                     )
-                                    Spacer(modifier = Modifier.width(6.dp))
                                     Text(
                                         text = if (showDetails) stringResource(R.string.main_hide_details) else stringResource(
                                             R.string.main_show_details
                                         ),
                                         style = MaterialTheme.typography.labelLarge,
-                                        color = MaterialTheme.colorScheme.onPrimaryContainer,
+                                        color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f),
                                         fontWeight = FontWeight.Bold
                                     )
                                 }
