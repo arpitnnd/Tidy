@@ -23,12 +23,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.core.content.FileProvider
+import com.tidy.app.R
 import com.tidy.app.TidyURLApp
 import com.tidy.app.data.PlusFeature
 import kotlinx.coroutines.flow.first
@@ -92,13 +94,13 @@ object SettingsMigrationViews {
 
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
-                            text = "Get Tidy+",
+                            text = stringResource(R.string.settings_tidy_plus_get_title),
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onPrimaryContainer
                         )
                         Text(
-                            text = "Unlock share automation, bulk clean, and themes",
+                            text = stringResource(R.string.settings_tidy_plus_upgrade_desc),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
                         )

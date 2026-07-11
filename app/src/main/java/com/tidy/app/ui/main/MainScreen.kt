@@ -56,7 +56,7 @@ import androidx.compose.material.icons.outlined.CloudOff
 import androidx.compose.material.icons.outlined.ContentPaste
 import androidx.compose.material.icons.outlined.History
 import androidx.compose.material.icons.outlined.Link
-import androidx.compose.material.icons.outlined.Lock
+import androidx.compose.material.icons.outlined.Tune
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.AssistChipDefaults
@@ -87,6 +87,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.VerticalDivider
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -476,6 +477,7 @@ fun MainScreen(
                         .verticalScroll(rememberScrollState()),
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
+                    Spacer(modifier = Modifier.height(12.dp))
                     var showDetails by remember { mutableStateOf(false) }
                     val gradientBrush = Brush.linearGradient(
                         colors = listOf(
@@ -493,129 +495,140 @@ fun MainScreen(
                                 width = 1.dp,
                                 color = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f),
                                 shape = RoundedCornerShape(24.dp)
-                            )
+                             )
                     ) {
                         Column(
                             modifier = Modifier
-                                .padding(20.dp)
-                                .animateContentSize(),
-                            verticalArrangement = Arrangement.spacedBy(12.dp)
+                                .fillMaxWidth()
+                                .animateContentSize()
                         ) {
-                            val domainToWhitelist = remember(state.originalUrl) {
-                                extractDomain(state.originalUrl)
-                            }
-
-                            Row(
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically,
-                                modifier = Modifier.fillMaxWidth()
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(start = 20.dp, end = 20.dp, top = 20.dp, bottom = 20.dp),
+                                verticalArrangement = Arrangement.spacedBy(12.dp)
                             ) {
-                                Text(
-                                    text = stringResource(R.string.main_cleaned_url),
-                                    style = MaterialTheme.typography.titleMedium,
-                                    fontWeight = FontWeight.Bold,
-                                    color = MaterialTheme.colorScheme.onPrimaryContainer
-                                )
+                                val domainToWhitelist = remember(state.originalUrl) {
+                                    extractDomain(state.originalUrl)
+                                }
 
-                                val removedCount = state.removedParams.size
-                                val badgeColor = if (removedCount > 0) {
-                                    MaterialTheme.colorScheme.primaryContainer
-                                } else {
-                                    MaterialTheme.colorScheme.surfaceVariant
-                                }
-                                val badgeTextColor = if (removedCount > 0) {
-                                    MaterialTheme.colorScheme.onPrimaryContainer
-                                } else {
-                                    MaterialTheme.colorScheme.onSurfaceVariant
-                                }
-                                Surface(
-                                    shape = RoundedCornerShape(12.dp),
-                                    color = badgeColor
+                                Row(
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    modifier = Modifier.fillMaxWidth()
                                 ) {
                                     Text(
-                                        text = if (removedCount > 0) stringResource(
-                                            R.string.history_item_removed_count,
-                                            removedCount
-                                        ) else stringResource(R.string.history_item_clean),
+                                        text = stringResource(R.string.main_cleaned_url),
+                                        style = MaterialTheme.typography.titleMedium,
                                         fontWeight = FontWeight.Bold,
-                                        style = MaterialTheme.typography.labelSmall,
-                                        color = badgeTextColor,
-                                        modifier = Modifier.padding(
-                                            horizontal = 10.dp,
-                                            vertical = 4.dp
-                                        )
+                                        color = MaterialTheme.colorScheme.onPrimaryContainer
                                     )
-                                }
-                            }
 
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                modifier = Modifier.fillMaxWidth()
-                            ) {
-                                Text(
-                                    text = state.cleanedUrl,
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    fontWeight = FontWeight.SemiBold,
-                                    color = MaterialTheme.colorScheme.onPrimaryContainer,
-                                    maxLines = 5,
-                                    overflow = TextOverflow.Ellipsis,
-                                    modifier = Modifier.weight(1f)
-                                )
-                                if (state.canExpand) {
-                                    TooltipWrapper(tooltipText = stringResource(R.string.main_expand_url)) {
+                                    val removedCount = state.removedParams.size
+                                    val badgeColor = if (removedCount > 0) {
+                                        MaterialTheme.colorScheme.primaryContainer
+                                    } else {
+                                        MaterialTheme.colorScheme.surfaceVariant
+                                    }
+                                    val badgeTextColor = if (removedCount > 0) {
+                                        MaterialTheme.colorScheme.onPrimaryContainer
+                                    } else {
+                                        MaterialTheme.colorScheme.onSurfaceVariant
+                                    }
+                                    Surface(
+                                        shape = RoundedCornerShape(12.dp),
+                                        color = badgeColor
+                                    ) {
+                                        Text(
+                                            text = if (removedCount > 0) stringResource(
+                                                R.string.history_item_removed_count,
+                                                removedCount
+                                            ) else stringResource(R.string.history_item_clean),
+                                            fontWeight = FontWeight.Bold,
+                                            style = MaterialTheme.typography.labelSmall,
+                                            color = badgeTextColor,
+                                            modifier = Modifier.padding(
+                                                horizontal = 10.dp,
+                                                vertical = 4.dp
+                                            )
+                                        )
+                                    }
+                                }
+
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    Text(
+                                        text = state.cleanedUrl,
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        fontWeight = FontWeight.SemiBold,
+                                        color = MaterialTheme.colorScheme.onPrimaryContainer,
+                                        maxLines = 5,
+                                        overflow = TextOverflow.Ellipsis,
+                                        modifier = Modifier.weight(1f)
+                                    )
+                                    if (state.canExpand) {
+                                        TooltipWrapper(tooltipText = stringResource(R.string.main_expand_url)) {
+                                            IconButton(
+                                                onClick = { viewModel.expandShortUrl() },
+                                                enabled = !state.isExpanding,
+                                                colors = IconButtonDefaults.iconButtonColors(
+                                                    contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                                                )
+                                            ) {
+                                                if (state.isExpanding) {
+                                                    CircularProgressIndicator(
+                                                        modifier = Modifier.size(20.dp),
+                                                        color = MaterialTheme.colorScheme.onPrimaryContainer,
+                                                        strokeWidth = 2.dp
+                                                    )
+                                                } else {
+                                                    Icon(
+                                                        imageVector = Icons.Outlined.Link,
+                                                        contentDescription = stringResource(R.string.main_expand_url)
+                                                    )
+                                                }
+                                            }
+                                        }
+                                    }
+                                    TooltipWrapper(tooltipText = stringResource(R.string.tooltip_open_browser)) {
                                         IconButton(
-                                            onClick = { viewModel.expandShortUrl() },
-                                            enabled = !state.isExpanding,
+                                            onClick = {
+                                                try {
+                                                    val intent = Intent(
+                                                        Intent.ACTION_VIEW,
+                                                        state.cleanedUrl.toUri()
+                                                    ).apply {
+                                                        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                                                    }
+                                                    context.startActivity(intent)
+                                                } catch (e: Exception) {
+                                                    scope.launch {
+                                                        snackbarHostState.showSnackbar(
+                                                            toastNoBrowserApp
+                                                        )
+                                                    }
+                                                }
+                                            },
                                             colors = IconButtonDefaults.iconButtonColors(
                                                 contentColor = MaterialTheme.colorScheme.onPrimaryContainer
                                             )
                                         ) {
-                                            if (state.isExpanding) {
-                                                CircularProgressIndicator(
-                                                    modifier = Modifier.size(20.dp),
-                                                    color = MaterialTheme.colorScheme.onPrimaryContainer,
-                                                    strokeWidth = 2.dp
-                                                )
-                                            } else {
-                                                Icon(
-                                                    imageVector = Icons.Outlined.Link,
-                                                    contentDescription = stringResource(R.string.main_expand_url)
-                                                )
-                                            }
+                                            Icon(
+                                                imageVector = Icons.AutoMirrored.Filled.OpenInNew,
+                                                contentDescription = "Open in browser"
+                                            )
                                         }
                                     }
                                 }
-                                TooltipWrapper(tooltipText = stringResource(R.string.tooltip_open_browser)) {
-                                    IconButton(
-                                        onClick = {
-                                            try {
-                                                val intent = Intent(
-                                                    Intent.ACTION_VIEW,
-                                                    state.cleanedUrl.toUri()
-                                                ).apply {
-                                                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                                                }
-                                                context.startActivity(intent)
-                                            } catch (e: Exception) {
-                                                scope.launch {
-                                                    snackbarHostState.showSnackbar(
-                                                        toastNoBrowserApp
-                                                    )
-                                                }
-                                            }
-                                        },
-                                        colors = IconButtonDefaults.iconButtonColors(
-                                            contentColor = MaterialTheme.colorScheme.onPrimaryContainer
-                                        )
-                                    ) {
-                                        Icon(
-                                            imageVector = Icons.AutoMirrored.Filled.OpenInNew,
-                                            contentDescription = "Open in browser"
-                                        )
-                                    }
-                                }
                             }
+
+                            HorizontalDivider(
+                                color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.12f),
+                                modifier = Modifier.fillMaxWidth()
+                            )
 
                             TooltipWrapper(
                                 tooltipText = stringResource(if (showDetails) R.string.main_hide_details else R.string.main_show_details),
@@ -624,10 +637,8 @@ fun MainScreen(
                                 Row(
                                     modifier = Modifier
                                         .fillMaxWidth()
-                                        .heightIn(min = 48.dp)
-                                        .clip(RoundedCornerShape(12.dp))
                                         .clickable { showDetails = !showDetails }
-                                        .padding(horizontal = 8.dp),
+                                        .padding(horizontal = 20.dp, vertical = 16.dp),
                                     verticalAlignment = Alignment.CenterVertically,
                                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                                 ) {
@@ -653,7 +664,7 @@ fun MainScreen(
                                     verticalArrangement = Arrangement.spacedBy(12.dp),
                                     modifier = Modifier
                                         .fillMaxWidth()
-                                        .padding(top = 4.dp)
+                                        .padding(start = 20.dp, end = 20.dp, bottom = 20.dp)
                                 ) {
                                     Column {
                                         Text(
@@ -852,7 +863,7 @@ fun MainScreen(
                                         color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
                                     )
                                     TrustMarkerCompact(
-                                        icon = Icons.Outlined.Lock,
+                                        icon = Icons.Outlined.Tune,
                                         text = stringResource(R.string.welcome_privacy_title)
                                     )
                                     VerticalDivider(
@@ -1113,7 +1124,7 @@ fun MainScreen(
                             subtitle = stringResource(R.string.welcome_local_subtitle)
                         )
                         TrustMarkerRow(
-                            icon = Icons.Outlined.Lock,
+                            icon = Icons.Outlined.Tune,
                             title = stringResource(R.string.welcome_privacy_title),
                             subtitle = stringResource(R.string.welcome_privacy_subtitle)
                         )

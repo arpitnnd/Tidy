@@ -22,9 +22,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.tidy.app.R
 import com.tidy.app.TidyURLApp
 
 object SettingsMigrationViews {
@@ -76,14 +78,19 @@ object SettingsMigrationViews {
                 }
 
                 Column(modifier = Modifier.weight(1f)) {
-                    val title =
-                        if (isUnlocked) "Tidy+ Active" else if (isPending) "Tidy+ Pending" else "Upgrade to Tidy+"
-                    val subtitle = if (isUnlocked) {
-                        "All premium convenience features unlocked"
+                    val title = if (isUnlocked) {
+                        stringResource(R.string.settings_tidy_plus_active_title)
                     } else if (isPending) {
-                        "Your transaction is pending approval"
+                        stringResource(R.string.settings_tidy_plus_pending_title)
                     } else {
-                        "Unlock share automation, bulk clean, and themes"
+                        stringResource(R.string.settings_tidy_plus_upgrade_title)
+                    }
+                    val subtitle = if (isUnlocked) {
+                        stringResource(R.string.settings_tidy_plus_active_desc)
+                    } else if (isPending) {
+                        stringResource(R.string.settings_tidy_plus_pending_desc)
+                    } else {
+                        stringResource(R.string.settings_tidy_plus_upgrade_desc)
                     }
                     Text(
                         text = title,
