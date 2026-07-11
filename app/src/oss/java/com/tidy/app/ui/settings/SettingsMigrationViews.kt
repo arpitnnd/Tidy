@@ -36,6 +36,7 @@ import androidx.core.content.FileProvider
 import com.tidy.app.R
 import com.tidy.app.TidyURLApp
 import com.tidy.app.data.PlusFeature
+import com.tidy.app.ui.components.rememberSheetNestedScrollFix
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import java.io.File
@@ -222,6 +223,7 @@ object SettingsMigrationViews {
 
         if (showComingSoonSheet) {
             val comingSoonState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+            val comingSoonScrollFix = rememberSheetNestedScrollFix()
             ModalBottomSheet(
                 onDismissRequest = { showComingSoonSheet = false },
                 sheetState = comingSoonState,
@@ -233,7 +235,8 @@ object SettingsMigrationViews {
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(start = 24.dp, end = 24.dp, bottom = 32.dp)
-                        .navigationBarsPadding(),
+                        .navigationBarsPadding()
+                        .nestedScroll(comingSoonScrollFix),
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
@@ -272,33 +275,8 @@ object SettingsMigrationViews {
         var backupFileState by remember { mutableStateOf<File?>(null) }
         val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
-        // Custom nested scroll connection to consume over-scroll velocity when flinging/scrolling up.
-        // This stops gesture delta propagating to the parent sheet and eliminates vibration.
-        val nestedScrollConnection = remember {
-            object : androidx.compose.ui.input.nestedscroll.NestedScrollConnection {
-                override fun onPreScroll(
-                    available: androidx.compose.ui.geometry.Offset,
-                    source: androidx.compose.ui.input.nestedscroll.NestedScrollSource
-                ): androidx.compose.ui.geometry.Offset {
-                    return androidx.compose.ui.geometry.Offset.Zero
-                }
-
-                override fun onPostScroll(
-                    consumed: androidx.compose.ui.geometry.Offset,
-                    available: androidx.compose.ui.geometry.Offset,
-                    source: androidx.compose.ui.input.nestedscroll.NestedScrollSource
-                ): androidx.compose.ui.geometry.Offset {
-                    return if (available.y < 0) available else androidx.compose.ui.geometry.Offset.Zero
-                }
-
-                override suspend fun onPostFling(
-                    consumed: androidx.compose.ui.unit.Velocity,
-                    available: androidx.compose.ui.unit.Velocity
-                ): androidx.compose.ui.unit.Velocity {
-                    return if (available.y < 0) available else androidx.compose.ui.unit.Velocity.Zero
-                }
-            }
-        }
+        // Consume upward over-scroll so it never reaches the parent sheet drag handler.
+        val migrationScrollFix = rememberSheetNestedScrollFix()
 
         ModalBottomSheet(
             onDismissRequest = onDismiss,
@@ -320,7 +298,7 @@ object SettingsMigrationViews {
                     modifier = Modifier
                         .fillMaxWidth()
                         .weight(1f, fill = false)
-                        .nestedScroll(nestedScrollConnection),
+                        .nestedScroll(migrationScrollFix),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     if (currentPage == 1) {

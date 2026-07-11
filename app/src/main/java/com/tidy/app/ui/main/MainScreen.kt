@@ -41,6 +41,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.ui.input.nestedscroll.nestedScroll
+import com.tidy.app.ui.components.rememberSheetNestedScrollFix
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.OpenInNew
 import androidx.compose.material.icons.filled.Check
@@ -945,6 +947,7 @@ fun MainScreen(
         // Clean New URL Bottom Sheet
         if (showBottomSheet) {
             val focusRequester = remember { FocusRequester() }
+            val sheetScrollFix = rememberSheetNestedScrollFix()
             LaunchedEffect(focusRequester) {
                 kotlinx.coroutines.delay(350)
                 try {
@@ -966,6 +969,7 @@ fun MainScreen(
                         .navigationBarsPadding()
                         .imePadding()
                         .verticalScroll(rememberScrollState())
+                        .nestedScroll(sheetScrollFix)
                         .padding(horizontal = 24.dp)
                         .padding(bottom = 24.dp),
                     verticalArrangement = Arrangement.spacedBy(16.dp)
@@ -1067,6 +1071,7 @@ fun MainScreen(
 
         // First-launch Intro Bottom Sheet
         if (showIntro) {
+            val introScrollFix = rememberSheetNestedScrollFix()
             ModalBottomSheet(
                 onDismissRequest = {
                     showIntro = false
@@ -1081,7 +1086,8 @@ fun MainScreen(
                         .fillMaxWidth()
                         .padding(horizontal = 24.dp)
                         .padding(bottom = 32.dp)
-                        .navigationBarsPadding(),
+                        .navigationBarsPadding()
+                        .nestedScroll(introScrollFix),
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
@@ -1165,6 +1171,7 @@ fun MainScreen(
 
         // Crash Report Sheet
         if (showCrashSheet && crashReportText != null) {
+            val crashScrollFix = rememberSheetNestedScrollFix()
             ModalBottomSheet(
                 onDismissRequest = { onDismissCrashReport() },
                 sheetState = rememberModalBottomSheetState(),
@@ -1176,7 +1183,8 @@ fun MainScreen(
                         .fillMaxWidth()
                         .padding(horizontal = 24.dp)
                         .padding(bottom = 32.dp)
-                        .navigationBarsPadding(),
+                        .navigationBarsPadding()
+                        .nestedScroll(crashScrollFix),
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
@@ -1344,6 +1352,7 @@ fun MainScreen(
         val description =
             trackerDescriptions[param] ?: stringResource(R.string.details_no_explanation)
 
+        val paramScrollFix = rememberSheetNestedScrollFix()
         ModalBottomSheet(
             onDismissRequest = { paramToWhitelist = null },
             sheetState = rememberModalBottomSheetState(),
@@ -1355,7 +1364,8 @@ fun MainScreen(
                     .fillMaxWidth()
                     .navigationBarsPadding()
                     .padding(horizontal = 24.dp)
-                    .padding(bottom = 32.dp),
+                    .padding(bottom = 32.dp)
+                    .nestedScroll(paramScrollFix),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 Text(

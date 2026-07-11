@@ -82,6 +82,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.tidy.app.R
 import com.tidy.app.ui.components.TooltipWrapper
+import com.tidy.app.ui.components.rememberSheetNestedScrollFix
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
@@ -252,6 +254,7 @@ fun SettingsScreen(
                                 modifier = Modifier.fillMaxWidth()
                             )
 
+                            val blocklistScrollFix = rememberSheetNestedScrollFix()
                             LazyColumn(
                                 state = lazyListState,
                                 contentPadding = PaddingValues(top = 8.dp),
@@ -259,6 +262,7 @@ fun SettingsScreen(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .weight(1f, fill = false)
+                                    .nestedScroll(blocklistScrollFix)
                             ) {
                                 items(state.trackers) { tracker ->
                                     Column(
