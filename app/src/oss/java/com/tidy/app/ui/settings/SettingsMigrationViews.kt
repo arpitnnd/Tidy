@@ -9,19 +9,24 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.CloudDownload
 import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.outlined.Bolt
+import androidx.compose.material.icons.outlined.CleaningServices
+import androidx.compose.material.icons.outlined.DynamicFeed
+import androidx.compose.material.icons.outlined.Palette
+import androidx.compose.material.icons.outlined.SelectAll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -267,6 +272,34 @@ object SettingsMigrationViews {
         var backupFileState by remember { mutableStateOf<File?>(null) }
         val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
+        // Custom nested scroll connection to consume over-scroll velocity when flinging/scrolling up.
+        // This stops gesture delta propagating to the parent sheet and eliminates vibration.
+        val nestedScrollConnection = remember {
+            object : androidx.compose.ui.input.nestedscroll.NestedScrollConnection {
+                override fun onPreScroll(
+                    available: androidx.compose.ui.geometry.Offset,
+                    source: androidx.compose.ui.input.nestedscroll.NestedScrollSource
+                ): androidx.compose.ui.geometry.Offset {
+                    return androidx.compose.ui.geometry.Offset.Zero
+                }
+
+                override fun onPostScroll(
+                    consumed: androidx.compose.ui.geometry.Offset,
+                    available: androidx.compose.ui.geometry.Offset,
+                    source: androidx.compose.ui.input.nestedscroll.NestedScrollSource
+                ): androidx.compose.ui.geometry.Offset {
+                    return if (available.y < 0) available else androidx.compose.ui.geometry.Offset.Zero
+                }
+
+                override suspend fun onPostFling(
+                    consumed: androidx.compose.ui.unit.Velocity,
+                    available: androidx.compose.ui.unit.Velocity
+                ): androidx.compose.ui.unit.Velocity {
+                    return if (available.y < 0) available else androidx.compose.ui.unit.Velocity.Zero
+                }
+            }
+        }
+
         ModalBottomSheet(
             onDismissRequest = onDismiss,
             sheetState = sheetState,
@@ -278,49 +311,100 @@ object SettingsMigrationViews {
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 24.dp)
-                    .navigationBarsPadding()
-                    .verticalScroll(rememberScrollState()),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(16.dp)
+                    .navigationBarsPadding(),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                if (currentPage == 1) {
-                    // Page 1: Explainer
-                    Text(
-                        text = "Upgrade to Tidy+",
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                    Text(
-                        text = "Tidy+ is distributed as a separate version via Google Play, which is what makes Play Billing and automatic updates possible. The core engine stays 100% free and open source.",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        textAlign = TextAlign.Center
-                    )
-
-                    Text(
-                        text = "What Tidy+ unlocks:",
-                        style = MaterialTheme.typography.titleSmall,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.align(Alignment.Start)
-                    )
-
-                    Column(
-                        verticalArrangement = Arrangement.spacedBy(12.dp),
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        PlusFeature.values().forEach { feature ->
-                            Card(
-                                shape = RoundedCornerShape(12.dp),
-                                colors = CardDefaults.cardColors(
-                                    containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(
-                                        alpha = 0.5f
-                                    )
-                                ),
-                                modifier = Modifier.fillMaxWidth()
+                LazyColumn(
+                    contentPadding = PaddingValues(bottom = 32.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f, fill = false)
+                        .nestedScroll(nestedScrollConnection),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    if (currentPage == 1) {
+                        item {
+                            // Icon / Logo Box (matching Welcome Intro design)
+                            Box(
+                                modifier = Modifier
+                                    .size(48.dp)
+                                    .clip(RoundedCornerShape(12.dp))
+                                    .background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f)),
+                                contentAlignment = Alignment.Center
                             ) {
-                                Column(modifier = Modifier.padding(12.dp)) {
+                                Icon(
+                                    imageVector = Icons.Outlined.CleaningServices,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.size(24.dp)
+                                )
+                            }
+                        }
+
+                        item {
+                            Text(
+                                text = "Tidy+",
+                                style = MaterialTheme.typography.headlineMedium,
+                                fontWeight = FontWeight.ExtraBold,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                        }
+
+                        item {
+                            Text(
+                                text = "Tidy+ is distributed as a separate version via Google Play, which is what makes Play Billing and automatic updates possible. The core engine stays 100% free and open source.",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                textAlign = TextAlign.Center
+                            )
+                        }
+
+                        item {
+                            HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.12f))
+                        }
+
+                        item {
+                            Text(
+                                text = "Included with Tidy+",
+                                style = MaterialTheme.typography.titleSmall,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.fillMaxWidth(),
+                                textAlign = TextAlign.Start
+                            )
+                        }
+
+                        // Plus Features list items
+                        items(PlusFeature.values().size) { index ->
+                            val feature = PlusFeature.values()[index]
+                            val icon = when (feature) {
+                                PlusFeature.SHARE_AUTOMATION -> Icons.Outlined.Bolt
+                                PlusFeature.BULK_CLEAN -> Icons.Outlined.DynamicFeed
+                                PlusFeature.EXTRA_THEMES -> Icons.Outlined.Palette
+                                PlusFeature.TEXT_SELECTION -> Icons.Outlined.SelectAll
+                            }
+
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(16.dp)
+                            ) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(40.dp)
+                                        .clip(RoundedCornerShape(10.dp))
+                                        .background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f)),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Icon(
+                                        imageVector = icon,
+                                        contentDescription = null,
+                                        tint = MaterialTheme.colorScheme.primary,
+                                        modifier = Modifier.size(20.dp)
+                                    )
+                                }
+                                Column(modifier = Modifier.weight(1f)) {
                                     Text(
                                         text = feature.title,
                                         style = MaterialTheme.typography.labelLarge,
@@ -335,139 +419,179 @@ object SettingsMigrationViews {
                                 }
                             }
                         }
-                    }
 
-                    Spacer(modifier = Modifier.height(8.dp))
+                        item {
+                            Spacer(modifier = Modifier.height(8.dp))
+                        }
 
-                    Button(
-                        onClick = {
-                            scope.launch {
-                                try {
-                                    val json =
-                                        TidyURLApp.instance.historyRepository.exportToJson()
-                                    val backupFile = File(context.filesDir, "TidyBackup.json")
-                                    backupFile.writeText(json)
-                                    backupFileState = backupFile
-                                    currentPage = 2
-                                } catch (e: Exception) {
-                                    Toast.makeText(
-                                        context,
-                                        "Backup failed: ${e.message}",
-                                        Toast.LENGTH_SHORT
-                                    ).show()
-                                }
-                            }
-                        },
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(16.dp)
-                    ) {
-                        Text("Back up & continue", fontWeight = FontWeight.Bold)
-                    }
-
-                    TextButton(
-                        onClick = onDismiss,
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Text("Cancel")
-                    }
-
-                    Spacer(modifier = Modifier.height(16.dp))
-                } else {
-                    // Page 2: Backup Share & Play link
-                    Text(
-                        text = "Back Up Created",
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                    Text(
-                        text = "Your data has been backed up locally. Share this backup to secure it, then download Tidy+ from Google Play.",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        textAlign = TextAlign.Center
-                    )
-
-                    backupFileState?.let { file ->
-                        Card(
-                            shape = RoundedCornerShape(12.dp),
-                            colors = CardDefaults.cardColors(
-                                containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(
-                                    alpha = 0.5f
+                        item {
+                            // Ideology Card: One-time fee vs recurring subscription
+                            Surface(
+                                shape = RoundedCornerShape(16.dp),
+                                color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.35f),
+                                border = androidx.compose.foundation.BorderStroke(
+                                    width = 1.dp,
+                                    color = MaterialTheme.colorScheme.secondary.copy(alpha = 0.15f)
+                                ),
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Text(
+                                    text = stringResource(R.string.plus_migration_value_proposition),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSecondaryContainer,
+                                    textAlign = TextAlign.Center,
+                                    modifier = Modifier.padding(14.dp),
+                                    fontWeight = FontWeight.Medium
                                 )
-                            ),
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
+                            }
+                        }
+
+                        item {
+                            Spacer(modifier = Modifier.height(8.dp))
+                        }
+
+                        item {
+                            Button(
+                                onClick = {
+                                    scope.launch {
+                                        try {
+                                            val json =
+                                                TidyURLApp.instance.historyRepository.exportToJson()
+                                            val backupFile = File(context.filesDir, "TidyBackup.json")
+                                            backupFile.writeText(json)
+                                            backupFileState = backupFile
+                                            currentPage = 2
+                                        } catch (e: Exception) {
+                                            Toast.makeText(
+                                                context,
+                                                "Backup failed: ${e.message}",
+                                                Toast.LENGTH_SHORT
+                                            ).show()
+                                        }
+                                    }
+                                },
+                                modifier = Modifier.fillMaxWidth(),
+                                shape = RoundedCornerShape(16.dp)
+                            ) {
+                                Text("Back up & continue", fontWeight = FontWeight.Bold)
+                            }
+                        }
+
+                        item {
+                            TextButton(
+                                onClick = onDismiss,
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Text("Cancel")
+                            }
+                        }
+                    } else {
+                        // Page 2: Backup Share & Play link
+                        item {
                             Text(
-                                text = "Backup location:\n${file.absolutePath}",
-                                style = MaterialTheme.typography.bodySmall,
-                                fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace,
+                                text = "Back Up Created",
+                                style = MaterialTheme.typography.titleLarge,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                        }
+                        item {
+                            Text(
+                                text = "Your data has been backed up locally. Share this backup to secure it, then download Tidy+ from Google Play.",
+                                style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier.padding(12.dp)
+                                textAlign = TextAlign.Center
                             )
                         }
 
-                        Button(
-                            onClick = {
-                                val uri = FileProvider.getUriForFile(
-                                    context,
-                                    "${context.packageName}.fileprovider",
-                                    file
-                                )
-                                val shareIntent = Intent(Intent.ACTION_SEND).apply {
-                                    type = "application/json"
-                                    putExtra(Intent.EXTRA_STREAM, uri)
-                                    addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                                }
-                                context.startActivity(
-                                    Intent.createChooser(
-                                        shareIntent,
-                                        "Share Tidy Backup"
+                        backupFileState?.let { file ->
+                            item {
+                                Card(
+                                    shape = RoundedCornerShape(12.dp),
+                                    colors = CardDefaults.cardColors(
+                                        containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(
+                                            alpha = 0.5f
+                                        )
+                                    ),
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    Text(
+                                        text = "Backup location:\n${file.absolutePath}",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        modifier = Modifier.padding(12.dp)
                                     )
-                                )
-                            },
-                            modifier = Modifier.fillMaxWidth(),
-                            shape = RoundedCornerShape(16.dp),
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = MaterialTheme.colorScheme.secondary
-                            )
-                        ) {
-                            Text("Share backup file", fontWeight = FontWeight.Bold)
+                                }
+                            }
+
+                            item {
+                                Button(
+                                    onClick = {
+                                        val uri = FileProvider.getUriForFile(
+                                            context,
+                                            "${context.packageName}.fileprovider",
+                                            file
+                                        )
+                                        val shareIntent = Intent(Intent.ACTION_SEND).apply {
+                                            type = "application/json"
+                                            putExtra(Intent.EXTRA_STREAM, uri)
+                                            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                                        }
+                                        context.startActivity(
+                                            Intent.createChooser(
+                                                shareIntent,
+                                                "Share Tidy Backup"
+                                            )
+                                        )
+                                    },
+                                    modifier = Modifier.fillMaxWidth(),
+                                    shape = RoundedCornerShape(16.dp),
+                                    colors = ButtonDefaults.buttonColors(
+                                        containerColor = MaterialTheme.colorScheme.secondary
+                                    )
+                                ) {
+                                    Text("Share backup file", fontWeight = FontWeight.Bold)
+                                }
+                            }
+                        }
+
+                        item {
+                            Button(
+                                onClick = {
+                                    val playId = "com.tidy.app.play"
+                                    val playIntent = Intent(Intent.ACTION_VIEW).apply {
+                                        data = Uri.parse("market://details?id=$playId")
+                                        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                                    }
+                                    try {
+                                        context.startActivity(playIntent)
+                                    } catch (e: Exception) {
+                                        val webIntent = Intent(Intent.ACTION_VIEW).apply {
+                                            data =
+                                                Uri.parse("https://play.google.com/store/apps/details?id=$playId")
+                                            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                                        }
+                                        context.startActivity(webIntent)
+                                    }
+                                    onDismiss()
+                                },
+                                modifier = Modifier.fillMaxWidth(),
+                                shape = RoundedCornerShape(16.dp)
+                            ) {
+                                Text("Open Tidy+ on Play", fontWeight = FontWeight.Bold)
+                            }
+                        }
+
+                        item {
+                            TextButton(
+                                onClick = onDismiss,
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Text("Cancel")
+                            }
                         }
                     }
-
-                    Button(
-                        onClick = {
-                            val playId = "com.tidy.app.play"
-                            val playIntent = Intent(Intent.ACTION_VIEW).apply {
-                                data = Uri.parse("market://details?id=$playId")
-                                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                            }
-                            try {
-                                context.startActivity(playIntent)
-                            } catch (e: Exception) {
-                                val webIntent = Intent(Intent.ACTION_VIEW).apply {
-                                    data =
-                                        Uri.parse("https://play.google.com/store/apps/details?id=$playId")
-                                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                                }
-                                context.startActivity(webIntent)
-                            }
-                            onDismiss()
-                        },
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(16.dp)
-                    ) {
-                        Text("Open Tidy+ on Play", fontWeight = FontWeight.Bold)
-                    }
-
-                    TextButton(
-                        onClick = onDismiss,
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Text("Cancel")
-                    }
-
-                    Spacer(modifier = Modifier.height(16.dp))
                 }
             }
         }
