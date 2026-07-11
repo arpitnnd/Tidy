@@ -1,18 +1,74 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.compose.compiler)
     alias(libs.plugins.kotlin.serialization)
 }
 
+val keystoreProperties = Properties()
+val keystorePropertiesFile = rootProject.file("keystore.properties")
+if (keystorePropertiesFile.exists()) {
+    keystorePropertiesFile.inputStream().use { keystoreProperties.load(it) }
+}
+
 android {
     namespace = "com.tidy.app"
     compileSdk = 37
+
+    signingConfigs {
+        create("ossRelease") {
+            val storeFileVal = keystoreProperties.getProperty("ossStoreFile")
+            val passwordVal = keystoreProperties.getProperty("ossPassword")
+            val keyAliasVal = keystoreProperties.getProperty("ossKeyAlias")
+
+            if (storeFileVal != null && storeFileVal != "" &&
+                passwordVal != null && passwordVal != "" &&
+                keyAliasVal != null && keyAliasVal != ""
+            ) {
+                storeFile = file(storeFileVal)
+                storePassword = passwordVal
+                keyAlias = keyAliasVal
+                keyPassword = passwordVal
+            } else {
+                val debugSigning = signingConfigs.getByName("debug")
+                storeFile = debugSigning.storeFile
+                storePassword = debugSigning.storePassword
+                keyAlias = debugSigning.keyAlias
+                keyPassword = debugSigning.keyPassword
+            }
+        }
+
+        create("playReleasePlay") {
+            val storeFileVal = keystoreProperties.getProperty("playStoreFile")
+            val passwordVal = keystoreProperties.getProperty("playPassword")
+            val keyAliasVal = keystoreProperties.getProperty("playKeyAlias")
+
+            if (storeFileVal != null && storeFileVal != "" &&
+                passwordVal != null && passwordVal != "" &&
+                keyAliasVal != null && keyAliasVal != ""
+            ) {
+                storeFile = file(storeFileVal)
+                storePassword = passwordVal
+                keyAlias = keyAliasVal
+                keyPassword = passwordVal
+            } else {
+                val debugSigning = signingConfigs.getByName("debug")
+                storeFile = debugSigning.storeFile
+                storePassword = debugSigning.storePassword
+                keyAlias = debugSigning.keyAlias
+                keyPassword = debugSigning.keyPassword
+            }
+        }
+    }
+
     defaultConfig {
         applicationId = "com.tidy.app"
         minSdk = 24
         targetSdk = 37
         versionCode = 1
         versionName = "1.0"
+        buildConfigField("Boolean", "TIDY_PLUS_AVAILABLE", "false")
     }
 
     flavorDimensions += "distribution"
@@ -33,6 +89,7 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            signingConfig = signingConfigs.getByName("ossRelease")
         }
         create("releasePlay") {
             initWith(getByName("release"))
@@ -43,6 +100,7 @@ android {
                 "proguard-rules.pro"
             )
             matchingFallbacks.add("release")
+            signingConfig = signingConfigs.getByName("playReleasePlay")
         }
     }
     compileOptions {
