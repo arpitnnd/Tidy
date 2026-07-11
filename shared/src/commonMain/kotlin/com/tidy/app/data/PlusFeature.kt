@@ -10,8 +10,8 @@ enum class PlusFeature(val title: String, val description: String) {
         description = "Clean multiple URLs from your clipboard in one tap."
     ),
     EXTRA_THEMES(
-        title = "Premium visual themes",
-        description = "Expressive colorways like Forest Green and Ocean Blue."
+        title = "Extra themes",
+        description = "Expressive colourways like Forest Green and Ocean Blue."
     ),
     TEXT_SELECTION(
         title = "Inline text cleaning",

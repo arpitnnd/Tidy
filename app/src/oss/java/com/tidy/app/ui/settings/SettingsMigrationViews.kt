@@ -27,8 +27,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
-import androidx.compose.ui.window.DialogProperties
 import androidx.core.content.FileProvider
 import com.tidy.app.R
 import com.tidy.app.TidyURLApp
@@ -39,6 +37,7 @@ import java.io.File
 
 object SettingsMigrationViews {
 
+    @OptIn(ExperimentalMaterial3Api::class)
     @Composable
     fun SettingsUpgradeRow(onUpgradeClick: () -> Unit) {
         val context = LocalContext.current
@@ -48,6 +47,7 @@ object SettingsMigrationViews {
         )
 
         var showFollowup by remember { mutableStateOf(false) }
+        var showComingSoonSheet by remember { mutableStateOf(false) }
 
         LaunchedEffect(Unit) {
             val playInstalled = try {
@@ -62,13 +62,25 @@ object SettingsMigrationViews {
             showFollowup = playInstalled && isBackupOld && !dismissed
         }
 
+        val isAvailable = com.tidy.app.BuildConfig.TIDY_PLUS_AVAILABLE
+
         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
             // Get Tidy+ Row
             Card(
-                onClick = onUpgradeClick,
+                onClick = {
+                    if (isAvailable) {
+                        onUpgradeClick()
+                    } else {
+                        showComingSoonSheet = true
+                    }
+                },
                 shape = RoundedCornerShape(20.dp),
                 colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f)
+                    containerColor = if (isAvailable) {
+                        MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f)
+                    } else {
+                        MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.38f)
+                    }
                 ),
                 modifier = Modifier.fillMaxWidth()
             ) {
@@ -81,35 +93,61 @@ object SettingsMigrationViews {
                         modifier = Modifier
                             .size(48.dp)
                             .clip(RoundedCornerShape(12.dp))
-                            .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)),
+                            .background(
+                                if (isAvailable) {
+                                    MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
+                                } else {
+                                    MaterialTheme.colorScheme.onSurface.copy(alpha = 0.06f)
+                                }
+                            ),
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
                             imageVector = Icons.Filled.Star,
                             contentDescription = null,
-                            tint = MaterialTheme.colorScheme.primary,
+                            tint = if (isAvailable) {
+                                MaterialTheme.colorScheme.primary
+                            } else {
+                                MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
+                            },
                             modifier = Modifier.size(24.dp)
                         )
                     }
 
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
-                            text = stringResource(R.string.settings_tidy_plus_get_title),
+                            text = if (isAvailable) {
+                                stringResource(R.string.settings_tidy_plus_get_title)
+                            } else {
+                                stringResource(R.string.settings_tidy_plus_get_title) + " (Coming soon)"
+                            },
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onPrimaryContainer
+                            color = if (isAvailable) {
+                                MaterialTheme.colorScheme.onPrimaryContainer
+                            } else {
+                                MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
+                            }
                         )
                         Text(
                             text = stringResource(R.string.settings_tidy_plus_upgrade_desc),
                             style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
+                            color = if (isAvailable) {
+                                MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
+                            } else {
+                                MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.38f)
+                            }
                         )
                     }
 
                     Icon(
                         imageVector = Icons.Filled.ChevronRight,
                         contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
+                        tint = if (isAvailable) {
+                            MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
+                        } else {
+                            MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
+                        }
                     )
                 }
             }
@@ -176,8 +214,49 @@ object SettingsMigrationViews {
                 }
             }
         }
+
+        if (showComingSoonSheet) {
+            val comingSoonState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+            ModalBottomSheet(
+                onDismissRequest = { showComingSoonSheet = false },
+                sheetState = comingSoonState,
+                containerColor = MaterialTheme.colorScheme.surface,
+                tonalElevation = 8.dp,
+                dragHandle = { BottomSheetDefaults.DragHandle() }
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(start = 24.dp, end = 24.dp, bottom = 32.dp)
+                        .navigationBarsPadding(),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    Text(
+                        text = stringResource(R.string.tidy_plus_coming_soon_title),
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    Text(
+                        text = stringResource(R.string.tidy_plus_coming_soon_desc),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        textAlign = TextAlign.Center
+                    )
+                    Button(
+                        onClick = { showComingSoonSheet = false },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(16.dp)
+                    ) {
+                        Text("OK", fontWeight = FontWeight.Bold)
+                    }
+                }
+            }
+        }
     }
 
+    @OptIn(ExperimentalMaterial3Api::class)
     @Composable
     fun MigrationDialog(
         onDismiss: () -> Unit
@@ -186,121 +265,52 @@ object SettingsMigrationViews {
         val scope = rememberCoroutineScope()
         var currentPage by remember { mutableStateOf(1) }
         var backupFileState by remember { mutableStateOf<File?>(null) }
+        val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
-        Dialog(
+        ModalBottomSheet(
             onDismissRequest = onDismiss,
-            properties = DialogProperties(usePlatformDefaultWidth = false)
+            sheetState = sheetState,
+            containerColor = MaterialTheme.colorScheme.surface,
+            tonalElevation = 8.dp,
+            dragHandle = { BottomSheetDefaults.DragHandle() }
         ) {
-            Surface(
+            Column(
                 modifier = Modifier
-                    .fillMaxWidth(0.9f)
-                    .clip(RoundedCornerShape(28.dp))
-                    .background(MaterialTheme.colorScheme.surface)
-                    .padding(24.dp),
-                shape = RoundedCornerShape(28.dp)
+                    .fillMaxWidth()
+                    .padding(horizontal = 24.dp)
+                    .navigationBarsPadding()
+                    .verticalScroll(rememberScrollState()),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .verticalScroll(rememberScrollState()),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(16.dp)
-                ) {
-                    if (currentPage == 1) {
-                        // Page 1: Explainer
-                        Text(
-                            text = "Upgrade to Tidy+",
-                            style = MaterialTheme.typography.titleLarge,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
-                        Text(
-                            text = "Tidy+ is distributed as a separate version via Google Play to enable seamless, secure Play Billing and automatic updates. The core engine remains 100% free and open source.",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            textAlign = TextAlign.Center
-                        )
+                if (currentPage == 1) {
+                    // Page 1: Explainer
+                    Text(
+                        text = "Upgrade to Tidy+",
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    Text(
+                        text = "Tidy+ is distributed as a separate version via Google Play, which is what makes Play Billing and automatic updates possible. The core engine stays 100% free and open source.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        textAlign = TextAlign.Center
+                    )
 
-                        Text(
-                            text = "What Tidy+ unlocks:",
-                            style = MaterialTheme.typography.titleSmall,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.align(Alignment.Start)
-                        )
+                    Text(
+                        text = "What Tidy+ unlocks:",
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.align(Alignment.Start)
+                    )
 
-                        Column(
-                            verticalArrangement = Arrangement.spacedBy(12.dp),
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            PlusFeature.values().forEach { feature ->
-                                Card(
-                                    shape = RoundedCornerShape(12.dp),
-                                    colors = CardDefaults.cardColors(
-                                        containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(
-                                            alpha = 0.5f
-                                        )
-                                    ),
-                                    modifier = Modifier.fillMaxWidth()
-                                ) {
-                                    Column(modifier = Modifier.padding(12.dp)) {
-                                        Text(
-                                            text = feature.title,
-                                            style = MaterialTheme.typography.labelLarge,
-                                            fontWeight = FontWeight.Bold,
-                                            color = MaterialTheme.colorScheme.onSurface
-                                        )
-                                        Text(
-                                            text = feature.description,
-                                            style = MaterialTheme.typography.bodySmall,
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                                        )
-                                    }
-                                }
-                            }
-                        }
-
-                        Button(
-                            onClick = {
-                                // Run silent backup export
-                                scope.launch {
-                                    try {
-                                        val json =
-                                            TidyURLApp.instance.historyRepository.exportToJson()
-                                        val backupFile = File(context.filesDir, "TidyBackup.json")
-                                        backupFile.writeText(json)
-                                        backupFileState = backupFile
-                                        currentPage = 2
-                                    } catch (e: Exception) {
-                                        Toast.makeText(
-                                            context,
-                                            "Backup failed: ${e.message}",
-                                            Toast.LENGTH_SHORT
-                                        ).show()
-                                    }
-                                }
-                            },
-                            modifier = Modifier.fillMaxWidth(),
-                            shape = RoundedCornerShape(16.dp)
-                        ) {
-                            Text("Back up & continue", fontWeight = FontWeight.Bold)
-                        }
-                    } else {
-                        // Page 2: Backup Share & Play link
-                        Text(
-                            text = "Back Up Created",
-                            style = MaterialTheme.typography.titleLarge,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
-                        Text(
-                            text = "Your data has been backed up locally. Share this backup to secure it, then download Tidy+ from Google Play.",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            textAlign = TextAlign.Center
-                        )
-
-                        backupFileState?.let { file ->
+                    Column(
+                        verticalArrangement = Arrangement.spacedBy(12.dp),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        PlusFeature.values().forEach { feature ->
                             Card(
                                 shape = RoundedCornerShape(12.dp),
                                 colors = CardDefaults.cardColors(
@@ -310,73 +320,154 @@ object SettingsMigrationViews {
                                 ),
                                 modifier = Modifier.fillMaxWidth()
                             ) {
-                                Text(
-                                    text = "Backup location:\n${file.absolutePath}",
-                                    style = MaterialTheme.typography.bodySmall,
-                                    fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    modifier = Modifier.padding(12.dp)
-                                )
+                                Column(modifier = Modifier.padding(12.dp)) {
+                                    Text(
+                                        text = feature.title,
+                                        style = MaterialTheme.typography.labelLarge,
+                                        fontWeight = FontWeight.Bold,
+                                        color = MaterialTheme.colorScheme.onSurface
+                                    )
+                                    Text(
+                                        text = feature.description,
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
                             }
+                        }
+                    }
 
-                            Button(
-                                onClick = {
-                                    val uri = FileProvider.getUriForFile(
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    Button(
+                        onClick = {
+                            scope.launch {
+                                try {
+                                    val json =
+                                        TidyURLApp.instance.historyRepository.exportToJson()
+                                    val backupFile = File(context.filesDir, "TidyBackup.json")
+                                    backupFile.writeText(json)
+                                    backupFileState = backupFile
+                                    currentPage = 2
+                                } catch (e: Exception) {
+                                    Toast.makeText(
                                         context,
-                                        "${context.packageName}.fileprovider",
-                                        file
-                                    )
-                                    val shareIntent = Intent(Intent.ACTION_SEND).apply {
-                                        type = "application/json"
-                                        putExtra(Intent.EXTRA_STREAM, uri)
-                                        addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                                    }
-                                    context.startActivity(
-                                        Intent.createChooser(
-                                            shareIntent,
-                                            "Share Tidy Backup"
-                                        )
-                                    )
-                                },
-                                modifier = Modifier.fillMaxWidth(),
-                                shape = RoundedCornerShape(16.dp),
-                                colors = ButtonDefaults.buttonColors(
-                                    containerColor = MaterialTheme.colorScheme.secondary
-                                )
-                            ) {
-                                Text("Share backup file", fontWeight = FontWeight.Bold)
+                                        "Backup failed: ${e.message}",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                }
                             }
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(16.dp)
+                    ) {
+                        Text("Back up & continue", fontWeight = FontWeight.Bold)
+                    }
+
+                    TextButton(
+                        onClick = onDismiss,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text("Cancel")
+                    }
+
+                    Spacer(modifier = Modifier.height(16.dp))
+                } else {
+                    // Page 2: Backup Share & Play link
+                    Text(
+                        text = "Back Up Created",
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    Text(
+                        text = "Your data has been backed up locally. Share this backup to secure it, then download Tidy+ from Google Play.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        textAlign = TextAlign.Center
+                    )
+
+                    backupFileState?.let { file ->
+                        Card(
+                            shape = RoundedCornerShape(12.dp),
+                            colors = CardDefaults.cardColors(
+                                containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(
+                                    alpha = 0.5f
+                                )
+                            ),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text(
+                                text = "Backup location:\n${file.absolutePath}",
+                                style = MaterialTheme.typography.bodySmall,
+                                fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.padding(12.dp)
+                            )
                         }
 
                         Button(
                             onClick = {
-                                val playId = "com.tidy.app.play"
-                                val playIntent = Intent(Intent.ACTION_VIEW).apply {
-                                    data = Uri.parse("market://details?id=$playId")
-                                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                                val uri = FileProvider.getUriForFile(
+                                    context,
+                                    "${context.packageName}.fileprovider",
+                                    file
+                                )
+                                val shareIntent = Intent(Intent.ACTION_SEND).apply {
+                                    type = "application/json"
+                                    putExtra(Intent.EXTRA_STREAM, uri)
+                                    addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
                                 }
-                                try {
-                                    context.startActivity(playIntent)
-                                } catch (e: Exception) {
-                                    val webIntent = Intent(Intent.ACTION_VIEW).apply {
-                                        data =
-                                            Uri.parse("https://play.google.com/store/apps/details?id=$playId")
-                                        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                                    }
-                                    context.startActivity(webIntent)
-                                }
-                                onDismiss()
+                                context.startActivity(
+                                    Intent.createChooser(
+                                        shareIntent,
+                                        "Share Tidy Backup"
+                                    )
+                                )
                             },
                             modifier = Modifier.fillMaxWidth(),
-                            shape = RoundedCornerShape(16.dp)
+                            shape = RoundedCornerShape(16.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = MaterialTheme.colorScheme.secondary
+                            )
                         ) {
-                            Text("Open Tidy+ on Play", fontWeight = FontWeight.Bold)
+                            Text("Share backup file", fontWeight = FontWeight.Bold)
                         }
                     }
 
-                    TextButton(onClick = onDismiss) {
+                    Button(
+                        onClick = {
+                            val playId = "com.tidy.app.play"
+                            val playIntent = Intent(Intent.ACTION_VIEW).apply {
+                                data = Uri.parse("market://details?id=$playId")
+                                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                            }
+                            try {
+                                context.startActivity(playIntent)
+                            } catch (e: Exception) {
+                                val webIntent = Intent(Intent.ACTION_VIEW).apply {
+                                    data =
+                                        Uri.parse("https://play.google.com/store/apps/details?id=$playId")
+                                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                                }
+                                context.startActivity(webIntent)
+                            }
+                            onDismiss()
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(16.dp)
+                    ) {
+                        Text("Open Tidy+ on Play", fontWeight = FontWeight.Bold)
+                    }
+
+                    TextButton(
+                        onClick = onDismiss,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
                         Text("Cancel")
                     }
+
+                    Spacer(modifier = Modifier.height(16.dp))
                 }
             }
         }
