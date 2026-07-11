@@ -160,6 +160,12 @@ newer.
 
 ---
 
+## Security policy
+
+If you discover a security vulnerability in Tidy, please report it privately via the **Security** tab on GitHub rather than opening a public issue. See [SECURITY.md](SECURITY.md) for details on scope and disclosure.
+
+---
+
 ## License
 
 Apache License 2.0. See [LICENSE](LICENSE).

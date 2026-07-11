@@ -1,0 +1,26 @@
+name: Feature request
+description: Suggest something for Tidy
+title: "[Feature]: "
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem would this solve?
+      description: What are you trying to do that Tidy doesn't support today?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: What would you like to see?
+    validations:
+      required: true
+  - type: dropdown
+    id: relevant-build
+    attributes:
+      label: Is this relevant to a specific build?
+      options:
+        - Both / not sure
+        - GitHub (oss) only
+        - Tidy+ only

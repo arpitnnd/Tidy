@@ -1,0 +1,50 @@
+name: Tracker rule report
+description: A parameter was wrongly removed, or a tracker was missed
+title: "[Rule]: "
+labels: ["blocklist"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this if the blocklist got something wrong: a parameter that
+        shouldn't have been stripped (it broke the link or a needed
+        feature), or a tracking parameter that Tidy missed entirely.
+        If this came from tapping "Report an issue with this rule" inside
+        Tidy, some fields may already be filled in.
+  - type: dropdown
+    id: issue-type
+    attributes:
+      label: What kind of issue is this?
+      options:
+        - A parameter was removed that shouldn't have been
+        - A tracking parameter was missed and should be added
+    validations:
+      required: true
+  - type: input
+    id: domain
+    attributes:
+      label: Domain
+      placeholder: "example.com"
+    validations:
+      required: true
+  - type: input
+    id: parameter
+    attributes:
+      label: Parameter name
+      placeholder: "e.g. fbclid, ref, v"
+    validations:
+      required: true
+  - type: textarea
+    id: explanation
+    attributes:
+      label: What happened, or why should this change?
+      description: >
+        If a parameter was wrongly removed, what broke? If one was
+        missed, what does it track and where did you see it in use?
+    validations:
+      required: true
+  - type: input
+    id: app-version
+    attributes:
+      label: Tidy version
+      placeholder: "e.g. 1.2.0"
