@@ -268,10 +268,9 @@ fun SettingsScreen(
                             stringResource(R.string.settings_no_domains_bypassed)
                         } else {
                             val count = state.whitelistedDomains.size
-                            val unit = if (count == 1) {
-                                stringResource(R.string.settings_domain_bypassed_single)
-                            } else {
-                                stringResource(R.string.settings_domains_bypassed_plural)
+                            val unit = when (count) {
+                                1 -> stringResource(R.string.settings_domain_bypassed_single)
+                                else -> stringResource(R.string.settings_domains_bypassed_plural)
                             }
                             "$count $unit"
                         }
@@ -394,10 +393,9 @@ fun SettingsScreen(
                             stringResource(R.string.settings_no_params_whitelisted)
                         } else {
                             val count = state.domainWhitelistedParams.size
-                            val unit = if (count == 1) {
-                                stringResource(R.string.settings_param_whitelisted_single)
-                            } else {
-                                stringResource(R.string.settings_params_whitelisted_plural)
+                            val unit = when (count) {
+                                1 -> stringResource(R.string.settings_param_whitelisted_single)
+                                else -> stringResource(R.string.settings_params_whitelisted_plural)
                             }
                             "$count $unit"
                         }
@@ -555,10 +553,9 @@ fun SettingsScreen(
                             stringResource(R.string.settings_no_custom_params_text)
                         } else {
                             val count = state.blacklistedParams.size
-                            val unit = if (count == 1) {
-                                stringResource(R.string.settings_param_blacklisted_single)
-                            } else {
-                                stringResource(R.string.settings_param_blacklisted_plural)
+                            val unit = when (count) {
+                                1 -> stringResource(R.string.settings_param_blacklisted_single)
+                                else -> stringResource(R.string.settings_param_blacklisted_plural)
                             }
                             "$count $unit"
                         }
