@@ -1,7 +1,6 @@
 import java.util.Properties
-import java.text.SimpleDateFormat
-import java.util.Locale
-import java.util.Date
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 
 plugins {
     alias(libs.plugins.android.application)
@@ -129,7 +128,7 @@ tasks.register("renameArtifacts") {
     val targetBuildDir = layout.buildDirectory.get().asFile
 
     doLast {
-        val dateStr = SimpleDateFormat("yyyyMMdd", Locale.US).format(Date())
+        val dateStr = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"))
         
         // 1. Rename AABs
         val bundleDir = File(targetBuildDir, "outputs/bundle")
