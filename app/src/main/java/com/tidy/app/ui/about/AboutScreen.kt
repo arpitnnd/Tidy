@@ -154,25 +154,6 @@ fun AboutScreen(
 
                 Spacer(modifier = Modifier.height(12.dp))
 
-                // Creator Card
-                SettingCard {
-                    Column(
-                        modifier = Modifier.padding(16.dp),
-                        verticalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        Column {
-                            CardSectionLabel(text = stringResource(R.string.about_built_by))
-                            Spacer(modifier = Modifier.height(2.dp))
-                            Text(
-                                text = stringResource(R.string.about_creator_name),
-                                style = MaterialTheme.typography.bodyLarge,
-                                color = MaterialTheme.colorScheme.onSurface,
-                                fontWeight = FontWeight.SemiBold
-                            )
-                        }
-                    }
-                }
-
                 // Licensing Card
                 SettingCard {
                     Column(modifier = Modifier.padding(12.dp)) {

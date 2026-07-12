@@ -175,7 +175,6 @@
     <!-- About Screen -->
     <string name="about_title">About Tidy</string>
     <string name="about_values_statement">Cleaned entirely offline on your device. You\'re in control with custom rules, history, and backups. No ads, ever.</string>
-    <string name="about_built_by">Built by</string>
     <string name="about_license">Licence</string>
     <string name="about_license_desc">Apache License 2.0</string>
     <string name="about_links">Links</string>
@@ -224,7 +223,6 @@
     <string name="plus_feature_text_selection_title">Inline Text Cleaning</string>
     <string name="plus_feature_text_selection_desc">Clean URLs directly from any app\'s text-selection menu.</string>
 
-    <string name="about_creator_name">Arpit Anand</string>
     <string name="crash_sheet_title">Tidy crashed last time. Want to help fix it?</string>
     <string name="crash_sheet_desc">You can view the local crash log and share it to help us fix the issue. Tidy never sends anything automatically.</string>
     <string name="crash_dont_ask_again">Don\'t ask again</string>
