@@ -183,51 +183,52 @@ fun CrashReportBottomSheet(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 modifier = Modifier.fillMaxWidth()
             ) {
-                TooltipWrapper(
-                    tooltipText = stringResource(R.string.dialog_share),
-                    modifier = Modifier.weight(1f)
-                ) {
-                    OutlinedButton(
-                        onClick = {
-                            val sendIntent = Intent().apply {
-                                action = Intent.ACTION_SEND
-                                putExtra(Intent.EXTRA_TEXT, crashReportText)
-                                type = "text/plain"
-                            }
-                            val shareIntent = Intent.createChooser(sendIntent, null).apply {
-                                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                            }
-                            try {
-                                context.startActivity(shareIntent)
-                            } catch (e: Exception) {
-                                Toast.makeText(context, toastCouldNotShare, Toast.LENGTH_SHORT)
-                                    .show()
-                            }
-                        },
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(14.dp)
-                    ) {
-                        Text(stringResource(R.string.dialog_share), fontWeight = FontWeight.Bold)
+                // weight() is applied to a plain Box rather than directly to TooltipWrapper's
+                // TooltipBox: weighting two sibling TooltipBoxes in the same Row breaks Row's
+                // weight distribution (one sibling silently collapses to near-zero width).
+                Box(modifier = Modifier.weight(1f)) {
+                    TooltipWrapper(tooltipText = stringResource(R.string.dialog_share)) {
+                        OutlinedButton(
+                            onClick = {
+                                val sendIntent = Intent().apply {
+                                    action = Intent.ACTION_SEND
+                                    putExtra(Intent.EXTRA_TEXT, crashReportText)
+                                    type = "text/plain"
+                                }
+                                val shareIntent = Intent.createChooser(sendIntent, null).apply {
+                                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                                }
+                                try {
+                                    context.startActivity(shareIntent)
+                                } catch (e: Exception) {
+                                    Toast.makeText(context, toastCouldNotShare, Toast.LENGTH_SHORT)
+                                        .show()
+                                }
+                            },
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(14.dp)
+                        ) {
+                            Text(stringResource(R.string.dialog_share), fontWeight = FontWeight.Bold)
+                        }
                     }
                 }
 
                 if (showDeleteButton && onDeleteClick != null) {
-                    TooltipWrapper(
-                        tooltipText = stringResource(R.string.dialog_delete),
-                        modifier = Modifier.weight(1f)
-                    ) {
-                        OutlinedButton(
-                            onClick = onDeleteClick,
-                            modifier = Modifier.fillMaxWidth(),
-                            shape = RoundedCornerShape(14.dp),
-                            colors = ButtonDefaults.outlinedButtonColors(
-                                contentColor = MaterialTheme.colorScheme.error
-                            )
-                        ) {
-                            Text(
-                                stringResource(R.string.dialog_delete),
-                                fontWeight = FontWeight.Bold
-                            )
+                    Box(modifier = Modifier.weight(1f)) {
+                        TooltipWrapper(tooltipText = stringResource(R.string.dialog_delete)) {
+                            OutlinedButton(
+                                onClick = onDeleteClick,
+                                modifier = Modifier.fillMaxWidth(),
+                                shape = RoundedCornerShape(14.dp),
+                                colors = ButtonDefaults.outlinedButtonColors(
+                                    contentColor = MaterialTheme.colorScheme.error
+                                )
+                            ) {
+                                Text(
+                                    stringResource(R.string.dialog_delete),
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
                         }
                     }
                 }
