@@ -1,4 +1,7 @@
 import java.util.Properties
+import java.text.SimpleDateFormat
+import java.util.Locale
+import java.util.Date
 
 plugins {
     alias(libs.plugins.android.application)
@@ -118,6 +121,53 @@ android {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
         }
+    }
+}
+
+tasks.register("renameArtifacts") {
+    val targetVersionCode = android.defaultConfig.versionCode ?: 1
+    val targetBuildDir = layout.buildDirectory.get().asFile
+
+    doLast {
+        val dateStr = SimpleDateFormat("yyyyMMdd", Locale.US).format(Date())
+        
+        // 1. Rename AABs
+        val bundleDir = File(targetBuildDir, "outputs/bundle")
+        if (bundleDir.exists()) {
+            bundleDir.walkTopDown().forEach { file ->
+                if (file.isFile && file.name.endsWith(".aab") && !file.name.startsWith("Tidy-")) {
+                    val path = file.absolutePath.lowercase()
+                    val flavor = if (path.contains("oss")) "oss" else if (path.contains("play")) "play" else ""
+                    val newName = "Tidy-${flavor}v${targetVersionCode}-${dateStr}.aab"
+                    val destFile = File(file.parentFile, newName)
+                    if (file.renameTo(destFile)) {
+                        println("Renamed bundle: ${file.name} -> $newName")
+                    }
+                }
+            }
+        }
+
+        // 2. Rename APKs
+        val apkDir = File(targetBuildDir, "outputs/apk")
+        if (apkDir.exists()) {
+            apkDir.walkTopDown().forEach { file ->
+                if (file.isFile && file.name.endsWith(".apk") && !file.name.startsWith("Tidy-")) {
+                    val path = file.absolutePath.lowercase()
+                    val flavor = if (path.contains("oss")) "oss" else if (path.contains("play")) "play" else ""
+                    val newName = "Tidy-${flavor}v${targetVersionCode}-${dateStr}.apk"
+                    val destFile = File(file.parentFile, newName)
+                    if (file.renameTo(destFile)) {
+                        println("Renamed APK: ${file.name} -> $newName")
+                    }
+                }
+            }
+        }
+    }
+}
+
+tasks.configureEach {
+    if ((name.startsWith("assemble") || name.startsWith("bundle")) && !name.contains("Test")) {
+        finalizedBy("renameArtifacts")
     }
 }
 
