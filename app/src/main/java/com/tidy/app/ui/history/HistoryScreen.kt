@@ -6,10 +6,14 @@ import android.content.Intent
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -36,6 +40,8 @@ import androidx.compose.material.icons.outlined.Link
 import androidx.compose.material.icons.outlined.Shield
 import androidx.compose.material.icons.outlined.Speed
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.AssistChip
+import androidx.compose.material3.AssistChipDefaults
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -516,6 +522,7 @@ private fun BandwidthCard(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 private fun HistoryItem(
     entry: HistoryEntry,
@@ -524,6 +531,8 @@ private fun HistoryItem(
     modifier: Modifier = Modifier
 ) {
     var expanded by remember { mutableStateOf(false) }
+    var showFullOriginalUrl by remember { mutableStateOf(false) }
+    var selectedParam by remember { mutableStateOf<String?>(null) }
     val dateFormat = remember { SimpleDateFormat("MMM d, yyyy · h:mm a", Locale.getDefault()) }
     val formattedDate = remember(entry.timestamp) {
         dateFormat.format(Date(entry.timestamp))
@@ -648,7 +657,12 @@ private fun HistoryItem(
                 ) {
                     HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.15f))
 
-                    Column {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(8.dp))
+                            .clickable { showFullOriginalUrl = true }
+                    ) {
                         Text(
                             text = stringResource(R.string.main_original_url),
                             style = MaterialTheme.typography.labelSmall,
@@ -659,7 +673,9 @@ private fun HistoryItem(
                         Text(
                             text = entry.originalUrl,
                             style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            maxLines = 2,
+                            overflow = TextOverflow.Ellipsis
                         )
                     }
 
@@ -672,37 +688,30 @@ private fun HistoryItem(
                             fontWeight = FontWeight.Bold
                         )
                         Spacer(modifier = Modifier.height(2.dp))
-                        Column(
-                            verticalArrangement = Arrangement.spacedBy(6.dp)
+                        FlowRow(
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            verticalArrangement = Arrangement.spacedBy(8.dp),
+                            modifier = Modifier.fillMaxWidth()
                         ) {
                             removedParams.forEach { param ->
-                                val desc =
-                                    trackerDescriptions[param.lowercase().trim()] ?: stringResource(
-                                        R.string.details_no_explanation
-                                    )
-                                Column(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .background(
-                                            color = MaterialTheme.colorScheme.surfaceVariant.copy(
-                                                alpha = 0.2f
-                                            ),
-                                            shape = RoundedCornerShape(8.dp)
+                                AssistChip(
+                                    onClick = { selectedParam = param },
+                                    label = {
+                                        Text(
+                                            param,
+                                            style = MaterialTheme.typography.bodySmall
                                         )
-                                        .padding(8.dp)
-                                ) {
-                                    Text(
-                                        text = param,
-                                        style = MaterialTheme.typography.bodySmall,
-                                        fontWeight = FontWeight.Bold,
-                                        color = MaterialTheme.colorScheme.primary
+                                    },
+                                    colors = AssistChipDefaults.assistChipColors(
+                                        containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                                        labelColor = MaterialTheme.colorScheme.onSecondaryContainer
+                                    ),
+                                    shape = RoundedCornerShape(12.dp),
+                                    border = BorderStroke(
+                                        width = 1.dp,
+                                        color = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
                                     )
-                                    Text(
-                                        text = desc,
-                                        style = MaterialTheme.typography.labelSmall,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                                    )
-                                }
+                                )
                             }
                         }
                     }
@@ -803,6 +812,53 @@ private fun HistoryItem(
                 }
             }
         }
+    }
+
+    if (showFullOriginalUrl) {
+        AlertDialog(
+            onDismissRequest = { showFullOriginalUrl = false },
+            title = { Text(stringResource(R.string.main_original_url)) },
+            text = {
+                Text(
+                    text = entry.originalUrl,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = { showFullOriginalUrl = false }) {
+                    Text(stringResource(R.string.dialog_close))
+                }
+            }
+        )
+    }
+
+    if (selectedParam != null) {
+        val param = selectedParam!!
+        val desc = trackerDescriptions[param.lowercase().trim()]
+            ?: stringResource(R.string.details_no_explanation)
+        AlertDialog(
+            onDismissRequest = { selectedParam = null },
+            title = {
+                Text(
+                    text = param,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.primary
+                )
+            },
+            text = {
+                Text(
+                    text = desc,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = { selectedParam = null }) {
+                    Text(stringResource(R.string.dialog_close))
+                }
+            }
+        )
     }
 }
 
