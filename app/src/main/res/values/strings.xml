@@ -48,7 +48,7 @@
     <!-- Settings Screen -->
     <string name="settings_title">Settings</string>
     <string name="settings_back_desc">Back</string>
-    <string name="settings_bypass_list">Domains to skip entirely</string>
+    <string name="settings_bypass_list">Domains to Skip Entirely</string>
     <string name="settings_no_domains_bypassed">No domains skipped</string>
     <string name="settings_domain_bypassed_single">domain skipped</string>
     <string name="settings_domains_bypassed_plural">domains skipped</string>
@@ -59,7 +59,7 @@
     <string name="settings_no_domains_bypassed_text">No domains skipped</string>
     <string name="settings_placeholder_domain">google.com</string>
 
-    <string name="settings_custom_params_title">Custom blocklist</string>
+    <string name="settings_custom_params_title">Custom Blocklist</string>
     <string name="settings_custom_params_desc">Specify custom parameters to strip in addition to standard tracking tags</string>
     <string name="settings_placeholder_param">ref_code</string>
     <string name="settings_add_param_desc">Add custom parameter</string>
@@ -79,7 +79,7 @@
     <string name="settings_remove_mobile_subdomains_title">Remove mobile subdomains</string>
     <string name="settings_remove_mobile_subdomains_desc">Automatically strip \'m.\' or \'mobile.\' subdomains from cleaned links</string>
 
-    <string name="settings_param_whitelist_title">Domain parameter whitelist</string>
+    <string name="settings_param_whitelist_title">Domain Parameter Whitelist</string>
     <string name="settings_no_params_whitelisted">No parameters whitelisted</string>
     <string name="settings_param_whitelisted_single">parameter whitelisted</string>
     <string name="settings_params_whitelisted_plural">parameters whitelisted</string>
@@ -87,16 +87,16 @@
     <string name="settings_placeholder_whitelist_param">v</string>
     <string name="settings_add_param_whitelist_desc">Add parameter whitelist</string>
     <string name="settings_no_params_whitelisted_text">No parameters whitelisted for domains</string>
-
+ 
     <!-- History Screen -->
-    <string name="history_title">History and stats</string>
+    <string name="history_title">History and Stats</string>
     <string name="history_import_desc">Import history</string>
     <string name="history_export_desc">Export history</string>
     <string name="history_clear_desc">Clear history</string>
-    <string name="history_dashboard">Privacy dashboard</string>
+    <string name="history_dashboard">Privacy Dashboard</string>
     <string name="history_urls_cleaned">URLs cleaned</string>
     <string name="history_trackers_blocked">Trackers blocked</string>
-    <string name="history_clean_history">Clean history</string>
+    <string name="history_clean_history">Clean History</string>
     <string name="history_no_history">No history yet</string>
     <string name="history_no_history_desc">Cleaned URLs will appear here</string>
     <string name="history_clear_dialog_title">Clear all history?</string>
@@ -115,9 +115,9 @@
 
     <!-- Remote Blocklist & Issues -->
     <string name="rules_title">Rules</string>
-    <string name="settings_default_blocklist_title">Default blocklist</string>
+    <string name="settings_default_blocklist_title">Default Blocklist</string>
     <string name="settings_default_blocklist_desc">View default parameters stripped by Tidy and check for updates</string>
-    <string name="dialog_default_blocklist_title">Default blocklist</string>
+    <string name="dialog_default_blocklist_title">Default Blocklist</string>
     <string name="dialog_default_blocklist_desc">Tidy automatically strips tracking parameters that are commonly used to track users across websites:</string>
     <string name="dialog_default_blocklist_view_github">View updates on GitHub</string>
     <string name="dialog_close">Close</string>
@@ -128,12 +128,12 @@
     <string name="process_text_cleaned">URL cleaned</string>
     <string name="process_text_label">Clean with Tidy</string>
     <string name="history_copy_original">Copy original</string>
-
+ 
     <!-- Diagnostics & Crashes -->
-    <string name="settings_diagnostics_title">Diagnostics and crashes</string>
-    <string name="settings_crash_log_title">Latest crash report</string>
+    <string name="settings_diagnostics_title">Diagnostics and Crashes</string>
+    <string name="settings_crash_log_title">Latest Crash Report</string>
     <string name="settings_crash_log_desc">Inspect, share, or delete the last recorded application crash</string>
-    <string name="dialog_crash_log_title">Latest crash log</string>
+    <string name="dialog_crash_log_title">Latest Crash Log</string>>
     <string name="dialog_delete">Delete</string>
     <string name="dialog_share">Share</string>
     <string name="toast_crash_deleted">Crash report deleted</string>
@@ -155,9 +155,9 @@
     <string name="tooltip_copy_original">Copy original unmodified URL</string>
 
     <!-- Crash Reporting -->
-    <string name="crash_share_log">Share log</string>
+    <string name="crash_share_log">Share Log</string>
     <string name="crash_report_github">Report on GitHub</string>
-    <string name="crash_view_local">View local crash log</string>
+    <string name="crash_view_local">View Local Crash Log</string>
     <string name="crash_toast_copied">Copied log. Paste it on GitHub!</string>
     <string name="crash_toast_browser_error">Could not open browser</string>
 
@@ -215,12 +215,12 @@
     <string name="tooltip_open">Open</string>
 
     <!-- Plus Features -->
-    <string name="plus_feature_share_automation_title">Share automation</string>
+    <string name="plus_feature_share_automation_title">Share Automation</string>
     <string name="plus_feature_share_automation_desc">Automatically clean, copy, and close when sharing links.</string>
-    <string name="plus_feature_bulk_clean_title">Bulk clipboard clean</string>
+    <string name="plus_feature_bulk_clean_title">Bulk Clipboard Clean</string>
     <string name="plus_feature_bulk_clean_desc">Clean multiple URLs from your clipboard in one tap.</string>
-    <string name="plus_feature_extra_themes_title">Extra themes</string>
+    <string name="plus_feature_extra_themes_title">Extra Themes</string>
     <string name="plus_feature_extra_themes_desc">Expressive colourways like Forest Green and Ocean Blue.</string>
-    <string name="plus_feature_text_selection_title">Inline text cleaning</string>
+    <string name="plus_feature_text_selection_title">Inline Text Cleaning</string>
     <string name="plus_feature_text_selection_desc">Clean URLs directly from any app\'s text-selection menu.</string>
 </resources>

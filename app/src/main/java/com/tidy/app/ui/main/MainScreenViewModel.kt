@@ -255,10 +255,17 @@ class MainScreenViewModel(
 
     fun clear() {
         _uiState.update {
-            UiState(
-                firstLaunchDone = it.firstLaunchDone,
-                totalCleanedCount = it.totalCleanedCount,
-                totalTrackersBlocked = it.totalTrackersBlocked
+            it.copy(
+                inputUrl = "",
+                originalUrl = "",
+                expandedUrl = null,
+                cleanedUrl = "",
+                removedParams = emptyList(),
+                isCleaned = false,
+                copySuccess = false,
+                isLoading = false,
+                canExpand = false,
+                isExpanding = false
             )
         }
     }
