@@ -1,6 +1,6 @@
-import java.util.Properties
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
+import java.util.Properties
 
 plugins {
     alias(libs.plugins.android.application)
@@ -129,14 +129,15 @@ tasks.register("renameArtifacts") {
 
     doLast {
         val dateStr = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"))
-        
+
         // 1. Rename AABs
         val bundleDir = File(targetBuildDir, "outputs/bundle")
         if (bundleDir.exists()) {
             bundleDir.walkTopDown().forEach { file ->
                 if (file.isFile && file.name.endsWith(".aab") && !file.name.startsWith("Tidy-")) {
                     val path = file.absolutePath.lowercase()
-                    val flavor = if (path.contains("oss")) "oss" else if (path.contains("play")) "play" else ""
+                    val flavor =
+                        if (path.contains("oss")) "oss" else if (path.contains("play")) "play" else ""
                     val newName = "Tidy-${flavor}-v${targetVersionCode}-${dateStr}.aab"
                     val destFile = File(file.parentFile, newName)
                     if (file.renameTo(destFile)) {
@@ -152,7 +153,8 @@ tasks.register("renameArtifacts") {
             apkDir.walkTopDown().forEach { file ->
                 if (file.isFile && file.name.endsWith(".apk") && !file.name.startsWith("Tidy-")) {
                     val path = file.absolutePath.lowercase()
-                    val flavor = if (path.contains("oss")) "oss" else if (path.contains("play")) "play" else ""
+                    val flavor =
+                        if (path.contains("oss")) "oss" else if (path.contains("play")) "play" else ""
                     val newName = "Tidy-${flavor}-v${targetVersionCode}-${dateStr}.apk"
                     val destFile = File(file.parentFile, newName)
                     if (file.renameTo(destFile)) {

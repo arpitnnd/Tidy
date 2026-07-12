@@ -87,7 +87,7 @@
     <string name="settings_placeholder_whitelist_param">v</string>
     <string name="settings_add_param_whitelist_desc">Add parameter whitelist</string>
     <string name="settings_no_params_whitelisted_text">No parameters whitelisted for domains</string>
- 
+
     <!-- History Screen -->
     <string name="history_title">History and Stats</string>
     <string name="history_import_desc">Import history</string>
@@ -128,7 +128,7 @@
     <string name="process_text_cleaned">URL cleaned</string>
     <string name="process_text_label">Clean with Tidy</string>
     <string name="history_copy_original">Copy original</string>
- 
+
     <!-- Diagnostics & Crashes -->
     <string name="settings_diagnostics_title">Diagnostics and Crashes</string>
     <string name="settings_crash_log_title">Latest Crash Report</string>

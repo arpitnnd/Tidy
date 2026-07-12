@@ -403,7 +403,8 @@ object SettingsMigrationViews {
                                         try {
                                             val json =
                                                 TidyURLApp.instance.historyRepository.exportToJson()
-                                            val backupFile = File(context.filesDir, "TidyBackup.json")
+                                            val backupFile =
+                                                File(context.filesDir, "TidyBackup.json")
                                             backupFile.writeText(json)
                                             backupFileState = backupFile
                                             currentPage = 2
