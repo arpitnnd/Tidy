@@ -41,7 +41,7 @@ android {
             }
         }
 
-        create("playReleasePlay") {
+        create("playHardened") {
             val storeFileVal = keystoreProperties.getProperty("playStoreFile")
             val passwordVal = keystoreProperties.getProperty("playPassword")
             val keyAliasVal = keystoreProperties.getProperty("playKeyAlias")
@@ -93,7 +93,7 @@ android {
             )
             signingConfig = signingConfigs.getByName("ossRelease")
         }
-        create("releasePlay") {
+        create("hardened") {
             initWith(getByName("release"))
             isMinifyEnabled = true
             isShrinkResources = true
@@ -102,7 +102,7 @@ android {
                 "proguard-rules.pro"
             )
             matchingFallbacks.add("release")
-            signingConfig = signingConfigs.getByName("playReleasePlay")
+            signingConfig = signingConfigs.getByName("playHardened")
         }
     }
     compileOptions {
@@ -169,10 +169,9 @@ tasks.configureEach {
         finalizedBy("renameArtifacts")
     }
 }
-
 androidComponents {
     beforeVariants { variantBuilder ->
-        if (variantBuilder.flavorName == "oss" && variantBuilder.buildType == "releasePlay") {
+        if (variantBuilder.flavorName == "oss" && variantBuilder.buildType == "hardened") {
             variantBuilder.enable = false
         }
         if (variantBuilder.flavorName == "play" && variantBuilder.buildType == "release") {
