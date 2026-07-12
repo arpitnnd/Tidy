@@ -1000,11 +1000,13 @@ fun MainScreen(
                         shape = RoundedCornerShape(16.dp),
                         trailingIcon = {
                             if (state.inputUrl.isNotEmpty()) {
-                                IconButton(onClick = { viewModel.onUrlInput("") }) {
-                                    Icon(
-                                        Icons.Filled.Clear,
-                                        contentDescription = stringResource(R.string.settings_collapse)
-                                    )
+                                TooltipWrapper(tooltipText = stringResource(R.string.tooltip_clear_input)) {
+                                    IconButton(onClick = { viewModel.onUrlInput("") }) {
+                                        Icon(
+                                            Icons.Filled.Clear,
+                                            contentDescription = stringResource(R.string.tooltip_clear_input)
+                                        )
+                                    }
                                 }
                             }
                         },
@@ -1193,7 +1195,7 @@ fun MainScreen(
                     )
 
                     Text(
-                        text = "Tidy crashed last time. Want to help fix it?",
+                        text = stringResource(R.string.crash_sheet_title),
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onSurface,
@@ -1201,7 +1203,7 @@ fun MainScreen(
                     )
 
                     Text(
-                        text = "You can view the local crash log and share it to help us fix the issue. Tidy never sends anything automatically.",
+                        text = stringResource(R.string.crash_sheet_desc),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         textAlign = TextAlign.Center
@@ -1233,7 +1235,7 @@ fun MainScreen(
                             }
                         )
                         Text(
-                            text = "Don't ask again",
+                            text = stringResource(R.string.crash_dont_ask_again),
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurface
                         )
@@ -1243,70 +1245,82 @@ fun MainScreen(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
-                        OutlinedButton(
-                            onClick = {
-                                val sendIntent: Intent = Intent().apply {
-                                    action = Intent.ACTION_SEND
-                                    putExtra(Intent.EXTRA_TEXT, crashReportText)
-                                    type = "text/plain"
-                                }
-                                val shareIntent =
-                                    Intent.createChooser(
-                                        sendIntent,
-                                        context.getString(R.string.dialog_share_crash_title)
-                                    )
-                                context.startActivity(shareIntent)
-                                onDismissCrashReport()
-                            },
-                            modifier = Modifier.weight(1f),
-                            shape = RoundedCornerShape(16.dp)
+                        TooltipWrapper(
+                            tooltipText = stringResource(R.string.crash_share_log),
+                            modifier = Modifier.weight(1f)
                         ) {
-                            Text(
-                                stringResource(R.string.crash_share_log),
-                                fontWeight = FontWeight.Bold
-                            )
+                            OutlinedButton(
+                                onClick = {
+                                    val sendIntent: Intent = Intent().apply {
+                                        action = Intent.ACTION_SEND
+                                        putExtra(Intent.EXTRA_TEXT, crashReportText)
+                                        type = "text/plain"
+                                    }
+                                    val shareIntent =
+                                        Intent.createChooser(
+                                            sendIntent,
+                                            context.getString(R.string.dialog_share_crash_title)
+                                        )
+                                    context.startActivity(shareIntent)
+                                    onDismissCrashReport()
+                                },
+                                modifier = Modifier.fillMaxWidth(),
+                                shape = RoundedCornerShape(16.dp)
+                            ) {
+                                Text(
+                                    stringResource(R.string.crash_share_log),
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
                         }
 
-                        Button(
-                            onClick = {
-                                val clipboard =
-                                    context.getSystemService(android.content.Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
-                                val clip = android.content.ClipData.newPlainText(
-                                    "Crash Report",
-                                    crashReportText
-                                )
-                                clipboard.setPrimaryClip(clip)
-                                scope.launch {
-                                    snackbarHostState.showSnackbar(crashToastCopied)
-                                }
-
-                                val intent = Intent(
-                                    Intent.ACTION_VIEW,
-                                    "https://github.com/arpitnnd/Tidy/issues/new?title=Crash%20Report&body=Paste%20copied%20crash%20log%20here".toUri()
-                                ).apply {
-                                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                                }
-                                try {
-                                    context.startActivity(intent)
-                                } catch (e: Exception) {
-                                    scope.launch {
-                                        snackbarHostState.showSnackbar(crashToastBrowserError)
-                                    }
-                                }
-                                onDismissCrashReport()
-                            },
-                            modifier = Modifier.weight(1f),
-                            shape = RoundedCornerShape(16.dp)
+                        TooltipWrapper(
+                            tooltipText = stringResource(R.string.crash_report_github),
+                            modifier = Modifier.weight(1f)
                         ) {
-                            Text(
-                                stringResource(R.string.crash_report_github),
-                                fontWeight = FontWeight.Bold
-                            )
+                            Button(
+                                onClick = {
+                                    val clipboard =
+                                        context.getSystemService(android.content.Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
+                                    val clip = android.content.ClipData.newPlainText(
+                                        "Crash Report",
+                                        crashReportText
+                                    )
+                                    clipboard.setPrimaryClip(clip)
+                                    scope.launch {
+                                        snackbarHostState.showSnackbar(crashToastCopied)
+                                    }
+
+                                    val intent = Intent(
+                                        Intent.ACTION_VIEW,
+                                        "https://github.com/arpitnnd/Tidy/issues/new?title=Crash%20Report&body=Paste%20copied%20crash%20log%20here".toUri()
+                                    ).apply {
+                                        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                                    }
+                                    try {
+                                        context.startActivity(intent)
+                                    } catch (e: Exception) {
+                                        scope.launch {
+                                            snackbarHostState.showSnackbar(crashToastBrowserError)
+                                        }
+                                    }
+                                    onDismissCrashReport()
+                                },
+                                modifier = Modifier.fillMaxWidth(),
+                                shape = RoundedCornerShape(16.dp)
+                            ) {
+                                Text(
+                                    stringResource(R.string.crash_report_github),
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
                         }
                     }
 
-                    TextButton(onClick = { showViewReportDialog = true }) {
-                        Text(stringResource(R.string.crash_view_local))
+                    TooltipWrapper(tooltipText = stringResource(R.string.crash_view_local)) {
+                        TextButton(onClick = { showViewReportDialog = true }) {
+                            Text(stringResource(R.string.crash_view_local))
+                        }
                     }
                 }
             }
@@ -1488,7 +1502,7 @@ private fun UrlInputCard(
                                 IconButton(onClick = { viewModel.clear() }) {
                                     Icon(
                                         Icons.Filled.Clear,
-                                        contentDescription = stringResource(R.string.settings_collapse)
+                                        contentDescription = stringResource(R.string.tooltip_clear_input)
                                     )
                                 }
                             }

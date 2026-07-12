@@ -666,7 +666,7 @@ private fun HistoryItem(
                     if (removedParams.isNotEmpty()) {
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(
-                            text = "Removed Parameters",
+                            text = stringResource(R.string.main_removed_parameters),
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f),
                             fontWeight = FontWeight.Bold

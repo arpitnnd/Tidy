@@ -51,7 +51,9 @@ import com.tidy.app.ui.components.CardSectionLabel
 import com.tidy.app.ui.components.ClickableLinkRow
 import com.tidy.app.ui.components.SettingCard
 import com.tidy.app.ui.components.TidyTopAppBar
+import com.tidy.app.ui.components.TooltipWrapper
 import kotlinx.coroutines.launch
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -165,7 +167,7 @@ fun AboutScreen(
                             CardSectionLabel(text = stringResource(R.string.about_built_by))
                             Spacer(modifier = Modifier.height(2.dp))
                             Text(
-                                text = "Arpit Anand",
+                                text = stringResource(R.string.about_creator_name),
                                 style = MaterialTheme.typography.bodyLarge,
                                 color = MaterialTheme.colorScheme.onSurface,
                                 fontWeight = FontWeight.SemiBold
@@ -177,20 +179,22 @@ fun AboutScreen(
                 // Licensing Card
                 SettingCard {
                     Column(modifier = Modifier.padding(12.dp)) {
-                        ClickableLinkRow(
-                            label = stringResource(R.string.about_license_desc),
-                            onClick = {
-                                try {
-                                    val intent = Intent(
-                                        Intent.ACTION_VIEW,
-                                        "https://github.com/arpitnnd/Tidy/blob/main/LICENSE".toUri()
-                                    ).apply { addFlags(Intent.FLAG_ACTIVITY_NEW_TASK) }
-                                    context.startActivity(intent)
-                                } catch (e: Exception) {
-                                    scope.launch { snackbarHostState.showSnackbar(toastNoLinkApp) }
+                        TooltipWrapper(tooltipText = stringResource(R.string.tooltip_open)) {
+                            ClickableLinkRow(
+                                label = stringResource(R.string.about_license_desc),
+                                onClick = {
+                                    try {
+                                        val intent = Intent(
+                                            Intent.ACTION_VIEW,
+                                            "https://github.com/arpitnnd/Tidy/blob/main/LICENSE".toUri()
+                                        ).apply { addFlags(Intent.FLAG_ACTIVITY_NEW_TASK) }
+                                        context.startActivity(intent)
+                                    } catch (e: Exception) {
+                                        scope.launch { snackbarHostState.showSnackbar(toastNoLinkApp) }
+                                    }
                                 }
-                            }
-                        )
+                            )
+                        }
                     }
                 }
 
@@ -205,50 +209,56 @@ fun AboutScreen(
                             modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
                         )
 
-                        ClickableLinkRow(
-                            label = stringResource(R.string.about_link_github),
-                            onClick = {
-                                try {
-                                    val intent = Intent(
-                                        Intent.ACTION_VIEW,
-                                        "https://github.com/arpitnnd/Tidy".toUri()
-                                    ).apply { addFlags(Intent.FLAG_ACTIVITY_NEW_TASK) }
-                                    context.startActivity(intent)
-                                } catch (e: Exception) {
-                                    scope.launch { snackbarHostState.showSnackbar(toastNoLinkApp) }
+                        TooltipWrapper(tooltipText = stringResource(R.string.tooltip_open)) {
+                            ClickableLinkRow(
+                                label = stringResource(R.string.about_link_github),
+                                onClick = {
+                                    try {
+                                        val intent = Intent(
+                                            Intent.ACTION_VIEW,
+                                            "https://github.com/arpitnnd/Tidy".toUri()
+                                        ).apply { addFlags(Intent.FLAG_ACTIVITY_NEW_TASK) }
+                                        context.startActivity(intent)
+                                    } catch (e: Exception) {
+                                        scope.launch { snackbarHostState.showSnackbar(toastNoLinkApp) }
+                                    }
                                 }
-                            }
-                        )
+                            )
+                        }
 
-                        ClickableLinkRow(
-                            label = stringResource(R.string.about_link_issues),
-                            onClick = {
-                                try {
-                                    val intent = Intent(
-                                        Intent.ACTION_VIEW,
-                                        "https://github.com/arpitnnd/Tidy/issues".toUri()
-                                    ).apply { addFlags(Intent.FLAG_ACTIVITY_NEW_TASK) }
-                                    context.startActivity(intent)
-                                } catch (e: Exception) {
-                                    scope.launch { snackbarHostState.showSnackbar(toastNoLinkApp) }
+                        TooltipWrapper(tooltipText = stringResource(R.string.tooltip_open)) {
+                            ClickableLinkRow(
+                                label = stringResource(R.string.about_link_issues),
+                                onClick = {
+                                    try {
+                                        val intent = Intent(
+                                            Intent.ACTION_VIEW,
+                                            "https://github.com/arpitnnd/Tidy/issues".toUri()
+                                        ).apply { addFlags(Intent.FLAG_ACTIVITY_NEW_TASK) }
+                                        context.startActivity(intent)
+                                    } catch (e: Exception) {
+                                        scope.launch { snackbarHostState.showSnackbar(toastNoLinkApp) }
+                                    }
                                 }
-                            }
-                        )
+                            )
+                        }
 
-                        ClickableLinkRow(
-                            label = stringResource(R.string.about_link_releases),
-                            onClick = {
-                                try {
-                                    val intent = Intent(
-                                        Intent.ACTION_VIEW,
-                                        "https://github.com/arpitnnd/Tidy/releases".toUri()
-                                    ).apply { addFlags(Intent.FLAG_ACTIVITY_NEW_TASK) }
-                                    context.startActivity(intent)
-                                } catch (e: Exception) {
-                                    scope.launch { snackbarHostState.showSnackbar(toastNoLinkApp) }
+                        TooltipWrapper(tooltipText = stringResource(R.string.tooltip_open)) {
+                            ClickableLinkRow(
+                                label = stringResource(R.string.about_link_releases),
+                                onClick = {
+                                    try {
+                                        val intent = Intent(
+                                            Intent.ACTION_VIEW,
+                                            "https://github.com/arpitnnd/Tidy/releases".toUri()
+                                        ).apply { addFlags(Intent.FLAG_ACTIVITY_NEW_TASK) }
+                                        context.startActivity(intent)
+                                    } catch (e: Exception) {
+                                        scope.launch { snackbarHostState.showSnackbar(toastNoLinkApp) }
+                                    }
                                 }
-                            }
-                        )
+                            )
+                        }
                     }
                 }
 
@@ -259,34 +269,36 @@ fun AboutScreen(
                             modifier = Modifier.padding(12.dp),
                             verticalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .clip(RoundedCornerShape(12.dp))
-                                    .clickable { showCrashDialog = true }
-                                    .padding(horizontal = 8.dp, vertical = 12.dp),
-                                horizontalArrangement = Arrangement.spacedBy(16.dp),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Column(modifier = Modifier.weight(1f)) {
-                                    Text(
-                                        text = stringResource(R.string.settings_crash_log_title),
-                                        style = MaterialTheme.typography.bodyMedium,
-                                        fontWeight = FontWeight.SemiBold,
-                                        color = MaterialTheme.colorScheme.onSurface
-                                    )
-                                    Spacer(modifier = Modifier.height(2.dp))
-                                    Text(
-                                        text = stringResource(R.string.settings_crash_log_desc),
-                                        style = MaterialTheme.typography.bodySmall,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                            TooltipWrapper(tooltipText = stringResource(R.string.tooltip_view_crash_log)) {
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .clip(RoundedCornerShape(12.dp))
+                                        .clickable { showCrashDialog = true }
+                                        .padding(horizontal = 8.dp, vertical = 12.dp),
+                                    horizontalArrangement = Arrangement.spacedBy(16.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Column(modifier = Modifier.weight(1f)) {
+                                        Text(
+                                            text = stringResource(R.string.settings_crash_log_title),
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            fontWeight = FontWeight.SemiBold,
+                                            color = MaterialTheme.colorScheme.onSurface
+                                        )
+                                        Spacer(modifier = Modifier.height(2.dp))
+                                        Text(
+                                            text = stringResource(R.string.settings_crash_log_desc),
+                                            style = MaterialTheme.typography.bodySmall,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                    }
+                                    Icon(
+                                        imageVector = Icons.Filled.ChevronRight,
+                                        contentDescription = stringResource(R.string.tooltip_view_crash_log),
+                                        tint = MaterialTheme.colorScheme.primary
                                     )
                                 }
-                                Icon(
-                                    imageVector = Icons.Filled.ChevronRight,
-                                    contentDescription = "Open",
-                                    tint = MaterialTheme.colorScheme.primary
-                                )
                             }
                         }
                     }
@@ -320,87 +332,95 @@ fun AboutScreen(
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    TextButton(
-                        onClick = {
-                            val clipboard =
-                                context.getSystemService(android.content.Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
-                            val clip = android.content.ClipData.newPlainText(
-                                "Crash Report",
-                                currentCrashReportText
-                            )
-                            clipboard.setPrimaryClip(clip)
-                            scope.launch {
-                                snackbarHostState.showSnackbar(crashToastCopied)
-                            }
-
-                            val intent = Intent(
-                                Intent.ACTION_VIEW,
-                                "https://github.com/arpitnnd/Tidy/issues/new?title=Crash%20Report&body=Paste%20copied%20crash%20log%20here".toUri()
-                            ).apply {
-                                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                            }
-                            try {
-                                context.startActivity(intent)
-                            } catch (e: Exception) {
+                    TooltipWrapper(tooltipText = stringResource(R.string.crash_report_github)) {
+                        TextButton(
+                            onClick = {
+                                val clipboard =
+                                    context.getSystemService(android.content.Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
+                                val clip = android.content.ClipData.newPlainText(
+                                    "Crash Report",
+                                    currentCrashReportText
+                                )
+                                clipboard.setPrimaryClip(clip)
                                 scope.launch {
-                                    snackbarHostState.showSnackbar(crashToastBrowserError)
+                                    snackbarHostState.showSnackbar(crashToastCopied)
                                 }
-                            }
-                            showCrashDialog = false
-                        }
-                    ) {
-                        Text(stringResource(R.string.crash_report_github))
-                    }
-                    TextButton(
-                        onClick = {
-                            val sendIntent: Intent = Intent().apply {
-                                action = Intent.ACTION_SEND
-                                putExtra(Intent.EXTRA_TEXT, currentCrashReportText)
-                                type = "text/plain"
-                            }
-                            val shareIntent =
-                                Intent.createChooser(sendIntent, null).apply {
+
+                                val intent = Intent(
+                                    Intent.ACTION_VIEW,
+                                    "https://github.com/arpitnnd/Tidy/issues/new?title=Crash%20Report&body=Paste%20copied%20crash%20log%20here".toUri()
+                                ).apply {
                                     addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                                 }
-                            try {
-                                context.startActivity(shareIntent)
-                            } catch (e: Exception) {
-                                scope.launch {
-                                    snackbarHostState.showSnackbar(toastCouldNotShare)
+                                try {
+                                    context.startActivity(intent)
+                                } catch (e: Exception) {
+                                    scope.launch {
+                                        snackbarHostState.showSnackbar(crashToastBrowserError)
+                                    }
                                 }
-                            }
-                        }
-                    ) {
-                        Text(stringResource(R.string.dialog_share))
-                    }
-                    TextButton(
-                        onClick = {
-                            try {
-                                val dir =
-                                    java.io.File(context.filesDir, "crash_reports")
-                                if (dir.exists()) {
-                                    dir.deleteRecursively()
-                                }
-                                currentCrashReportText = null
                                 showCrashDialog = false
-                                scope.launch {
-                                    snackbarHostState.showSnackbar(toastCrashDeleted)
-                                }
-                            } catch (e: Exception) {
-                                e.printStackTrace()
                             }
-                        },
-                        colors = ButtonDefaults.textButtonColors(
-                            contentColor = MaterialTheme.colorScheme.error
-                        )
-                    ) {
-                        Text(stringResource(R.string.dialog_delete))
+                        ) {
+                            Text(stringResource(R.string.crash_report_github))
+                        }
+                    }
+                    TooltipWrapper(tooltipText = stringResource(R.string.dialog_share)) {
+                        TextButton(
+                            onClick = {
+                                val sendIntent: Intent = Intent().apply {
+                                    action = Intent.ACTION_SEND
+                                    putExtra(Intent.EXTRA_TEXT, currentCrashReportText)
+                                    type = "text/plain"
+                                }
+                                val shareIntent =
+                                    Intent.createChooser(sendIntent, null).apply {
+                                        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                                    }
+                                try {
+                                    context.startActivity(shareIntent)
+                                } catch (e: Exception) {
+                                    scope.launch {
+                                        snackbarHostState.showSnackbar(toastCouldNotShare)
+                                    }
+                                }
+                            }
+                        ) {
+                            Text(stringResource(R.string.dialog_share))
+                        }
+                    }
+                    TooltipWrapper(tooltipText = stringResource(R.string.dialog_delete)) {
+                        TextButton(
+                            onClick = {
+                                try {
+                                    val dir =
+                                        java.io.File(context.filesDir, "crash_reports")
+                                    if (dir.exists()) {
+                                        dir.deleteRecursively()
+                                    }
+                                    currentCrashReportText = null
+                                    showCrashDialog = false
+                                    scope.launch {
+                                        snackbarHostState.showSnackbar(toastCrashDeleted)
+                                    }
+                                } catch (e: Exception) {
+                                    e.printStackTrace()
+                                }
+                            },
+                            colors = ButtonDefaults.textButtonColors(
+                                contentColor = MaterialTheme.colorScheme.error
+                            )
+                        ) {
+                            Text(stringResource(R.string.dialog_delete))
+                        }
                     }
                 }
             },
             dismissButton = {
-                TextButton(onClick = { showCrashDialog = false }) {
-                    Text(stringResource(R.string.dialog_cancel))
+                TooltipWrapper(tooltipText = stringResource(R.string.dialog_cancel)) {
+                    TextButton(onClick = { showCrashDialog = false }) {
+                        Text(stringResource(R.string.dialog_cancel))
+                    }
                 }
             }
         )

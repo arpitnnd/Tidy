@@ -321,16 +321,18 @@ fun SettingsScreen(
                                         }
                                     }
 
-                                    FilledIconButton(
-                                        onClick = { viewModel.addDomain() },
-                                        enabled = isDomainValid,
-                                        shape = RoundedCornerShape(12.dp),
-                                        modifier = Modifier.size(52.dp)
-                                    ) {
-                                        Icon(
-                                            Icons.Filled.Add,
-                                            contentDescription = stringResource(R.string.settings_add_domain_desc)
-                                        )
+                                    TooltipWrapper(tooltipText = stringResource(R.string.tooltip_add_domain)) {
+                                        FilledIconButton(
+                                            onClick = { viewModel.addDomain() },
+                                            enabled = isDomainValid,
+                                            shape = RoundedCornerShape(12.dp),
+                                            modifier = Modifier.size(52.dp)
+                                        ) {
+                                            Icon(
+                                                Icons.Filled.Add,
+                                                contentDescription = stringResource(R.string.settings_add_domain_desc)
+                                            )
+                                        }
                                     }
                                 }
 
@@ -352,15 +354,17 @@ fun SettingsScreen(
                                                     )
                                                 },
                                                 trailingIcon = {
-                                                    IconButton(
-                                                        onClick = { viewModel.removeDomain(domain) },
-                                                        modifier = Modifier.size(24.dp)
-                                                    ) {
-                                                        Icon(
-                                                            Icons.Filled.Delete,
-                                                            contentDescription = stringResource(R.string.settings_collapse),
-                                                            modifier = Modifier.size(16.dp)
-                                                        )
+                                                    TooltipWrapper(tooltipText = stringResource(R.string.tooltip_remove_domain)) {
+                                                        IconButton(
+                                                            onClick = { viewModel.removeDomain(domain) },
+                                                            modifier = Modifier.size(24.dp)
+                                                        ) {
+                                                            Icon(
+                                                                Icons.Filled.Delete,
+                                                                contentDescription = stringResource(R.string.tooltip_remove_domain),
+                                                                modifier = Modifier.size(16.dp)
+                                                            )
+                                                        }
                                                     }
                                                 },
                                                 shape = RoundedCornerShape(12.dp)
@@ -473,16 +477,18 @@ fun SettingsScreen(
                                         }
                                     }
 
-                                    FilledIconButton(
-                                        onClick = { viewModel.addDomainWhitelistedParam() },
-                                        enabled = isParamWhitelistValid,
-                                        shape = RoundedCornerShape(12.dp),
-                                        modifier = Modifier.size(52.dp)
-                                    ) {
-                                        Icon(
-                                            Icons.Filled.Add,
-                                            contentDescription = stringResource(R.string.settings_add_param_whitelist_desc)
-                                        )
+                                    TooltipWrapper(tooltipText = stringResource(R.string.tooltip_add_whitelist_param)) {
+                                        FilledIconButton(
+                                            onClick = { viewModel.addDomainWhitelistedParam() },
+                                            enabled = isParamWhitelistValid,
+                                            shape = RoundedCornerShape(12.dp),
+                                            modifier = Modifier.size(52.dp)
+                                        ) {
+                                            Icon(
+                                                Icons.Filled.Add,
+                                                contentDescription = stringResource(R.string.settings_add_param_whitelist_desc)
+                                            )
+                                        }
                                     }
                                 }
 
@@ -505,19 +511,21 @@ fun SettingsScreen(
                                                     )
                                                 },
                                                 trailingIcon = {
-                                                    IconButton(
-                                                        onClick = {
-                                                            viewModel.removeDomainWhitelistedParam(
-                                                                entry
+                                                    TooltipWrapper(tooltipText = stringResource(R.string.tooltip_remove_whitelist_param)) {
+                                                        IconButton(
+                                                            onClick = {
+                                                                viewModel.removeDomainWhitelistedParam(
+                                                                    entry
+                                                                )
+                                                            },
+                                                            modifier = Modifier.size(24.dp)
+                                                        ) {
+                                                            Icon(
+                                                                Icons.Filled.Delete,
+                                                                contentDescription = stringResource(R.string.tooltip_remove_whitelist_param),
+                                                                modifier = Modifier.size(16.dp)
                                                             )
-                                                        },
-                                                        modifier = Modifier.size(24.dp)
-                                                    ) {
-                                                        Icon(
-                                                            Icons.Filled.Delete,
-                                                            contentDescription = stringResource(R.string.settings_collapse),
-                                                            modifier = Modifier.size(16.dp)
-                                                        )
+                                                        }
                                                     }
                                                 },
                                                 shape = RoundedCornerShape(12.dp)
@@ -602,16 +610,18 @@ fun SettingsScreen(
                                         }
                                     }
 
-                                    FilledIconButton(
-                                        onClick = { viewModel.addParam() },
-                                        enabled = isParamValid,
-                                        shape = RoundedCornerShape(12.dp),
-                                        modifier = Modifier.size(52.dp)
-                                    ) {
-                                        Icon(
-                                            Icons.Filled.Add,
-                                            contentDescription = stringResource(R.string.settings_add_param_desc)
-                                        )
+                                    TooltipWrapper(tooltipText = stringResource(R.string.tooltip_add_custom_param)) {
+                                        FilledIconButton(
+                                            onClick = { viewModel.addParam() },
+                                            enabled = isParamValid,
+                                            shape = RoundedCornerShape(12.dp),
+                                            modifier = Modifier.size(52.dp)
+                                        ) {
+                                            Icon(
+                                                Icons.Filled.Add,
+                                                contentDescription = stringResource(R.string.settings_add_param_desc)
+                                            )
+                                        }
                                     }
                                 }
 
@@ -633,15 +643,17 @@ fun SettingsScreen(
                                                     )
                                                 },
                                                 trailingIcon = {
-                                                    IconButton(
-                                                        onClick = { viewModel.removeParam(param) },
-                                                        modifier = Modifier.size(24.dp)
-                                                    ) {
-                                                        Icon(
-                                                            Icons.Filled.Delete,
-                                                            contentDescription = stringResource(R.string.settings_collapse),
-                                                            modifier = Modifier.size(16.dp)
-                                                        )
+                                                    TooltipWrapper(tooltipText = stringResource(R.string.tooltip_remove_custom_param)) {
+                                                        IconButton(
+                                                            onClick = { viewModel.removeParam(param) },
+                                                            modifier = Modifier.size(24.dp)
+                                                        ) {
+                                                            Icon(
+                                                                Icons.Filled.Delete,
+                                                                contentDescription = stringResource(R.string.tooltip_remove_custom_param),
+                                                                modifier = Modifier.size(16.dp)
+                                                            )
+                                                        }
                                                     }
                                                 },
                                                 shape = RoundedCornerShape(12.dp)

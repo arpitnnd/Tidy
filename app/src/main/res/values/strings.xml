@@ -133,7 +133,7 @@
     <string name="settings_diagnostics_title">Diagnostics and Crashes</string>
     <string name="settings_crash_log_title">Latest Crash Report</string>
     <string name="settings_crash_log_desc">Inspect, share, or delete the last recorded application crash</string>
-    <string name="dialog_crash_log_title">Latest Crash Log</string>>
+    <string name="dialog_crash_log_title">Latest Crash Log</string>
     <string name="dialog_delete">Delete</string>
     <string name="dialog_share">Share</string>
     <string name="toast_crash_deleted">Crash report deleted</string>
@@ -176,7 +176,7 @@
     <string name="about_title">About Tidy</string>
     <string name="about_values_statement">Cleaned entirely offline on your device. You\'re in control with custom rules, history, and backups. No ads, ever.</string>
     <string name="about_built_by">Built by</string>
-    <string name="about_license">License</string>
+    <string name="about_license">Licence</string>
     <string name="about_license_desc">Apache License 2.0</string>
     <string name="about_links">Links</string>
     <string name="about_link_github">GitHub Repository</string>
@@ -223,4 +223,17 @@
     <string name="plus_feature_extra_themes_desc">Expressive colourways like Forest Green and Ocean Blue.</string>
     <string name="plus_feature_text_selection_title">Inline Text Cleaning</string>
     <string name="plus_feature_text_selection_desc">Clean URLs directly from any app\'s text-selection menu.</string>
+
+    <string name="about_creator_name">Arpit Anand</string>
+    <string name="crash_sheet_title">Tidy crashed last time. Want to help fix it?</string>
+    <string name="crash_sheet_desc">You can view the local crash log and share it to help us fix the issue. Tidy never sends anything automatically.</string>
+    <string name="crash_dont_ask_again">Don\'t ask again</string>
+    <string name="tooltip_add_domain">Add bypass domain</string>
+    <string name="tooltip_remove_domain">Remove bypass domain</string>
+    <string name="tooltip_add_whitelist_param">Add whitelisted parameter</string>
+    <string name="tooltip_remove_whitelist_param">Remove whitelisted parameter</string>
+    <string name="tooltip_add_custom_param">Add custom parameter</string>
+    <string name="tooltip_remove_custom_param">Remove custom parameter</string>
+    <string name="tooltip_view_crash_log">View crash report log</string>
+    <string name="tooltip_cancel">Cancel</string>
 </resources>
