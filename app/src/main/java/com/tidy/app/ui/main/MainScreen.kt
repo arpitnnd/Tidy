@@ -1183,14 +1183,12 @@ fun MainScreen(
 
         // Crash Report Sheet
         if (showCrashSheet && crashReportText != null) {
-            var dontAskChecked by remember { mutableStateOf(dontAskAgainCrash) }
             CrashReportBottomSheet(
                 crashReportText = crashReportText,
                 onDismiss = { onDismissCrashReport() },
                 showDontAskAgain = true,
-                dontAskAgainChecked = dontAskChecked,
+                dontAskAgainChecked = dontAskAgainCrash,
                 onDontAskAgainChange = { checked ->
-                    dontAskChecked = checked
                     scope.launch {
                         settingsRepository.setDontAskAgainCrash(checked)
                     }
