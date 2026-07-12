@@ -26,13 +26,14 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.tidy.app.ui.components.AppIconBox
 import com.tidy.app.R
 import com.tidy.app.TidyURLApp
 
 object SettingsMigrationViews {
 
     @Composable
-    fun SettingsUpgradeRow(onUpgradeClick: () -> Unit) {
+    fun UpgradePromptRow(onUpgradeClick: () -> Unit) {
         val entitlementManager = TidyURLApp.instance.entitlementManager
         val isUnlocked by entitlementManager.isPlusUnlocked.collectAsStateWithLifecycle(initialValue = false)
         val isPending by entitlementManager.isPurchasePending.collectAsStateWithLifecycle(
@@ -62,20 +63,13 @@ object SettingsMigrationViews {
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                Box(
-                    modifier = Modifier
-                        .size(48.dp)
-                        .clip(RoundedCornerShape(12.dp))
-                        .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        imageVector = Icons.Filled.Star,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(24.dp)
-                    )
-                }
+                AppIconBox(
+                    icon = Icons.Filled.Star,
+                    boxSize = 48.dp,
+                    iconSize = 24.dp,
+                    cornerRadius = 12.dp,
+                    background = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
+                )
 
                 Column(modifier = Modifier.weight(1f)) {
                     val title = if (isUnlocked) {
@@ -117,7 +111,7 @@ object SettingsMigrationViews {
     }
 
     @Composable
-    fun MigrationDialog(onDismiss: () -> Unit) {
-        // No migration dialog needed for play flavor
+    fun MigrationSheet(onDismiss: () -> Unit) {
+        // No migration sheet needed for play flavor
     }
 }

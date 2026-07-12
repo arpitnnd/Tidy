@@ -78,6 +78,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.tidy.app.R
 import com.tidy.app.data.HistoryEntry
+import com.tidy.app.ui.components.ScreenSectionHeader
+import com.tidy.app.ui.components.TidyTopAppBar
 import com.tidy.app.ui.components.TooltipWrapper
 import com.tidy.app.ui.components.shimmer
 import kotlinx.coroutines.launch
@@ -156,24 +158,9 @@ fun HistoryScreen(
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        text = stringResource(R.string.history_title),
-                        fontWeight = FontWeight.Bold,
-                        style = MaterialTheme.typography.titleLarge
-                    )
-                },
-                navigationIcon = {
-                    TooltipWrapper(tooltipText = stringResource(R.string.tooltip_back)) {
-                        IconButton(onClick = onBackClick) {
-                            Icon(
-                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                                contentDescription = stringResource(R.string.settings_back_desc)
-                            )
-                        }
-                    }
-                },
+            TidyTopAppBar(
+                title = stringResource(R.string.history_title),
+                onBackClick = onBackClick,
                 actions = {
                     // Import
                     TooltipWrapper(tooltipText = stringResource(R.string.tooltip_import)) {
@@ -217,10 +204,7 @@ fun HistoryScreen(
                             }
                         }
                     }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color.Transparent
-                )
+                }
             )
         },
         modifier = modifier
@@ -240,12 +224,9 @@ fun HistoryScreen(
             ) {
                 // Analytics Section
                 item {
-                    Text(
+                    ScreenSectionHeader(
                         text = stringResource(R.string.history_dashboard),
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.ExtraBold,
-                        color = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.padding(vertical = 4.dp)
+                        modifier = Modifier.padding(start = 0.dp)
                     )
                 }
 
@@ -313,12 +294,9 @@ fun HistoryScreen(
                 // History Section
                 item {
                     Spacer(modifier = Modifier.height(8.dp))
-                    Text(
+                    ScreenSectionHeader(
                         text = stringResource(R.string.history_clean_history),
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.ExtraBold,
-                        color = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.padding(vertical = 4.dp)
+                        modifier = Modifier.padding(start = 0.dp)
                     )
                 }
 

@@ -127,7 +127,9 @@ import com.tidy.app.FlavorConfig
 import com.tidy.app.R
 import com.tidy.app.TidyURLApp
 import com.tidy.app.data.UrlCleaner
+import com.tidy.app.ui.components.FeatureRow
 import com.tidy.app.ui.components.TooltipWrapper
+import com.tidy.app.ui.components.shimmer
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -854,7 +856,7 @@ fun MainScreen(
                                     horizontalArrangement = Arrangement.SpaceEvenly,
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
-                                    TrustMarkerCompact(
+                                    CompactFeatureRow(
                                         icon = Icons.Outlined.CloudOff,
                                         text = stringResource(R.string.welcome_local_title)
                                     )
@@ -864,7 +866,7 @@ fun MainScreen(
                                             .width(1.dp),
                                         color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
                                     )
-                                    TrustMarkerCompact(
+                                    CompactFeatureRow(
                                         icon = Icons.Outlined.Tune,
                                         text = stringResource(R.string.welcome_privacy_title)
                                     )
@@ -874,7 +876,7 @@ fun MainScreen(
                                             .width(1.dp),
                                         color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
                                     )
-                                    TrustMarkerCompact(
+                                    CompactFeatureRow(
                                         icon = Icons.Outlined.Block,
                                         text = stringResource(R.string.welcome_free_title)
                                     )
@@ -933,11 +935,12 @@ fun MainScreen(
                         Column(modifier = Modifier
                             .fillMaxWidth()
                             .padding(bottom = 24.dp)) {
-                            InputCard(
-                                state,
-                                viewModel,
-                                clipboardUrl,
-                                onDismissClipboard = { clipboardUrl = null })
+                            UrlInputCard(
+                                state = state,
+                                viewModel = viewModel,
+                                clipboardUrl = clipboardUrl,
+                                onDismissClipboard = { clipboardUrl = null }
+                            )
                         }
                     }
                 }
@@ -1124,20 +1127,20 @@ fun MainScreen(
 
                     // Trust markers
                     Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
-                        TrustMarkerRow(
+                        FeatureRow(
                             icon = Icons.Outlined.CloudOff,
                             title = stringResource(R.string.welcome_local_title),
-                            subtitle = stringResource(R.string.welcome_local_subtitle)
+                            description = stringResource(R.string.welcome_local_subtitle)
                         )
-                        TrustMarkerRow(
+                        FeatureRow(
                             icon = Icons.Outlined.Tune,
                             title = stringResource(R.string.welcome_privacy_title),
-                            subtitle = stringResource(R.string.welcome_privacy_subtitle)
+                            description = stringResource(R.string.welcome_privacy_subtitle)
                         )
-                        TrustMarkerRow(
+                        FeatureRow(
                             icon = Icons.Outlined.Block,
                             title = stringResource(R.string.welcome_free_title),
-                            subtitle = stringResource(R.string.welcome_free_subtitle)
+                            description = stringResource(R.string.welcome_free_subtitle)
                         )
                     }
 
@@ -1436,50 +1439,9 @@ private fun extractUrls(text: String): List<String> {
     return regex.findAll(text).map { it.value }.toList()
 }
 
-@Composable
-private fun TrustMarkerRow(
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
-    title: String,
-    subtitle: String
-) {
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(14.dp),
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        Box(
-            modifier = Modifier
-                .size(44.dp)
-                .clip(RoundedCornerShape(12.dp))
-                .background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f)),
-            contentAlignment = Alignment.Center
-        ) {
-            Icon(
-                imageVector = icon,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.size(22.dp)
-            )
-        }
-        Column {
-            Text(
-                text = title,
-                style = MaterialTheme.typography.labelLarge,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onSurface
-            )
-            Text(
-                text = subtitle,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        }
-    }
-}
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun InputCard(
+private fun UrlInputCard(
     state: MainScreenViewModel.UiState,
     viewModel: MainScreenViewModel,
     clipboardUrl: String?,
@@ -1715,7 +1677,7 @@ The parameter `$param` was removed from `$domain`, which broke the site or remov
 }
 
 @Composable
-private fun TrustMarkerCompact(
+private fun CompactFeatureRow(
     icon: androidx.compose.ui.graphics.vector.ImageVector,
     text: String
 ) {
@@ -1762,31 +1724,3 @@ private fun looksLikeUrl(text: String): Boolean {
     return tld.length >= 2 && tld.all { it.isLetter() }
 }
 
-@Composable
-fun Modifier.shimmer(): Modifier {
-    val transition = rememberInfiniteTransition(label = "shimmer")
-    val translateAnim by transition.animateFloat(
-        initialValue = 0f,
-        targetValue = 1000f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(durationMillis = 1200, easing = LinearEasing),
-            repeatMode = RepeatMode.Restart
-        ),
-        label = "shimmerTranslation"
-    )
-
-    val shimmerColors = listOf(
-        MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
-        MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.9f),
-        MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
-    )
-
-    return this.drawBehind {
-        val brush = Brush.linearGradient(
-            colors = shimmerColors,
-            start = Offset(translateAnim - 300f, translateAnim - 300f),
-            end = Offset(translateAnim, translateAnim)
-        )
-        drawRect(brush = brush)
-    }
-}

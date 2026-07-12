@@ -1,8 +1,6 @@
 package com.tidy.app.ui.about
 
 import android.content.Intent
-import androidx.compose.animation.animateContentSize
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -15,30 +13,22 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.automirrored.filled.OpenInNew
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.outlined.CleaningServices
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -48,7 +38,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -57,7 +46,11 @@ import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import com.tidy.app.BuildConfig
 import com.tidy.app.R
-import com.tidy.app.ui.components.TooltipWrapper
+import com.tidy.app.ui.components.AppIconBox
+import com.tidy.app.ui.components.CardSectionLabel
+import com.tidy.app.ui.components.ClickableLinkRow
+import com.tidy.app.ui.components.SettingCard
+import com.tidy.app.ui.components.TidyTopAppBar
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -99,28 +92,9 @@ fun AboutScreen(
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        text = stringResource(R.string.about_title),
-                        fontWeight = FontWeight.Bold,
-                        style = MaterialTheme.typography.titleLarge
-                    )
-                },
-                navigationIcon = {
-                    TooltipWrapper(tooltipText = stringResource(R.string.tooltip_back)) {
-                        IconButton(onClick = onBackClick) {
-                            Icon(
-                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                                contentDescription = stringResource(R.string.settings_back_desc),
-                                tint = MaterialTheme.colorScheme.onSurface
-                            )
-                        }
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color.Transparent
-                )
+            TidyTopAppBar(
+                title = stringResource(R.string.about_title),
+                onBackClick = onBackClick
             )
         },
         modifier = modifier
@@ -143,20 +117,12 @@ fun AboutScreen(
                 Spacer(modifier = Modifier.height(8.dp))
 
                 // Logo Block
-                Box(
-                    modifier = Modifier
-                        .size(64.dp)
-                        .clip(RoundedCornerShape(16.dp))
-                        .background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f)),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        imageVector = Icons.Outlined.CleaningServices,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(32.dp)
-                    )
-                }
+                AppIconBox(
+                    icon = Icons.Outlined.CleaningServices,
+                    boxSize = 64.dp,
+                    iconSize = 32.dp,
+                    cornerRadius = 16.dp
+                )
 
                 Text(
                     text = stringResource(R.string.app_name),
@@ -185,24 +151,13 @@ fun AboutScreen(
                 Spacer(modifier = Modifier.height(12.dp))
 
                 // Creator Card
-                Card(
-                    shape = RoundedCornerShape(24.dp),
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)
-                    ),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
+                SettingCard {
                     Column(
                         modifier = Modifier.padding(16.dp),
                         verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
                         Column {
-                            Text(
-                                text = stringResource(R.string.about_built_by),
-                                style = MaterialTheme.typography.labelLarge,
-                                color = MaterialTheme.colorScheme.primary,
-                                fontWeight = FontWeight.Bold
-                            )
+                            CardSectionLabel(text = stringResource(R.string.about_built_by))
                             Spacer(modifier = Modifier.height(2.dp))
                             Text(
                                 text = "Arpit Anand",
@@ -215,205 +170,86 @@ fun AboutScreen(
                 }
 
                 // Licensing Card
-                Card(
-                    shape = RoundedCornerShape(24.dp),
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)
-                    ),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Column(
-                        modifier = Modifier.padding(12.dp)
-                    ) {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clip(RoundedCornerShape(12.dp))
-                                .clickable {
-                                    try {
-                                        val intent = Intent(
-                                            Intent.ACTION_VIEW,
-                                            "https://github.com/arpitnnd/Tidy/blob/main/LICENSE".toUri()
-                                        ).apply {
-                                            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                                        }
-                                        context.startActivity(intent)
-                                    } catch (e: Exception) {
-                                        scope.launch {
-                                            snackbarHostState.showSnackbar(toastNoLinkApp)
-                                        }
-                                    }
+                SettingCard {
+                    Column(modifier = Modifier.padding(12.dp)) {
+                        ClickableLinkRow(
+                            label = stringResource(R.string.about_license_desc),
+                            onClick = {
+                                try {
+                                    val intent = Intent(
+                                        Intent.ACTION_VIEW,
+                                        "https://github.com/arpitnnd/Tidy/blob/main/LICENSE".toUri()
+                                    ).apply { addFlags(Intent.FLAG_ACTIVITY_NEW_TASK) }
+                                    context.startActivity(intent)
+                                } catch (e: Exception) {
+                                    scope.launch { snackbarHostState.showSnackbar(toastNoLinkApp) }
                                 }
-                                .padding(horizontal = 8.dp, vertical = 12.dp),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Column {
-                                Text(
-                                    text = stringResource(R.string.about_license),
-                                    style = MaterialTheme.typography.labelLarge,
-                                    color = MaterialTheme.colorScheme.primary,
-                                    fontWeight = FontWeight.Bold
-                                )
-                                Spacer(modifier = Modifier.height(2.dp))
-                                Text(
-                                    text = stringResource(R.string.about_license_desc),
-                                    style = MaterialTheme.typography.bodyLarge,
-                                    color = MaterialTheme.colorScheme.onSurface,
-                                    fontWeight = FontWeight.SemiBold
-                                )
                             }
-                            Icon(
-                                imageVector = Icons.AutoMirrored.Filled.OpenInNew,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.primary
-                            )
-                        }
+                        )
                     }
                 }
 
                 // Links Card
-                Card(
-                    shape = RoundedCornerShape(24.dp),
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)
-                    ),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
+                SettingCard {
                     Column(
                         modifier = Modifier.padding(12.dp),
                         verticalArrangement = Arrangement.spacedBy(4.dp)
                     ) {
-                        Text(
+                        CardSectionLabel(
                             text = stringResource(R.string.about_links),
-                            style = MaterialTheme.typography.labelLarge,
-                            color = MaterialTheme.colorScheme.primary,
-                            fontWeight = FontWeight.Bold,
                             modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
                         )
 
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clip(RoundedCornerShape(12.dp))
-                                .clickable {
-                                    try {
-                                        val intent = Intent(
-                                            Intent.ACTION_VIEW,
-                                            "https://github.com/arpitnnd/Tidy".toUri()
-                                        ).apply {
-                                            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                                        }
-                                        context.startActivity(intent)
-                                    } catch (e: Exception) {
-                                        scope.launch {
-                                            snackbarHostState.showSnackbar(toastNoLinkApp)
-                                        }
-                                    }
+                        ClickableLinkRow(
+                            label = stringResource(R.string.about_link_github),
+                            onClick = {
+                                try {
+                                    val intent = Intent(
+                                        Intent.ACTION_VIEW,
+                                        "https://github.com/arpitnnd/Tidy".toUri()
+                                    ).apply { addFlags(Intent.FLAG_ACTIVITY_NEW_TASK) }
+                                    context.startActivity(intent)
+                                } catch (e: Exception) {
+                                    scope.launch { snackbarHostState.showSnackbar(toastNoLinkApp) }
                                 }
-                                .padding(horizontal = 8.dp, vertical = 12.dp),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(
-                                text = stringResource(R.string.about_link_github),
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurface,
-                                fontWeight = FontWeight.Medium
-                            )
-                            Icon(
-                                imageVector = Icons.AutoMirrored.Filled.OpenInNew,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
-                                modifier = Modifier.size(18.dp)
-                            )
-                        }
+                            }
+                        )
 
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clip(RoundedCornerShape(12.dp))
-                                .clickable {
-                                    try {
-                                        val intent = Intent(
-                                            Intent.ACTION_VIEW,
-                                            "https://github.com/arpitnnd/Tidy/issues".toUri()
-                                        ).apply {
-                                            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                                        }
-                                        context.startActivity(intent)
-                                    } catch (e: Exception) {
-                                        scope.launch {
-                                            snackbarHostState.showSnackbar(toastNoLinkApp)
-                                        }
-                                    }
+                        ClickableLinkRow(
+                            label = stringResource(R.string.about_link_issues),
+                            onClick = {
+                                try {
+                                    val intent = Intent(
+                                        Intent.ACTION_VIEW,
+                                        "https://github.com/arpitnnd/Tidy/issues".toUri()
+                                    ).apply { addFlags(Intent.FLAG_ACTIVITY_NEW_TASK) }
+                                    context.startActivity(intent)
+                                } catch (e: Exception) {
+                                    scope.launch { snackbarHostState.showSnackbar(toastNoLinkApp) }
                                 }
-                                .padding(horizontal = 8.dp, vertical = 12.dp),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(
-                                text = stringResource(R.string.about_link_issues),
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurface,
-                                fontWeight = FontWeight.Medium
-                            )
-                            Icon(
-                                imageVector = Icons.AutoMirrored.Filled.OpenInNew,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
-                                modifier = Modifier.size(18.dp)
-                            )
-                        }
+                            }
+                        )
 
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clip(RoundedCornerShape(12.dp))
-                                .clickable {
-                                    try {
-                                        val intent = Intent(
-                                            Intent.ACTION_VIEW,
-                                            "https://github.com/arpitnnd/Tidy/releases".toUri()
-                                        ).apply {
-                                            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                                        }
-                                        context.startActivity(intent)
-                                    } catch (e: Exception) {
-                                        scope.launch {
-                                            snackbarHostState.showSnackbar(toastNoLinkApp)
-                                        }
-                                    }
+                        ClickableLinkRow(
+                            label = stringResource(R.string.about_link_releases),
+                            onClick = {
+                                try {
+                                    val intent = Intent(
+                                        Intent.ACTION_VIEW,
+                                        "https://github.com/arpitnnd/Tidy/releases".toUri()
+                                    ).apply { addFlags(Intent.FLAG_ACTIVITY_NEW_TASK) }
+                                    context.startActivity(intent)
+                                } catch (e: Exception) {
+                                    scope.launch { snackbarHostState.showSnackbar(toastNoLinkApp) }
                                 }
-                                .padding(horizontal = 8.dp, vertical = 12.dp),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(
-                                text = stringResource(R.string.about_link_releases),
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurface,
-                                fontWeight = FontWeight.Medium
-                            )
-                            Icon(
-                                imageVector = Icons.AutoMirrored.Filled.OpenInNew,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
-                                modifier = Modifier.size(18.dp)
-                            )
-                        }
+                            }
+                        )
                     }
                 }
 
                 // Diagnostics Card (Only displayed when there is a crash report)
                 if (currentCrashReportText != null) {
-                    Card(
-                        shape = RoundedCornerShape(24.dp),
-                        colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)
-                        ),
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
+                    SettingCard {
                         Column(
                             modifier = Modifier.padding(12.dp),
                             verticalArrangement = Arrangement.spacedBy(8.dp)

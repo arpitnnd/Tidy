@@ -36,6 +36,8 @@ import androidx.core.content.FileProvider
 import com.tidy.app.R
 import com.tidy.app.TidyURLApp
 import com.tidy.app.data.PlusFeature
+import com.tidy.app.ui.components.AppIconBox
+import com.tidy.app.ui.components.FeatureRow
 import com.tidy.app.ui.components.rememberSheetNestedScrollFix
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -45,7 +47,7 @@ object SettingsMigrationViews {
 
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
-    fun SettingsUpgradeRow(onUpgradeClick: () -> Unit) {
+    fun UpgradePromptRow(onUpgradeClick: () -> Unit) {
         val context = LocalContext.current
         val settingsRepository = TidyURLApp.instance.settingsRepository
         val dismissed by settingsRepository.migrationFollowupDismissed.collectAsStateWithLifecycle(
@@ -266,7 +268,7 @@ object SettingsMigrationViews {
 
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
-    fun MigrationDialog(
+    fun MigrationSheet(
         onDismiss: () -> Unit
     ) {
         val context = LocalContext.current
@@ -304,20 +306,12 @@ object SettingsMigrationViews {
                     if (currentPage == 1) {
                         item {
                             // Icon / Logo Box (matching Welcome Intro design)
-                            Box(
-                                modifier = Modifier
-                                    .size(48.dp)
-                                    .clip(RoundedCornerShape(12.dp))
-                                    .background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f)),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Outlined.CleaningServices,
-                                    contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.primary,
-                                    modifier = Modifier.size(24.dp)
-                                )
-                            }
+                            AppIconBox(
+                                icon = Icons.Outlined.CleaningServices,
+                                boxSize = 48.dp,
+                                iconSize = 24.dp,
+                                cornerRadius = 12.dp
+                            )
                         }
 
                         item {
@@ -363,39 +357,11 @@ object SettingsMigrationViews {
                                 PlusFeature.TEXT_SELECTION -> Icons.Outlined.SelectAll
                             }
 
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(16.dp)
-                            ) {
-                                Box(
-                                    modifier = Modifier
-                                        .size(40.dp)
-                                        .clip(RoundedCornerShape(10.dp))
-                                        .background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f)),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Icon(
-                                        imageVector = icon,
-                                        contentDescription = null,
-                                        tint = MaterialTheme.colorScheme.primary,
-                                        modifier = Modifier.size(20.dp)
-                                    )
-                                }
-                                Column(modifier = Modifier.weight(1f)) {
-                                    Text(
-                                        text = feature.title,
-                                        style = MaterialTheme.typography.labelLarge,
-                                        fontWeight = FontWeight.Bold,
-                                        color = MaterialTheme.colorScheme.onSurface
-                                    )
-                                    Text(
-                                        text = feature.description,
-                                        style = MaterialTheme.typography.bodySmall,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                                    )
-                                }
-                            }
+                            FeatureRow(
+                                icon = icon,
+                                title = feature.title,
+                                description = feature.description
+                            )
                         }
 
                         item {

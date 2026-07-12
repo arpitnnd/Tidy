@@ -81,6 +81,10 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.tidy.app.R
+import com.tidy.app.ui.components.ExpandableSettingRow
+import com.tidy.app.ui.components.ScreenSectionHeader
+import com.tidy.app.ui.components.SettingCard
+import com.tidy.app.ui.components.TidyTopAppBar
 import com.tidy.app.ui.components.TooltipWrapper
 import com.tidy.app.ui.components.rememberSheetNestedScrollFix
 import androidx.compose.ui.input.nestedscroll.nestedScroll
@@ -111,28 +115,9 @@ fun SettingsScreen(
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        text = stringResource(R.string.settings_title),
-                        fontWeight = FontWeight.Bold,
-                        style = MaterialTheme.typography.titleLarge
-                    )
-                },
-                navigationIcon = {
-                    TooltipWrapper(tooltipText = stringResource(R.string.tooltip_back)) {
-                        IconButton(onClick = onBackClick) {
-                            Icon(
-                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                                contentDescription = stringResource(R.string.settings_back_desc),
-                                tint = MaterialTheme.colorScheme.onSurface
-                            )
-                        }
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color.Transparent
-                )
+            TidyTopAppBar(
+                title = stringResource(R.string.settings_title),
+                onBackClick = onBackClick
             )
         },
         modifier = modifier
@@ -159,11 +144,8 @@ fun SettingsScreen(
                     }
                 }
 
-                Text(
+                ScreenSectionHeader(
                     text = stringResource(R.string.rules_title),
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.SemiBold,
-                    color = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.padding(start = 4.dp, top = 8.dp)
                 )
 
@@ -292,62 +274,29 @@ fun SettingsScreen(
                     }
                 }
 
-                Card(
-                    shape = RoundedCornerShape(24.dp),
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)
-                    ),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .animateContentSize()
-                ) {
+                SettingCard(modifier = Modifier.animateContentSize()) {
                     Column(
                         modifier = Modifier.padding(12.dp),
                         verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         // 1. Bypass List Row (Clickable Row Header)
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clip(RoundedCornerShape(12.dp))
-                                .clickable { isBypassListExpanded = !isBypassListExpanded }
-                                .padding(horizontal = 8.dp, vertical = 12.dp),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Column(modifier = Modifier.weight(1f)) {
-                                Text(
-                                    text = stringResource(R.string.settings_bypass_list),
-                                    style = MaterialTheme.typography.bodyLarge,
-                                    fontWeight = FontWeight.SemiBold,
-                                    color = MaterialTheme.colorScheme.onSurface
-                                )
-                                Spacer(modifier = Modifier.height(2.dp))
-                                val summaryText = if (state.whitelistedDomains.isEmpty()) {
-                                    stringResource(R.string.settings_no_domains_bypassed)
-                                } else {
-                                    val count = state.whitelistedDomains.size
-                                    val unit = if (count == 1) {
-                                        stringResource(R.string.settings_domain_bypassed_single)
-                                    } else {
-                                        stringResource(R.string.settings_domains_bypassed_plural)
-                                    }
-                                    "$count $unit"
-                                }
-                                Text(
-                                    text = summaryText,
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
+                        val bypassSummary = if (state.whitelistedDomains.isEmpty()) {
+                            stringResource(R.string.settings_no_domains_bypassed)
+                        } else {
+                            val count = state.whitelistedDomains.size
+                            val unit = if (count == 1) {
+                                stringResource(R.string.settings_domain_bypassed_single)
+                            } else {
+                                stringResource(R.string.settings_domains_bypassed_plural)
                             }
-                            Icon(
-                                imageVector = if (isBypassListExpanded) Icons.Filled.KeyboardArrowUp else Icons.Filled.KeyboardArrowDown,
-                                contentDescription = if (isBypassListExpanded) stringResource(R.string.settings_collapse) else stringResource(
-                                    R.string.settings_expand
-                                ),
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
+                            "$count $unit"
                         }
+                        ExpandableSettingRow(
+                            title = stringResource(R.string.settings_bypass_list),
+                            summary = bypassSummary,
+                            expanded = isBypassListExpanded,
+                            onToggle = { isBypassListExpanded = !isBypassListExpanded }
+                        )
 
                         if (isBypassListExpanded) {
                             Column(
@@ -453,48 +402,23 @@ fun SettingsScreen(
                         )
 
                         // 2. Parameter Whitelist Row (Clickable Row Header)
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clip(RoundedCornerShape(12.dp))
-                                .clickable { isParamWhitelistExpanded = !isParamWhitelistExpanded }
-                                .padding(horizontal = 8.dp, vertical = 12.dp),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Column(modifier = Modifier.weight(1f)) {
-                                Text(
-                                    text = stringResource(R.string.settings_param_whitelist_title),
-                                    style = MaterialTheme.typography.bodyLarge,
-                                    fontWeight = FontWeight.SemiBold,
-                                    color = MaterialTheme.colorScheme.onSurface
-                                )
-                                Spacer(modifier = Modifier.height(2.dp))
-                                val summaryText = if (state.domainWhitelistedParams.isEmpty()) {
-                                    stringResource(R.string.settings_no_params_whitelisted)
-                                } else {
-                                    val count = state.domainWhitelistedParams.size
-                                    val unit = if (count == 1) {
-                                        stringResource(R.string.settings_param_whitelisted_single)
-                                    } else {
-                                        stringResource(R.string.settings_params_whitelisted_plural)
-                                    }
-                                    "$count $unit"
-                                }
-                                Text(
-                                    text = summaryText,
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
+                        val paramWhitelistSummary = if (state.domainWhitelistedParams.isEmpty()) {
+                            stringResource(R.string.settings_no_params_whitelisted)
+                        } else {
+                            val count = state.domainWhitelistedParams.size
+                            val unit = if (count == 1) {
+                                stringResource(R.string.settings_param_whitelisted_single)
+                            } else {
+                                stringResource(R.string.settings_params_whitelisted_plural)
                             }
-                            Icon(
-                                imageVector = if (isParamWhitelistExpanded) Icons.Filled.KeyboardArrowUp else Icons.Filled.KeyboardArrowDown,
-                                contentDescription = if (isParamWhitelistExpanded) stringResource(R.string.settings_collapse) else stringResource(
-                                    R.string.settings_expand
-                                ),
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
+                            "$count $unit"
                         }
+                        ExpandableSettingRow(
+                            title = stringResource(R.string.settings_param_whitelist_title),
+                            summary = paramWhitelistSummary,
+                            expanded = isParamWhitelistExpanded,
+                            onToggle = { isParamWhitelistExpanded = !isParamWhitelistExpanded }
+                        )
 
                         if (isParamWhitelistExpanded) {
                             Column(
@@ -635,45 +559,20 @@ fun SettingsScreen(
                         )
 
                         // 3. Custom Blacklisted Parameters Row (Clickable Row Header)
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clip(RoundedCornerShape(12.dp))
-                                .clickable { isCustomParamsExpanded = !isCustomParamsExpanded }
-                                .padding(horizontal = 8.dp, vertical = 12.dp),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Column(modifier = Modifier.weight(1f)) {
-                                Text(
-                                    text = stringResource(R.string.settings_custom_params_title),
-                                    style = MaterialTheme.typography.bodyLarge,
-                                    fontWeight = FontWeight.SemiBold,
-                                    color = MaterialTheme.colorScheme.onSurface
-                                )
-                                Spacer(modifier = Modifier.height(2.dp))
-                                val summaryText = if (state.blacklistedParams.isEmpty()) {
-                                    stringResource(R.string.settings_no_custom_params_text)
-                                } else {
-                                    val count = state.blacklistedParams.size
-                                    val unit =
-                                        if (count == 1) "parameter blacklisted" else "parameters blacklisted"
-                                    "$count $unit"
-                                }
-                                Text(
-                                    text = summaryText,
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            }
-                            Icon(
-                                imageVector = if (isCustomParamsExpanded) Icons.Filled.KeyboardArrowUp else Icons.Filled.KeyboardArrowDown,
-                                contentDescription = if (isCustomParamsExpanded) stringResource(R.string.settings_collapse) else stringResource(
-                                    R.string.settings_expand
-                                ),
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
+                        val customParamsSummary = if (state.blacklistedParams.isEmpty()) {
+                            stringResource(R.string.settings_no_custom_params_text)
+                        } else {
+                            val count = state.blacklistedParams.size
+                            val unit =
+                                if (count == 1) "parameter blacklisted" else "parameters blacklisted"
+                            "$count $unit"
                         }
+                        ExpandableSettingRow(
+                            title = stringResource(R.string.settings_custom_params_title),
+                            summary = customParamsSummary,
+                            expanded = isCustomParamsExpanded,
+                            onToggle = { isCustomParamsExpanded = !isCustomParamsExpanded }
+                        )
 
                         if (isCustomParamsExpanded) {
                             Column(
@@ -779,16 +678,8 @@ fun SettingsScreen(
                 }
 
                 // Default Blocklist Card (separated reference link)
-                Card(
-                    shape = RoundedCornerShape(24.dp),
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)
-                    ),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Column(
-                        modifier = Modifier.padding(12.dp)
-                    ) {
+                SettingCard {
+                    Column(modifier = Modifier.padding(12.dp)) {
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -822,21 +713,12 @@ fun SettingsScreen(
                 }
 
                 // Appearance Theme Selector
-                Text(
+                ScreenSectionHeader(
                     text = "App Theme",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.SemiBold,
-                    color = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.padding(start = 4.dp, top = 8.dp)
                 )
 
-                Card(
-                    shape = RoundedCornerShape(24.dp),
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)
-                    ),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
+                SettingCard {
                     Column(
                         modifier = Modifier.padding(12.dp),
                         verticalArrangement = Arrangement.spacedBy(8.dp)
@@ -932,13 +814,7 @@ fun SettingsScreen(
                 )
 
                 // Automation Card
-                Card(
-                    shape = RoundedCornerShape(24.dp),
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)
-                    ),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
+                SettingCard {
                     Column(
                         modifier = Modifier.padding(12.dp),
                         verticalArrangement = Arrangement.spacedBy(8.dp)
@@ -1207,13 +1083,7 @@ fun SettingsScreen(
                     modifier = Modifier.padding(start = 4.dp, top = 8.dp)
                 )
 
-                Card(
-                    shape = RoundedCornerShape(24.dp),
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)
-                    ),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
+                SettingCard {
                     Column(
                         modifier = Modifier.padding(12.dp)
                     ) {
@@ -1253,7 +1123,7 @@ fun SettingsScreen(
     }
 
     if (showMigrationDialog) {
-        com.tidy.app.ui.settings.SettingsMigrationViews.MigrationDialog(
+        com.tidy.app.ui.settings.SettingsMigrationViews.MigrationSheet(
             onDismiss = { showMigrationDialog = false }
         )
     }
