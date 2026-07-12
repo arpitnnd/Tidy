@@ -20,6 +20,7 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
@@ -281,7 +282,7 @@ class MainScreenViewModel(
             clipboard.setPrimaryClip(clip)
             _uiState.update { it.copy(copySuccess = true) }
             viewModelScope.launch {
-                kotlinx.coroutines.delay(2000)
+                kotlinx.coroutines.delay(2.seconds)
                 _uiState.update { it.copy(copySuccess = false) }
             }
         }

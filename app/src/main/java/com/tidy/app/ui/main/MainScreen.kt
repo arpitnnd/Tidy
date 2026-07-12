@@ -120,6 +120,8 @@ import com.tidy.app.ui.components.FeatureRow
 import com.tidy.app.ui.components.TidyModalBottomSheet
 import com.tidy.app.ui.components.TooltipWrapper
 import com.tidy.app.ui.components.shimmer
+import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -193,7 +195,7 @@ fun MainScreen(
                     trimmed.startsWith("https://", ignoreCase = true) ||
                     (trimmed.contains(".") && !trimmed.contains(" "))
             if (looksLikeUrl && trimmed != state.originalUrl && trimmed != state.expandedUrl) {
-                delay(400)
+                delay(400.milliseconds)
                 viewModel.cleanUrl(trimmed)
             }
         }
@@ -202,7 +204,7 @@ fun MainScreen(
     // Auto-dismiss clipboard suggestion banner after 5 seconds
     LaunchedEffect(clipboardUrl) {
         if (clipboardUrl != null) {
-            delay(5000)
+            delay(5.seconds)
             clipboardUrl = null
         }
     }
@@ -962,7 +964,7 @@ fun MainScreen(
         if (showBottomSheet) {
             val focusRequester = remember { FocusRequester() }
             LaunchedEffect(focusRequester) {
-                kotlinx.coroutines.delay(350)
+                kotlinx.coroutines.delay(350.milliseconds)
                 try {
                     focusRequester.requestFocus()
                 } catch (e: Exception) {
