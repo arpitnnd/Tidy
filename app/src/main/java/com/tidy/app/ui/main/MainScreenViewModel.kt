@@ -118,7 +118,12 @@ class MainScreenViewModel(
         _uiState.update { it.copy(inputUrl = url) }
     }
 
-    fun cleanUrl(url: String, isShared: Boolean = false, originalShortUrl: String? = null) {
+    fun cleanUrl(
+        url: String,
+        isShared: Boolean = false,
+        originalShortUrl: String? = null,
+        addToHistory: Boolean = true
+    ) {
         var trimmed = url.trim()
         if (trimmed.isEmpty()) return
         if (!trimmed.startsWith("http://", ignoreCase = true) && !trimmed.startsWith(
@@ -169,19 +174,21 @@ class MainScreenViewModel(
                     )
                 }
 
-                // Increment local analytics counters
-                settingsRepository.incrementAnalytics(result.removedParams.size)
+                if (addToHistory) {
+                    // Increment local analytics counters
+                    settingsRepository.incrementAnalytics(result.removedParams.size)
 
-                // Add to history
-                val domain = HistoryRepository.extractDomain(resolvedUrl)
-                historyRepository.addEntry(
-                    HistoryEntry(
-                        originalUrl = initialOriginal,
-                        cleanedUrl = result.cleanedUrl,
-                        removedParamsCount = result.removedParams.size,
-                        domain = domain
+                    // Add to history
+                    val domain = HistoryRepository.extractDomain(resolvedUrl)
+                    historyRepository.addEntry(
+                        HistoryEntry(
+                            originalUrl = initialOriginal,
+                            cleanedUrl = result.cleanedUrl,
+                            removedParamsCount = result.removedParams.size,
+                            domain = domain
+                        )
                     )
-                )
+                }
 
                 if (isShared) {
                     com.tidy.app.FlavorConfig.handleShareAutomation(
@@ -230,9 +237,9 @@ class MainScreenViewModel(
                 val expanded = _uiState.value.expandedUrl
                 if (original.isNotEmpty()) {
                     if (expanded != null) {
-                        cleanUrl(expanded, originalShortUrl = original)
+                        cleanUrl(expanded, originalShortUrl = original, addToHistory = false)
                     } else {
-                        cleanUrl(original)
+                        cleanUrl(original, addToHistory = false)
                     }
                 }
             }
@@ -246,9 +253,9 @@ class MainScreenViewModel(
             val expanded = _uiState.value.expandedUrl
             if (original.isNotEmpty()) {
                 if (expanded != null) {
-                    cleanUrl(expanded, originalShortUrl = original)
+                    cleanUrl(expanded, originalShortUrl = original, addToHistory = false)
                 } else {
-                    cleanUrl(original)
+                    cleanUrl(original, addToHistory = false)
                 }
             }
         }
