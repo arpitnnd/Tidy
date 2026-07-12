@@ -75,7 +75,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           body_path: release_notes.txt
-          files: app/build/outputs/apk/oss/release/Tidy-ossv*.apk
+          files: app/build/outputs/apk/oss/release/Tidy-oss-v*.apk
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 

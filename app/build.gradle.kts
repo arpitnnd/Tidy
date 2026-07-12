@@ -137,7 +137,7 @@ tasks.register("renameArtifacts") {
                 if (file.isFile && file.name.endsWith(".aab") && !file.name.startsWith("Tidy-")) {
                     val path = file.absolutePath.lowercase()
                     val flavor = if (path.contains("oss")) "oss" else if (path.contains("play")) "play" else ""
-                    val newName = "Tidy-${flavor}v${targetVersionCode}-${dateStr}.aab"
+                    val newName = "Tidy-${flavor}-v${targetVersionCode}-${dateStr}.aab"
                     val destFile = File(file.parentFile, newName)
                     if (file.renameTo(destFile)) {
                         println("Renamed bundle: ${file.name} -> $newName")
@@ -153,7 +153,7 @@ tasks.register("renameArtifacts") {
                 if (file.isFile && file.name.endsWith(".apk") && !file.name.startsWith("Tidy-")) {
                     val path = file.absolutePath.lowercase()
                     val flavor = if (path.contains("oss")) "oss" else if (path.contains("play")) "play" else ""
-                    val newName = "Tidy-${flavor}v${targetVersionCode}-${dateStr}.apk"
+                    val newName = "Tidy-${flavor}-v${targetVersionCode}-${dateStr}.apk"
                     val destFile = File(file.parentFile, newName)
                     if (file.renameTo(destFile)) {
                         println("Renamed APK: ${file.name} -> $newName")
