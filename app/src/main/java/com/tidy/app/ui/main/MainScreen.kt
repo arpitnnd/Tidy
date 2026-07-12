@@ -41,8 +41,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
+import com.tidy.app.ui.components.TidyModalBottomSheet
 import androidx.compose.ui.input.nestedscroll.nestedScroll
-import com.tidy.app.ui.components.rememberSheetNestedScrollFix
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.OpenInNew
 import androidx.compose.material.icons.filled.Check
@@ -950,7 +950,6 @@ fun MainScreen(
         // Clean New URL Bottom Sheet
         if (showBottomSheet) {
             val focusRequester = remember { FocusRequester() }
-            val sheetScrollFix = rememberSheetNestedScrollFix()
             LaunchedEffect(focusRequester) {
                 kotlinx.coroutines.delay(350)
                 try {
@@ -959,20 +958,17 @@ fun MainScreen(
                 }
             }
 
-            ModalBottomSheet(
+            TidyModalBottomSheet(
                 onDismissRequest = { showBottomSheet = false },
-                sheetState = sheetState,
-                dragHandle = { BottomSheetDefaults.DragHandle() },
-                containerColor = MaterialTheme.colorScheme.surface,
-                tonalElevation = 8.dp
-            ) {
+                sheetState = sheetState
+            ) { scrollFix ->
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
                         .navigationBarsPadding()
                         .imePadding()
+                        .nestedScroll(scrollFix)
                         .verticalScroll(rememberScrollState())
-                        .nestedScroll(sheetScrollFix)
                         .padding(horizontal = 24.dp)
                         .padding(bottom = 24.dp),
                     verticalArrangement = Arrangement.spacedBy(16.dp)
@@ -1074,23 +1070,20 @@ fun MainScreen(
 
         // First-launch Intro Bottom Sheet
         if (showIntro) {
-            val introScrollFix = rememberSheetNestedScrollFix()
-            ModalBottomSheet(
+            TidyModalBottomSheet(
                 onDismissRequest = {
                     showIntro = false
                     viewModel.markFirstLaunchDone()
                 },
-                sheetState = introSheetState,
-                containerColor = MaterialTheme.colorScheme.surface,
-                tonalElevation = 8.dp
-            ) {
+                sheetState = introSheetState
+            ) { scrollFix ->
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 24.dp)
                         .padding(bottom = 32.dp)
                         .navigationBarsPadding()
-                        .nestedScroll(introScrollFix),
+                        .nestedScroll(scrollFix),
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
@@ -1174,20 +1167,16 @@ fun MainScreen(
 
         // Crash Report Sheet
         if (showCrashSheet && crashReportText != null) {
-            val crashScrollFix = rememberSheetNestedScrollFix()
-            ModalBottomSheet(
-                onDismissRequest = { onDismissCrashReport() },
-                sheetState = rememberModalBottomSheetState(),
-                containerColor = MaterialTheme.colorScheme.surface,
-                tonalElevation = 8.dp
-            ) {
+            TidyModalBottomSheet(
+                onDismissRequest = { onDismissCrashReport() }
+            ) { scrollFix ->
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 24.dp)
                         .padding(bottom = 32.dp)
                         .navigationBarsPadding()
-                        .nestedScroll(crashScrollFix),
+                        .nestedScroll(scrollFix),
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
@@ -1355,20 +1344,16 @@ fun MainScreen(
         val description =
             trackerDescriptions[param] ?: stringResource(R.string.details_no_explanation)
 
-        val paramScrollFix = rememberSheetNestedScrollFix()
-        ModalBottomSheet(
-            onDismissRequest = { paramToWhitelist = null },
-            sheetState = rememberModalBottomSheetState(),
-            containerColor = MaterialTheme.colorScheme.surface,
-            tonalElevation = 8.dp
-        ) {
+        TidyModalBottomSheet(
+            onDismissRequest = { paramToWhitelist = null }
+        ) { scrollFix ->
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
                     .navigationBarsPadding()
                     .padding(horizontal = 24.dp)
                     .padding(bottom = 32.dp)
-                    .nestedScroll(paramScrollFix),
+                    .nestedScroll(scrollFix),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 Text(

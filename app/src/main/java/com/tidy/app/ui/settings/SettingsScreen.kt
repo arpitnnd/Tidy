@@ -85,8 +85,8 @@ import com.tidy.app.ui.components.ExpandableSettingRow
 import com.tidy.app.ui.components.ScreenSectionHeader
 import com.tidy.app.ui.components.SettingCard
 import com.tidy.app.ui.components.TidyTopAppBar
+import com.tidy.app.ui.components.TidyModalBottomSheet
 import com.tidy.app.ui.components.TooltipWrapper
-import com.tidy.app.ui.components.rememberSheetNestedScrollFix
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import kotlinx.coroutines.launch
 
@@ -167,12 +167,10 @@ fun SettingsScreen(
                         label = "BlocklistDividerAlpha"
                     )
 
-                    ModalBottomSheet(
+                    TidyModalBottomSheet(
                         onDismissRequest = { showDefaultBlocklistSheet = false },
-                        sheetState = sheetState,
-                        containerColor = MaterialTheme.colorScheme.surface,
-                        tonalElevation = 8.dp
-                    ) {
+                        sheetState = sheetState
+                    ) { blocklistScrollFix ->
                         Column(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -236,7 +234,6 @@ fun SettingsScreen(
                                 modifier = Modifier.fillMaxWidth()
                             )
 
-                            val blocklistScrollFix = rememberSheetNestedScrollFix()
                             LazyColumn(
                                 state = lazyListState,
                                 contentPadding = PaddingValues(top = 8.dp),

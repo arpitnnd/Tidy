@@ -38,7 +38,7 @@ import com.tidy.app.TidyURLApp
 import com.tidy.app.data.PlusFeature
 import com.tidy.app.ui.components.AppIconBox
 import com.tidy.app.ui.components.FeatureRow
-import com.tidy.app.ui.components.rememberSheetNestedScrollFix
+import com.tidy.app.ui.components.TidyModalBottomSheet
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import java.io.File
@@ -224,15 +224,9 @@ object SettingsMigrationViews {
         }
 
         if (showComingSoonSheet) {
-            val comingSoonState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-            val comingSoonScrollFix = rememberSheetNestedScrollFix()
-            ModalBottomSheet(
-                onDismissRequest = { showComingSoonSheet = false },
-                sheetState = comingSoonState,
-                containerColor = MaterialTheme.colorScheme.surface,
-                tonalElevation = 8.dp,
-                dragHandle = { BottomSheetDefaults.DragHandle() }
-            ) {
+            TidyModalBottomSheet(
+                onDismissRequest = { showComingSoonSheet = false }
+            ) { comingSoonScrollFix ->
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -277,16 +271,10 @@ object SettingsMigrationViews {
         var backupFileState by remember { mutableStateOf<File?>(null) }
         val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
-        // Consume upward over-scroll so it never reaches the parent sheet drag handler.
-        val migrationScrollFix = rememberSheetNestedScrollFix()
-
-        ModalBottomSheet(
+        TidyModalBottomSheet(
             onDismissRequest = onDismiss,
-            sheetState = sheetState,
-            containerColor = MaterialTheme.colorScheme.surface,
-            tonalElevation = 8.dp,
-            dragHandle = { BottomSheetDefaults.DragHandle() }
-        ) {
+            sheetState = sheetState
+        ) { migrationScrollFix ->
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
