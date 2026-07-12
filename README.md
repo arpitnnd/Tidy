@@ -1,8 +1,8 @@
 # Tidy 🧹
 
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
-[![Platform](https://img.shields.io/badge/Platform-Android-green.svg)](#)
-[![Kotlin](https://img.shields.io/badge/Kotlin-Multiplatform-purple.svg)](#)
+[![Platform](https://img.shields.io/badge/Platform-Android-green.svg)](https://developer.android.com)
+[![Kotlin](https://img.shields.io/badge/Kotlin-Multiplatform-purple.svg)](https://kotlinlang.org/docs/multiplatform.html)
 
 Most links you share carry tracking parameters: click IDs, campaign
 tags, referral codes. Small strings that quietly record where you found
@@ -28,8 +28,7 @@ type. No button to hunt for.
 
 You stay in charge of the rules, not just the outcome:
 
-- **Know what was removed, and why.** Tap any stripped parameter (on the
-  dashboard, in your history, or inside the default blocklist) to see
+- **Know what was removed, and why.** Tap any stripped parameter to see
   what it actually was. `fbclid`, for instance, is Facebook's way of
   tying a click back to you. Whitelist it for that one domain in a
   single tap, or flag a rule as wrong straight into a prefilled GitHub
@@ -103,6 +102,11 @@ also how this stays a real, maintained project instead of an app that
 quietly stops getting updates. No ads, no subscription, no data
 collected to sell instead.
 
+> Tidy+ isn't live yet. The GitHub build above works fully today. Tidy+
+> is finishing testing before it lands on Google Play, and this README
+> will update the moment it does. Think of the table below as a preview
+> of what's coming.
+
 | | **Tidy** | **Tidy+** |
 |---|---|---|
 | Cleaning engine, short-link expansion | ✅ | ✅ |
@@ -119,8 +123,8 @@ Same app, two doors in:
 
 - **[GitHub Releases](../../releases)**: open source, no Play account
   needed. You update it yourself, whenever you check back.
-- **[Google Play](#)**: free to install, updates itself, Tidy+ available
-  if you want it.
+- **Google Play**: coming soon. Tidy+ and automatic updates will live
+  here once the listing is public.
 
 They're signed separately and install as two distinct apps. Switching
 from GitHub to Play later takes one export and one restore. Tidy walks
@@ -150,19 +154,38 @@ client:
   Quick Settings `TileService`, and `UrlExpander` for redirect
   resolution.
 
+Written with AI-assisted tooling for code and drafting. Every line is
+reviewed, tested, and shipped by a human before it reaches you.
+
 **Requirements:** JDK 17+, Android SDK 26+, Android Studio Ladybug or
 newer.
 
+We have two build flavors, under Gradle's `distribution` dimension.
+**`oss`** is what's here: no Google Play Services, nothing else needed
+to build or run it, works fine even on a de-Googled phone. **`play`**
+adds the paid Tidy+ features. Some of that code sits in a separate repo,
+purely to protect the one-time purchase. Your data is handled exactly
+the same either way. The build commands below are for the `oss` flavor.
+
+### Building and Testing
+
 ```bash
-./gradlew installDebug        # build & install debug
-./gradlew testDebugUnitTest   # run unit tests
+# Compile and build the OSS flavor APK
+./gradlew :app:assembleOssDebug
+
+# Run unit tests
+./gradlew :shared:testDebugUnitTest
+./gradlew :app:testOssDebugUnitTest
 ```
 
 ---
 
 ## Security policy
 
-If you discover a security vulnerability in Tidy, please report it privately via the **Security** tab on GitHub rather than opening a public issue. See [SECURITY.md](SECURITY.md) for details on scope and disclosure.
+If you discover a security vulnerability in Tidy, please report it
+privately via the **Security** tab on GitHub rather than opening a
+public issue. See [SECURITY.md](SECURITY.md) for details on scope and
+disclosure.
 
 ---
 
