@@ -150,6 +150,7 @@ fun MainScreen(
     val plusToastBulkCleanedTemplate = stringResource(R.string.plus_toast_bulk_cleaned)
     val crashToastCopied = stringResource(R.string.crash_toast_copied)
     val crashToastBrowserError = stringResource(R.string.crash_toast_browser_error)
+    val dialogShareCrashTitle = stringResource(R.string.dialog_share_crash_title)
 
     val settingsRepository = TidyURLApp.instance.settingsRepository
     val dontAskAgainCrash by settingsRepository.dontAskAgainCrash.collectAsStateWithLifecycle(
@@ -1268,7 +1269,7 @@ fun MainScreen(
                                     val shareIntent =
                                         Intent.createChooser(
                                             sendIntent,
-                                            context.getString(R.string.dialog_share_crash_title)
+                                            dialogShareCrashTitle
                                         )
                                     context.startActivity(shareIntent)
                                     onDismissCrashReport()

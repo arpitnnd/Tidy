@@ -720,15 +720,21 @@ fun SettingsScreen(
                         verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
 
-                        val themes = remember(context) {
+                        val themeSageSlate = stringResource(R.string.theme_sage_slate)
+                        val themeMaterialYou = stringResource(R.string.theme_material_you)
+                        val themeForestGreen = stringResource(R.string.theme_forest_green)
+                        val themeOceanBlue = stringResource(R.string.theme_ocean_blue)
+                        val themeDarkVelvet = stringResource(R.string.theme_dark_velvet)
+
+                        val themes = remember(themeSageSlate, themeMaterialYou, themeForestGreen, themeOceanBlue, themeDarkVelvet) {
                             buildList {
-                                add("slate" to context.getString(R.string.theme_sage_slate))
+                                add("slate" to themeSageSlate)
                                 if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {
-                                    add("dynamic" to context.getString(R.string.theme_material_you))
+                                    add("dynamic" to themeMaterialYou)
                                 }
-                                add("forest" to context.getString(R.string.theme_forest_green))
-                                add("ocean" to context.getString(R.string.theme_ocean_blue))
-                                add("velvet" to context.getString(R.string.theme_dark_velvet))
+                                add("forest" to themeForestGreen)
+                                add("ocean" to themeOceanBlue)
+                                add("velvet" to themeDarkVelvet)
                             }
                         }
 
