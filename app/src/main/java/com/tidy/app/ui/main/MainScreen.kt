@@ -249,18 +249,22 @@ fun MainScreen(
                         val text = item?.text?.toString()?.trim()
                         if (text != null) {
                             val urls = extractUrls(text)
-                            if (urls.size > 1) {
-                                bulkClipboardUrls = urls
-                                clipboardUrl = null
-                            } else if (urls.size == 1) {
-                                val singleUrl = urls[0]
-                                if (singleUrl != state.inputUrl && singleUrl != state.originalUrl && singleUrl != state.cleanedUrl && singleUrl != lastCleanedUrl) {
-                                    clipboardUrl = singleUrl
+                            when {
+                                urls.size > 1 -> {
+                                    bulkClipboardUrls = urls
+                                    clipboardUrl = null
                                 }
-                                bulkClipboardUrls = null
-                            } else {
-                                clipboardUrl = null
-                                bulkClipboardUrls = null
+                                urls.size == 1 -> {
+                                    val singleUrl = urls[0]
+                                    if (singleUrl != state.inputUrl && singleUrl != state.originalUrl && singleUrl != state.cleanedUrl && singleUrl != lastCleanedUrl) {
+                                        clipboardUrl = singleUrl
+                                    }
+                                    bulkClipboardUrls = null
+                                }
+                                else -> {
+                                    clipboardUrl = null
+                                    bulkClipboardUrls = null
+                                }
                             }
                         } else {
                             clipboardUrl = null
@@ -814,36 +818,39 @@ fun MainScreen(
                                 )
 
                                 // Minimal stat line (with shimmer loading state)
-                                if (state.isInitialLoading) {
-                                    Spacer(modifier = Modifier.height(16.dp))
-                                    Box(
-                                        modifier = Modifier
-                                            .width(220.dp)
-                                            .height(36.dp)
-                                            .clip(RoundedCornerShape(12.dp))
-                                            .shimmer()
-                                    )
-                                } else if (state.totalCleanedCount > 0) {
-                                    Spacer(modifier = Modifier.height(16.dp))
-                                    Surface(
-                                        onClick = onHistoryClick,
-                                        shape = RoundedCornerShape(12.dp),
-                                        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)
-                                    ) {
-                                        Text(
-                                            text = stringResource(
-                                                R.string.main_stats_summary,
-                                                state.totalCleanedCount,
-                                                state.totalTrackersBlocked
-                                            ),
-                                            style = MaterialTheme.typography.labelMedium,
-                                            fontWeight = FontWeight.SemiBold,
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                            modifier = Modifier.padding(
-                                                horizontal = 16.dp,
-                                                vertical = 8.dp
-                                            )
+                                when {
+                                    state.isInitialLoading -> {
+                                        Spacer(modifier = Modifier.height(16.dp))
+                                        Box(
+                                            modifier = Modifier
+                                                .width(220.dp)
+                                                .height(36.dp)
+                                                .clip(RoundedCornerShape(12.dp))
+                                                .shimmer()
                                         )
+                                    }
+                                    state.totalCleanedCount > 0 -> {
+                                        Spacer(modifier = Modifier.height(16.dp))
+                                        Surface(
+                                            onClick = onHistoryClick,
+                                            shape = RoundedCornerShape(12.dp),
+                                            color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)
+                                        ) {
+                                            Text(
+                                                text = stringResource(
+                                                    R.string.main_stats_summary,
+                                                    state.totalCleanedCount,
+                                                    state.totalTrackersBlocked
+                                                ),
+                                                style = MaterialTheme.typography.labelMedium,
+                                                fontWeight = FontWeight.SemiBold,
+                                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                                modifier = Modifier.padding(
+                                                    horizontal = 16.dp,
+                                                    vertical = 8.dp
+                                                )
+                                            )
+                                        }
                                     }
                                 }
 

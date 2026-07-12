@@ -873,10 +873,9 @@ fun SettingsScreen(
                                 .fillMaxWidth()
                                 .clip(RoundedCornerShape(12.dp))
                                 .clickable {
-                                    if (!isPlusUnlocked) {
-                                        showUpsellSheet = true
-                                    } else if (state.autoCopyOnShare) {
-                                        viewModel.setAutoCloseOnShare(!state.autoCloseOnShare)
+                                    when {
+                                        !isPlusUnlocked -> showUpsellSheet = true
+                                        state.autoCopyOnShare -> viewModel.setAutoCloseOnShare(!state.autoCloseOnShare)
                                     }
                                 }
                                 .padding(horizontal = 8.dp, vertical = 12.dp),
