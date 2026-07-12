@@ -2,13 +2,13 @@ package com.tidy.app
 
 import androidx.compose.runtime.Composable
 import com.tidy.app.data.EntitlementManager
-import com.tidy.app.data.OssEntitlementManager
+import com.tidy.app.data.FossEntitlementManager
 
 object FlavorConfig {
     val isPlayFlavor: Boolean = false
 
     fun createEntitlementManager(context: android.content.Context): com.tidy.app.data.AndroidEntitlementManager {
-        return OssEntitlementManager()
+        return FossEntitlementManager()
     }
 
     @Composable
@@ -20,12 +20,12 @@ object FlavorConfig {
 
     @Composable
     fun OnboardingExtra(onDismiss: () -> Unit) {
-        // No-op for OSS
+        // No-op for FOSS
     }
 
     @Composable
     fun ShowUpsellBottomSheet(onDismiss: () -> Unit) {
-        // No-op for OSS
+        // No-op for FOSS
     }
 
     fun getPremiumColorScheme(
@@ -43,7 +43,7 @@ object FlavorConfig {
         onShowUpsell: () -> Unit,
         onCleanExecute: () -> Unit
     ) {
-        // No-op for OSS
+        // No-op for FOSS
     }
 
     suspend fun handleShareAutomation(
@@ -51,6 +51,6 @@ object FlavorConfig {
         settingsRepository: com.tidy.app.data.SettingsRepository,
         onCopyAndClose: (Boolean) -> Unit
     ) {
-        // No-op for OSS
+        // No-op for FOSS
     }
 }

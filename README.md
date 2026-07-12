@@ -163,21 +163,21 @@ reviewed, tested, and shipped by a human before it reaches you.
 newer.
 
 We have two build flavors, under Gradle's `distribution` dimension.
-**`oss`** is what's here: no Google Play Services, nothing else needed
+**`foss`** is what's here: no Google Play Services, nothing else needed
 to build or run it, works fine even on a de-Googled phone. **`play`**
 adds the paid Tidy+ features. Some of that code sits in a separate repo,
 purely to protect the one-time purchase. Your data is handled exactly
-the same either way. The build commands below are for the `oss` flavor.
+the same either way. The build commands below are for the `foss` flavor.
 
 ### Building and Testing
 
 ```bash
-# Compile and build the OSS flavor APK
-./gradlew :app:assembleOssDebug
+# Compile and build the FOSS flavor APK
+./gradlew :app:assembleFossDebug
 
 # Run unit tests
 ./gradlew :shared:testDebugUnitTest
-./gradlew :app:testOssDebugUnitTest
+./gradlew :app:testFossDebugUnitTest
 ```
 
 ---

@@ -19,10 +19,10 @@ android {
     compileSdk = 37
 
     signingConfigs {
-        create("ossRelease") {
-            val storeFileVal = keystoreProperties.getProperty("ossStoreFile")
-            val passwordVal = keystoreProperties.getProperty("ossPassword")
-            val keyAliasVal = keystoreProperties.getProperty("ossKeyAlias")
+        create("fossRelease") {
+            val storeFileVal = keystoreProperties.getProperty("fossStoreFile")
+            val passwordVal = keystoreProperties.getProperty("fossPassword")
+            val keyAliasVal = keystoreProperties.getProperty("fossKeyAlias")
 
             if (storeFileVal != null && storeFileVal != "" &&
                 passwordVal != null && passwordVal != "" &&
@@ -75,7 +75,7 @@ android {
 
     flavorDimensions += "distribution"
     productFlavors {
-        create("oss") {
+        create("foss") {
             dimension = "distribution"
         }
         create("play") {
@@ -91,7 +91,7 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
-            signingConfig = signingConfigs.getByName("ossRelease")
+            signingConfig = signingConfigs.getByName("fossRelease")
         }
         create("hardened") {
             initWith(getByName("release"))
@@ -137,7 +137,7 @@ tasks.register("renameArtifacts") {
                 if (file.isFile && file.name.endsWith(".aab") && !file.name.startsWith("Tidy-")) {
                     val path = file.absolutePath.lowercase()
                     val flavor =
-                        if (path.contains("oss")) "oss" else if (path.contains("play")) "play" else ""
+                        if (path.contains("foss")) "foss" else if (path.contains("play")) "play" else ""
                     val newName = "Tidy-${flavor}-v${targetVersionCode}-${dateStr}.aab"
                     val destFile = File(file.parentFile, newName)
                     if (file.renameTo(destFile)) {
@@ -154,7 +154,7 @@ tasks.register("renameArtifacts") {
                 if (file.isFile && file.name.endsWith(".apk") && !file.name.startsWith("Tidy-")) {
                     val path = file.absolutePath.lowercase()
                     val flavor =
-                        if (path.contains("oss")) "oss" else if (path.contains("play")) "play" else ""
+                        if (path.contains("foss")) "foss" else if (path.contains("play")) "play" else ""
                     val newName = "Tidy-${flavor}-v${targetVersionCode}-${dateStr}.apk"
                     val destFile = File(file.parentFile, newName)
                     if (file.renameTo(destFile)) {
@@ -173,7 +173,7 @@ tasks.configureEach {
 }
 androidComponents {
     beforeVariants { variantBuilder ->
-        if (variantBuilder.flavorName == "oss" && variantBuilder.buildType == "hardened") {
+        if (variantBuilder.flavorName == "foss" && variantBuilder.buildType == "hardened") {
             variantBuilder.enable = false
         }
         if (variantBuilder.flavorName == "play" && variantBuilder.buildType == "release") {

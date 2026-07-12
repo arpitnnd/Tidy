@@ -13,7 +13,7 @@ body:
     attributes:
       label: Which build are you using?
       options:
-        - GitHub Release (oss)
+        - GitHub Release (foss)
         - Google Play (free)
         - Google Play (Tidy+)
     validations:

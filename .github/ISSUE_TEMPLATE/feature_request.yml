@@ -22,5 +22,5 @@ body:
       label: Is this relevant to a specific build?
       options:
         - Both / not sure
-        - GitHub (oss) only
+        - GitHub (foss) only
         - Tidy+ only

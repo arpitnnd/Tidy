@@ -14,7 +14,7 @@ directly without disclosing the issue publicly before a fix ships.
 
 Include what you can:
 
-- Which build (GitHub/oss or Google Play) and version
+- Which build (GitHub/foss or Google Play) and version
 - Android version and device (or emulator) used
 - Steps to reproduce
 - What you'd expect an attacker to be able to do with it
@@ -47,7 +47,7 @@ read and taken seriously.
 
 ## Supported Versions
 
-Only the latest released version of each build (GitHub/oss and Google
+Only the latest released version of each build (GitHub/foss and Google
 Play) is supported. Please update before reporting, if possible, in
 case it's already fixed.
 

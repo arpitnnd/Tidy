@@ -5,7 +5,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
-class OssEntitlementManager : AndroidEntitlementManager {
+class FossEntitlementManager : AndroidEntitlementManager {
     private val _isPlusUnlocked = MutableStateFlow(true)
     override val isPlusUnlocked: StateFlow<Boolean> = _isPlusUnlocked.asStateFlow()
 
@@ -13,10 +13,10 @@ class OssEntitlementManager : AndroidEntitlementManager {
     override val isPurchasePending: StateFlow<Boolean> = _isPurchasePending.asStateFlow()
 
     override fun init() {
-        // No-op for OSS
+        // No-op for FOSS
     }
 
     override fun launchPurchaseFlow(activity: Activity, onError: (String) -> Unit) {
-        // No-op for OSS
+        // No-op for FOSS
     }
 }
