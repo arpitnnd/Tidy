@@ -88,10 +88,10 @@ fun SettingsScreen(
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
 
-    val entitlementManager = com.tidy.app.TidyURLApp.instance.entitlementManager
+    val entitlementManager = com.tidy.app.TidyApp.instance.entitlementManager
     val isPlusUnlocked by entitlementManager.isPlusUnlocked.collectAsStateWithLifecycle(initialValue = false)
 
-    val settingsRepository = com.tidy.app.TidyURLApp.instance.settingsRepository
+    val settingsRepository = com.tidy.app.TidyApp.instance.settingsRepository
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
 

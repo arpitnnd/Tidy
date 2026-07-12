@@ -90,7 +90,7 @@ object FlavorConfig {
         settingsRepository: com.tidy.app.data.SettingsRepository,
         onCopyAndClose: (Boolean) -> Unit
     ) {
-        val isUnlocked = TidyURLApp.instance.entitlementManager.isPlusUnlocked.first()
+        val isUnlocked = TidyApp.instance.entitlementManager.isPlusUnlocked.first()
         if (isUnlocked) {
             val autoCopy = settingsRepository.autoCopyOnShare.first()
             if (autoCopy) {
@@ -105,8 +105,8 @@ object FlavorConfig {
 fun PlayOnboardingRestoreView(onDismiss: () -> Unit) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
-    val historyRepository = TidyURLApp.instance.historyRepository
-    val settingsRepository = TidyURLApp.instance.settingsRepository
+    val historyRepository = TidyApp.instance.historyRepository
+    val settingsRepository = TidyApp.instance.settingsRepository
 
     var showResultDialog by remember { mutableStateOf(false) }
     var resultText by remember { mutableStateOf("") }

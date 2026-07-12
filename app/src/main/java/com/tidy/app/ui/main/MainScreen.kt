@@ -114,7 +114,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.tidy.app.FlavorConfig
 import com.tidy.app.R
-import com.tidy.app.TidyURLApp
+import com.tidy.app.TidyApp
 import com.tidy.app.data.UrlCleaner
 import com.tidy.app.ui.components.FeatureRow
 import com.tidy.app.ui.components.TidyModalBottomSheet
@@ -152,12 +152,12 @@ fun MainScreen(
     val crashToastBrowserError = stringResource(R.string.crash_toast_browser_error)
     val dialogShareCrashTitle = stringResource(R.string.dialog_share_crash_title)
 
-    val settingsRepository = TidyURLApp.instance.settingsRepository
+    val settingsRepository = TidyApp.instance.settingsRepository
     val dontAskAgainCrash by settingsRepository.dontAskAgainCrash.collectAsStateWithLifecycle(
         initialValue = false
     )
 
-    val entitlementManager = TidyURLApp.instance.entitlementManager
+    val entitlementManager = TidyApp.instance.entitlementManager
     val isPlusUnlocked by entitlementManager.isPlusUnlocked.collectAsStateWithLifecycle(initialValue = false)
     var showUpsellSheet by remember { mutableStateOf(showPlusUpsell) }
     var bulkClipboardUrls by remember { mutableStateOf<List<String>?>(null) }
@@ -902,7 +902,7 @@ fun MainScreen(
                             onCleanExecute = {
                                 bulkClipboardUrls?.let { urls ->
                                     scope.launch {
-                                        val settings = TidyURLApp.instance.settingsRepository
+                                        val settings = TidyApp.instance.settingsRepository
                                         val whitelist = settings.whitelistedDomains.first()
                                         val customBlacklist = settings.blacklistedParams.first()
                                         val domainParams = settings.domainWhitelistedParams.first()

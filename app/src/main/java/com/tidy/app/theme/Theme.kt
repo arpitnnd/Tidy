@@ -60,16 +60,16 @@ private val LightColorScheme = lightColorScheme(
 )
 
 @Composable
-fun TidyURLTheme(
+fun TidyTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     content: @Composable () -> Unit,
 ) {
-    val settingsRepository = com.tidy.app.TidyURLApp.instance.settingsRepository
+    val settingsRepository = com.tidy.app.TidyApp.instance.settingsRepository
     val selectedThemeState =
         settingsRepository.selectedTheme.collectAsStateWithLifecycle(initialValue = "slate")
     val selectedTheme = selectedThemeState.value
 
-    val entitlementManager = com.tidy.app.TidyURLApp.instance.entitlementManager
+    val entitlementManager = com.tidy.app.TidyApp.instance.entitlementManager
     val isPlusUnlockedState =
         entitlementManager.isPlusUnlocked.collectAsStateWithLifecycle(initialValue = false)
     val isPlusUnlocked = isPlusUnlockedState.value

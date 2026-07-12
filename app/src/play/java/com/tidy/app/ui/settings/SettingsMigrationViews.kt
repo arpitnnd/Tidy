@@ -23,14 +23,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.tidy.app.R
-import com.tidy.app.TidyURLApp
+import com.tidy.app.TidyApp
 import com.tidy.app.ui.components.AppIconBox
 
 object SettingsMigrationViews {
 
     @Composable
     fun UpgradePromptRow(onUpgradeClick: () -> Unit) {
-        val entitlementManager = TidyURLApp.instance.entitlementManager
+        val entitlementManager = TidyApp.instance.entitlementManager
         val isUnlocked by entitlementManager.isPlusUnlocked.collectAsStateWithLifecycle(initialValue = false)
         val isPending by entitlementManager.isPurchasePending.collectAsStateWithLifecycle(
             initialValue = false

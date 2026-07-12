@@ -12,7 +12,7 @@ import org.acra.ReportField
 import org.acra.config.CoreConfigurationBuilder
 import org.acra.data.StringFormat
 
-class TidyURLApp : Application() {
+class TidyApp : Application() {
     lateinit var settingsRepository: SettingsRepository
         private set
     lateinit var historyRepository: HistoryRepository
@@ -25,7 +25,7 @@ class TidyURLApp : Application() {
     override fun attachBaseContext(base: android.content.Context) {
         super.attachBaseContext(base)
         val builder = CoreConfigurationBuilder()
-            .withBuildConfigClass(TidyURLApp::class.java)
+            .withBuildConfigClass(TidyApp::class.java)
             .withReportFormat(StringFormat.JSON)
             .withReportContent(
                 ReportField.APP_VERSION_NAME,
@@ -51,12 +51,12 @@ class TidyURLApp : Application() {
         com.tidy.app.data.SharedDependencies.settingsRepository = settingsRepository
 
         applicationScope.launch {
-            com.tidy.app.data.BlocklistSyncer.sync(this@TidyURLApp, settingsRepository)
+            com.tidy.app.data.BlocklistSyncer.sync(this@TidyApp, settingsRepository)
         }
     }
 
     companion object {
-        lateinit var instance: TidyURLApp
+        lateinit var instance: TidyApp
             private set
     }
 }

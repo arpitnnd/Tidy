@@ -2,7 +2,7 @@ package com.tidy.app.ui.settings
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.tidy.app.TidyURLApp
+import com.tidy.app.TidyApp
 import com.tidy.app.data.SettingsRepository
 import com.tidy.app.data.TrackerEntry
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -14,7 +14,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class SettingsScreenViewModel(
-    private val settingsRepository: SettingsRepository = TidyURLApp.instance.settingsRepository
+    private val settingsRepository: SettingsRepository = TidyApp.instance.settingsRepository
 ) : ViewModel() {
 
     data class UiState(

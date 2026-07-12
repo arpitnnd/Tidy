@@ -14,7 +14,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
 import com.tidy.app.data.UrlCleaner
-import com.tidy.app.theme.TidyURLTheme
+import com.tidy.app.theme.TidyTheme
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
@@ -27,7 +27,7 @@ class MainActivity : ComponentActivity() {
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        setTheme(R.style.Theme_TidyURL)
+        setTheme(R.style.Theme_Tidy)
         super.onCreate(savedInstanceState)
 
         val crashReportsDir = java.io.File(filesDir, "crash_reports")
@@ -53,7 +53,7 @@ class MainActivity : ComponentActivity() {
             sharedUrls.tryEmit(initialUrl)
         } else if (crashReportText == null) {
             val now = System.currentTimeMillis()
-            val settings = TidyURLApp.instance.settingsRepository
+            val settings = TidyApp.instance.settingsRepository
             val shouldAutoClean = runBlocking { settings.autoCleanClipboardOnLaunch.first() }
             val isFromHistory =
                 (intent?.flags?.and(Intent.FLAG_ACTIVITY_LAUNCHED_FROM_HISTORY) ?: 0) != 0
@@ -123,7 +123,7 @@ class MainActivity : ComponentActivity() {
 
         enableEdgeToEdge()
         setContent {
-            TidyURLTheme {
+            TidyTheme {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background

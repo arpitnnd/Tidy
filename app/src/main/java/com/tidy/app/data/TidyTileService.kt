@@ -6,7 +6,7 @@ import android.content.Context
 import android.service.quicksettings.TileService
 import android.widget.Toast
 import com.tidy.app.R
-import com.tidy.app.TidyURLApp
+import com.tidy.app.TidyApp
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 
@@ -36,7 +36,7 @@ class TidyTileService : TileService() {
                     text
                 }
 
-                val settings = TidyURLApp.instance.settingsRepository
+                val settings = TidyApp.instance.settingsRepository
                 val whitelist = runBlocking { settings.whitelistedDomains.first() }
                 val customBlacklist = runBlocking { settings.blacklistedParams.first() }
                 val domainParams = runBlocking { settings.domainWhitelistedParams.first() }

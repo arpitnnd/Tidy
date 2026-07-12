@@ -6,7 +6,7 @@ import android.content.Context
 import android.content.Intent
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.tidy.app.TidyURLApp
+import com.tidy.app.TidyApp
 import com.tidy.app.data.HistoryEntry
 import com.tidy.app.data.HistoryRepository
 import com.tidy.app.data.SettingsRepository
@@ -25,8 +25,8 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class MainScreenViewModel(
-    private val settingsRepository: SettingsRepository = TidyURLApp.instance.settingsRepository,
-    private val historyRepository: HistoryRepository = TidyURLApp.instance.historyRepository,
+    private val settingsRepository: SettingsRepository = TidyApp.instance.settingsRepository,
+    private val historyRepository: HistoryRepository = TidyApp.instance.historyRepository,
     private val urlCleaner: UrlCleaner = UrlCleaner()
 ) : ViewModel() {
 

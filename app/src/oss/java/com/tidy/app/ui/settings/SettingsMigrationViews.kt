@@ -34,7 +34,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.core.content.FileProvider
 import com.tidy.app.R
-import com.tidy.app.TidyURLApp
+import com.tidy.app.TidyApp
 import com.tidy.app.data.PlusFeature
 import com.tidy.app.ui.components.AppIconBox
 import com.tidy.app.ui.components.FeatureRow
@@ -49,7 +49,7 @@ object SettingsMigrationViews {
     @Composable
     fun UpgradePromptRow(onUpgradeClick: () -> Unit) {
         val context = LocalContext.current
-        val settingsRepository = TidyURLApp.instance.settingsRepository
+        val settingsRepository = TidyApp.instance.settingsRepository
         val dismissed by settingsRepository.migrationFollowupDismissed.collectAsStateWithLifecycle(
             initialValue = false
         )
@@ -402,7 +402,7 @@ object SettingsMigrationViews {
                                     scope.launch {
                                         try {
                                             val json =
-                                                TidyURLApp.instance.historyRepository.exportToJson()
+                                                TidyApp.instance.historyRepository.exportToJson()
                                             val backupFile =
                                                 File(context.filesDir, "TidyBackup.json")
                                             backupFile.writeText(json)
