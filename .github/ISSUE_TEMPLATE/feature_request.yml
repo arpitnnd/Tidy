@@ -1,7 +1,7 @@
 name: Feature request
 description: Suggest something for Tidy
 title: "[Feature]: "
-labels: ["enhancement"]
+labels: [ "enhancement" ]
 body:
   - type: textarea
     id: problem

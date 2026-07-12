@@ -1,7 +1,7 @@
 name: Tracker rule report
 description: A parameter was wrongly removed, or a tracker was missed
 title: "[Rule]: "
-labels: ["blocklist"]
+labels: [ "blocklist" ]
 body:
   - type: markdown
     attributes:

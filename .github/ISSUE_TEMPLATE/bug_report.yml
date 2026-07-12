@@ -1,7 +1,7 @@
 name: Bug report
 description: Something in Tidy isn't behaving the way it should
 title: "[Bug]: "
-labels: ["bug"]
+labels: [ "bug" ]
 body:
   - type: markdown
     attributes:

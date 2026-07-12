@@ -4,18 +4,20 @@
 [![Platform](https://img.shields.io/badge/Platform-Android-green.svg)](https://developer.android.com)
 [![Kotlin](https://img.shields.io/badge/Kotlin-Multiplatform-purple.svg)](https://kotlinlang.org/docs/multiplatform.html)
 
-Most links you share carry tracking parameters: click IDs, campaign
-tags, referral codes. Small strings that quietly record where you found
-a link, when you shared it, and who you sent it to. You never added
-them. They're just there.
+Ever copied a link and seen extra gibberish tacked onto the end,
+something like `?utm_source=facebook&fbclid=AbC123xyz`? That's not
+part of the real address. It's tracking information, added quietly so
+companies can tell where you found the link, when you shared it, and
+who you sent it to. Bit by bit, that builds a picture of you, without
+ever asking.
 
-Tidy removes them before the link leaves your phone.
+Tidy removes that part before you share a link. What's left is the
+plain, clean address, nothing extra riding along, and nothing about
+you attached to it.
 
-It's a small Android app, built carefully rather than quickly, for
-people who'd rather know exactly what their phone is doing than hope
-it's fine. Cleaning happens entirely on-device. The rules are yours to
-read and override. Nothing about your links ever reaches a server, not
-Tidy's, not anyone else's.
+It's a small, free app. No account, no setup, no ads.
+Everything happens right on your phone, nothing about your links is
+ever sent anywhere else.
 
 ---
 
@@ -54,7 +56,7 @@ You stay in charge of the rules, not just the outcome:
 
 ---
 
-## The one network call
+## The two network calls
 
 Tidy's tracker blocklist lives in this repository. The app checks in
 every few days for updates: a plain, read-only pull of public rules, so
@@ -69,7 +71,7 @@ Short-link expansion needs the network too, by nature. Unwinding
 from your phone to the link's own server. Nothing of Tidy's sits in
 between.
 
-That's the whole list. Two calls, both explainable in one sentence, both
+That's the whole list, each one explainable in a sentence, both
 one-way.
 
 ---
