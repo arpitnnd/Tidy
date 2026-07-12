@@ -117,6 +117,7 @@ import com.tidy.app.R
 import com.tidy.app.TidyApp
 import com.tidy.app.data.UrlCleaner
 import com.tidy.app.ui.components.FeatureRow
+import com.tidy.app.ui.components.CrashReportBottomSheet
 import com.tidy.app.ui.components.TidyModalBottomSheet
 import com.tidy.app.ui.components.TooltipWrapper
 import com.tidy.app.ui.components.shimmer
@@ -173,7 +174,6 @@ fun MainScreen(
     val sheetState = rememberModalBottomSheetState()
     val introSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
-    var showViewReportDialog by remember { mutableStateOf(false) }
     var hasShownCrashSheetThisSession by rememberSaveable { mutableStateOf(false) }
     var showCrashSheet by remember { mutableStateOf(crashReportText != null && !dontAskAgainCrash && !hasShownCrashSheetThisSession) }
     val onDismissCrashReport = {
@@ -1183,194 +1183,19 @@ fun MainScreen(
 
         // Crash Report Sheet
         if (showCrashSheet && crashReportText != null) {
-            TidyModalBottomSheet(
-                onDismissRequest = { onDismissCrashReport() }
-            ) { scrollFix ->
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .navigationBarsPadding()
-                        .nestedScroll(scrollFix)
-                        .verticalScroll(rememberScrollState())
-                        .padding(horizontal = 24.dp)
-                        .padding(bottom = 32.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(16.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Outlined.CloudOff,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(48.dp)
-                    )
-
-                    Text(
-                        text = stringResource(R.string.crash_sheet_title),
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurface,
-                        textAlign = TextAlign.Center
-                    )
-
-                    Text(
-                        text = stringResource(R.string.crash_sheet_desc),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        textAlign = TextAlign.Center
-                    )
-
-                    // Don't ask again toggle
-                    var dontAskChecked by remember { mutableStateOf(dontAskAgainCrash) }
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clip(RoundedCornerShape(8.dp))
-                            .clickable {
-                                dontAskChecked = !dontAskChecked
-                                scope.launch {
-                                    settingsRepository.setDontAskAgainCrash(dontAskChecked)
-                                }
-                            }
-                            .padding(horizontal = 8.dp, vertical = 8.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        Checkbox(
-                            checked = dontAskChecked,
-                            onCheckedChange = {
-                                dontAskChecked = it
-                                scope.launch {
-                                    settingsRepository.setDontAskAgainCrash(it)
-                                }
-                            }
-                        )
-                        Text(
-                            text = stringResource(R.string.crash_dont_ask_again),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
-                    }
-
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        TooltipWrapper(
-                            tooltipText = stringResource(R.string.crash_share_log),
-                            modifier = Modifier.weight(1f)
-                        ) {
-                            OutlinedButton(
-                                onClick = {
-                                    val sendIntent: Intent = Intent().apply {
-                                        action = Intent.ACTION_SEND
-                                        putExtra(Intent.EXTRA_TEXT, crashReportText)
-                                        type = "text/plain"
-                                    }
-                                    val shareIntent =
-                                        Intent.createChooser(
-                                            sendIntent,
-                                            dialogShareCrashTitle
-                                        )
-                                    context.startActivity(shareIntent)
-                                    onDismissCrashReport()
-                                },
-                                modifier = Modifier.fillMaxWidth(),
-                                shape = RoundedCornerShape(16.dp)
-                            ) {
-                                Text(
-                                    stringResource(R.string.crash_share_log),
-                                    fontWeight = FontWeight.Bold
-                                )
-                            }
-                        }
-
-                        TooltipWrapper(
-                            tooltipText = stringResource(R.string.crash_report_github),
-                            modifier = Modifier.weight(1f)
-                        ) {
-                            Button(
-                                onClick = {
-                                    val clipboard =
-                                        context.getSystemService(android.content.Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
-                                    val clip = android.content.ClipData.newPlainText(
-                                        "Crash Report",
-                                        crashReportText
-                                    )
-                                    clipboard.setPrimaryClip(clip)
-                                    scope.launch {
-                                        snackbarHostState.showSnackbar(crashToastCopied)
-                                    }
-
-                                    val intent = Intent(
-                                        Intent.ACTION_VIEW,
-                                        "https://github.com/arpitnnd/Tidy/issues/new?title=Crash%20Report&body=Paste%20copied%20crash%20log%20here".toUri()
-                                    ).apply {
-                                        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                                    }
-                                    try {
-                                        context.startActivity(intent)
-                                    } catch (e: Exception) {
-                                        scope.launch {
-                                            snackbarHostState.showSnackbar(crashToastBrowserError)
-                                        }
-                                    }
-                                    onDismissCrashReport()
-                                },
-                                modifier = Modifier.fillMaxWidth(),
-                                shape = RoundedCornerShape(16.dp)
-                            ) {
-                                Text(
-                                    stringResource(R.string.crash_report_github),
-                                    fontWeight = FontWeight.Bold
-                                )
-                            }
-                        }
-                    }
-
-                    TooltipWrapper(tooltipText = stringResource(R.string.crash_view_local)) {
-                        TextButton(onClick = { showViewReportDialog = true }) {
-                            Text(stringResource(R.string.crash_view_local))
-                        }
-                    }
-                }
-            }
-        }
-
-        // View Report Details Dialog
-        if (showViewReportDialog && crashReportText != null) {
-            AlertDialog(
-                onDismissRequest = { showViewReportDialog = false },
-                title = {
-                    Text(
-                        stringResource(R.string.dialog_crash_log_title),
-                        fontWeight = FontWeight.Bold
-                    )
-                },
-                text = {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .heightIn(max = 300.dp)
-                            .verticalScroll(rememberScrollState())
-                            .background(
-                                MaterialTheme.colorScheme.surfaceVariant,
-                                RoundedCornerShape(8.dp)
-                            )
-                            .padding(12.dp)
-                    ) {
-                        Text(
-                            text = crashReportText,
-                            style = MaterialTheme.typography.bodySmall,
-                            fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
+            var dontAskChecked by remember { mutableStateOf(dontAskAgainCrash) }
+            CrashReportBottomSheet(
+                crashReportText = crashReportText,
+                onDismiss = { onDismissCrashReport() },
+                showDontAskAgain = true,
+                dontAskAgainChecked = dontAskChecked,
+                onDontAskAgainChange = { checked ->
+                    dontAskChecked = checked
+                    scope.launch {
+                        settingsRepository.setDontAskAgainCrash(checked)
                     }
                 },
-                confirmButton = {
-                    TextButton(onClick = { showViewReportDialog = false }) {
-                        Text(stringResource(R.string.dialog_close))
-                    }
-                }
+                showDeleteButton = false
             )
         }
     }

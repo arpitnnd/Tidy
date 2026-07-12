@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
@@ -19,8 +18,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.outlined.CleaningServices
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -28,7 +25,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -49,6 +45,7 @@ import com.tidy.app.R
 import com.tidy.app.ui.components.AppIconBox
 import com.tidy.app.ui.components.CardSectionLabel
 import com.tidy.app.ui.components.ClickableLinkRow
+import com.tidy.app.ui.components.CrashReportBottomSheet
 import com.tidy.app.ui.components.SettingCard
 import com.tidy.app.ui.components.TidyTopAppBar
 import com.tidy.app.ui.components.TooltipWrapper
@@ -310,117 +307,24 @@ fun AboutScreen(
     }
 
     if (showCrashDialog && currentCrashReportText != null) {
-        AlertDialog(
-            onDismissRequest = { showCrashDialog = false },
-            title = { Text(stringResource(R.string.dialog_crash_log_title)) },
-            text = {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .heightIn(max = 300.dp)
-                        .verticalScroll(rememberScrollState())
-                ) {
-                    Text(
-                        text = currentCrashReportText!!,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-            },
-            confirmButton = {
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    TooltipWrapper(tooltipText = stringResource(R.string.crash_report_github)) {
-                        TextButton(
-                            onClick = {
-                                val clipboard =
-                                    context.getSystemService(android.content.Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
-                                val clip = android.content.ClipData.newPlainText(
-                                    "Crash Report",
-                                    currentCrashReportText
-                                )
-                                clipboard.setPrimaryClip(clip)
-                                scope.launch {
-                                    snackbarHostState.showSnackbar(crashToastCopied)
-                                }
-
-                                val intent = Intent(
-                                    Intent.ACTION_VIEW,
-                                    "https://github.com/arpitnnd/Tidy/issues/new?title=Crash%20Report&body=Paste%20copied%20crash%20log%20here".toUri()
-                                ).apply {
-                                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                                }
-                                try {
-                                    context.startActivity(intent)
-                                } catch (e: Exception) {
-                                    scope.launch {
-                                        snackbarHostState.showSnackbar(crashToastBrowserError)
-                                    }
-                                }
-                                showCrashDialog = false
-                            }
-                        ) {
-                            Text(stringResource(R.string.crash_report_github))
-                        }
+        CrashReportBottomSheet(
+            crashReportText = currentCrashReportText!!,
+            onDismiss = { showCrashDialog = false },
+            showDontAskAgain = false,
+            showDeleteButton = true,
+            onDeleteClick = {
+                try {
+                    val dir = java.io.File(context.filesDir, "crash_reports")
+                    if (dir.exists()) {
+                        dir.deleteRecursively()
                     }
-                    TooltipWrapper(tooltipText = stringResource(R.string.dialog_share)) {
-                        TextButton(
-                            onClick = {
-                                val sendIntent: Intent = Intent().apply {
-                                    action = Intent.ACTION_SEND
-                                    putExtra(Intent.EXTRA_TEXT, currentCrashReportText)
-                                    type = "text/plain"
-                                }
-                                val shareIntent =
-                                    Intent.createChooser(sendIntent, null).apply {
-                                        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                                    }
-                                try {
-                                    context.startActivity(shareIntent)
-                                } catch (e: Exception) {
-                                    scope.launch {
-                                        snackbarHostState.showSnackbar(toastCouldNotShare)
-                                    }
-                                }
-                            }
-                        ) {
-                            Text(stringResource(R.string.dialog_share))
-                        }
+                    currentCrashReportText = null
+                    showCrashDialog = false
+                    scope.launch {
+                        snackbarHostState.showSnackbar(toastCrashDeleted)
                     }
-                    TooltipWrapper(tooltipText = stringResource(R.string.dialog_delete)) {
-                        TextButton(
-                            onClick = {
-                                try {
-                                    val dir =
-                                        java.io.File(context.filesDir, "crash_reports")
-                                    if (dir.exists()) {
-                                        dir.deleteRecursively()
-                                    }
-                                    currentCrashReportText = null
-                                    showCrashDialog = false
-                                    scope.launch {
-                                        snackbarHostState.showSnackbar(toastCrashDeleted)
-                                    }
-                                } catch (e: Exception) {
-                                    e.printStackTrace()
-                                }
-                            },
-                            colors = ButtonDefaults.textButtonColors(
-                                contentColor = MaterialTheme.colorScheme.error
-                            )
-                        ) {
-                            Text(stringResource(R.string.dialog_delete))
-                        }
-                    }
-                }
-            },
-            dismissButton = {
-                TooltipWrapper(tooltipText = stringResource(R.string.dialog_cancel)) {
-                    TextButton(onClick = { showCrashDialog = false }) {
-                        Text(stringResource(R.string.dialog_cancel))
-                    }
+                } catch (e: Exception) {
+                    e.printStackTrace()
                 }
             }
         )
