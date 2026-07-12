@@ -622,7 +622,7 @@ fun MainScreen(
                                         ) {
                                             Icon(
                                                 imageVector = Icons.AutoMirrored.Filled.OpenInNew,
-                                                contentDescription = "Open in browser"
+                                                contentDescription = stringResource(R.string.tooltip_open_browser)
                                             )
                                         }
                                     }
@@ -1257,7 +1257,7 @@ fun MainScreen(
                                     type = "text/plain"
                                 }
                                 val shareIntent =
-                                    Intent.createChooser(sendIntent, "Share Crash Report")
+                                    Intent.createChooser(sendIntent, context.getString(R.string.dialog_share_crash_title))
                                 context.startActivity(shareIntent)
                                 onDismissCrashReport()
                             },
@@ -1319,7 +1319,7 @@ fun MainScreen(
         if (showViewReportDialog && crashReportText != null) {
             AlertDialog(
                 onDismissRequest = { showViewReportDialog = false },
-                title = { Text("Crash Report Log", fontWeight = FontWeight.Bold) },
+                title = { Text(stringResource(R.string.dialog_crash_log_title), fontWeight = FontWeight.Bold) },
                 text = {
                     Box(
                         modifier = Modifier
@@ -1342,7 +1342,7 @@ fun MainScreen(
                 },
                 confirmButton = {
                     TextButton(onClick = { showViewReportDialog = false }) {
-                        Text("Close")
+                        Text(stringResource(R.string.dialog_close))
                     }
                 }
             )

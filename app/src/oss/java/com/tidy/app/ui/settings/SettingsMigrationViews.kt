@@ -357,10 +357,24 @@ object SettingsMigrationViews {
                                 PlusFeature.TEXT_SELECTION -> Icons.Outlined.SelectAll
                             }
 
+                            val title = when (feature) {
+                                PlusFeature.SHARE_AUTOMATION -> stringResource(R.string.plus_feature_share_automation_title)
+                                PlusFeature.BULK_CLEAN -> stringResource(R.string.plus_feature_bulk_clean_title)
+                                PlusFeature.EXTRA_THEMES -> stringResource(R.string.plus_feature_extra_themes_title)
+                                PlusFeature.TEXT_SELECTION -> stringResource(R.string.plus_feature_text_selection_title)
+                            }
+
+                            val description = when (feature) {
+                                PlusFeature.SHARE_AUTOMATION -> stringResource(R.string.plus_feature_share_automation_desc)
+                                PlusFeature.BULK_CLEAN -> stringResource(R.string.plus_feature_bulk_clean_desc)
+                                PlusFeature.EXTRA_THEMES -> stringResource(R.string.plus_feature_extra_themes_desc)
+                                PlusFeature.TEXT_SELECTION -> stringResource(R.string.plus_feature_text_selection_desc)
+                            }
+
                             FeatureRow(
                                 icon = icon,
-                                title = feature.title,
-                                description = feature.description
+                                title = title,
+                                description = description
                             )
                         }
 

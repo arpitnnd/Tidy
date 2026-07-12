@@ -202,4 +202,25 @@
     <string name="tidy_plus_coming_soon_title">Tidy+ (Coming Soon)</string>
     <string name="tidy_plus_coming_soon_desc">Tidy+ is in final testing on Google Play, check back soon.</string>
     <string name="plus_migration_value_proposition">Zero subscription. Pay once, own forever.</string>
+
+    <!-- UI Refactoring & Settings -->
+    <string name="settings_theme_title">App Theme</string>
+    <string name="settings_param_blacklisted_single">parameter blacklisted</string>
+    <string name="settings_param_blacklisted_plural">parameters blacklisted</string>
+    <string name="settings_about_title">About</string>
+    <string name="about_version_format">Version %1$s (%2$d) · %3$s</string>
+    <string name="dialog_share_crash_title">Share Crash Report</string>
+    <string name="tooltip_premium_theme">Premium Theme</string>
+    <string name="tooltip_premium_feature">Premium Feature</string>
+    <string name="tooltip_open">Open</string>
+
+    <!-- Plus Features -->
+    <string name="plus_feature_share_automation_title">Share automation</string>
+    <string name="plus_feature_share_automation_desc">Automatically clean, copy, and close when sharing links.</string>
+    <string name="plus_feature_bulk_clean_title">Bulk clipboard clean</string>
+    <string name="plus_feature_bulk_clean_desc">Clean multiple URLs from your clipboard in one tap.</string>
+    <string name="plus_feature_extra_themes_title">Extra themes</string>
+    <string name="plus_feature_extra_themes_desc">Expressive colourways like Forest Green and Ocean Blue.</string>
+    <string name="plus_feature_text_selection_title">Inline text cleaning</string>
+    <string name="plus_feature_text_selection_desc">Clean URLs directly from any app\'s text-selection menu.</string>
 </resources>

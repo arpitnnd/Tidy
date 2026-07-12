@@ -563,8 +563,11 @@ fun SettingsScreen(
                             stringResource(R.string.settings_no_custom_params_text)
                         } else {
                             val count = state.blacklistedParams.size
-                            val unit =
-                                if (count == 1) "parameter blacklisted" else "parameters blacklisted"
+                            val unit = if (count == 1) {
+                                stringResource(R.string.settings_param_blacklisted_single)
+                            } else {
+                                stringResource(R.string.settings_param_blacklisted_plural)
+                            }
                             "$count $unit"
                         }
                         ExpandableSettingRow(
@@ -705,7 +708,7 @@ fun SettingsScreen(
                             }
                             Icon(
                                 imageVector = Icons.Filled.ChevronRight,
-                                contentDescription = "Open",
+                                contentDescription = stringResource(R.string.tooltip_open),
                                 tint = MaterialTheme.colorScheme.primary
                             )
                         }
@@ -714,7 +717,7 @@ fun SettingsScreen(
 
                 // Appearance Theme Selector
                 ScreenSectionHeader(
-                    text = "App Theme",
+                    text = stringResource(R.string.settings_theme_title),
                     modifier = Modifier.padding(start = 4.dp, top = 8.dp)
                 )
 
@@ -794,7 +797,7 @@ fun SettingsScreen(
                                     if (themeKey != "slate" && !isPlusUnlocked) {
                                         Icon(
                                             imageVector = androidx.compose.material.icons.Icons.Outlined.Lock,
-                                            contentDescription = "Premium Theme",
+                                            contentDescription = stringResource(R.string.tooltip_premium_theme),
                                             tint = MaterialTheme.colorScheme.primary,
                                             modifier = Modifier.size(16.dp)
                                         )
@@ -805,11 +808,8 @@ fun SettingsScreen(
                     }
                 }
 
-                Text(
+                ScreenSectionHeader(
                     text = stringResource(R.string.settings_automation),
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.SemiBold,
-                    color = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.padding(start = 4.dp, top = 8.dp)
                 )
 
@@ -849,7 +849,7 @@ fun SettingsScreen(
                                     if (!isPlusUnlocked) {
                                         Icon(
                                             imageVector = androidx.compose.material.icons.Icons.Outlined.Lock,
-                                            contentDescription = "Premium Feature",
+                                            contentDescription = stringResource(R.string.tooltip_premium_feature),
                                             tint = MaterialTheme.colorScheme.primary,
                                             modifier = Modifier.size(16.dp)
                                         )
@@ -906,7 +906,7 @@ fun SettingsScreen(
                                     if (!isPlusUnlocked) {
                                         Icon(
                                             imageVector = androidx.compose.material.icons.Icons.Outlined.Lock,
-                                            contentDescription = "Premium Feature",
+                                            contentDescription = stringResource(R.string.tooltip_premium_feature),
                                             tint = MaterialTheme.colorScheme.primary,
                                             modifier = Modifier.size(16.dp)
                                         )
@@ -1075,11 +1075,8 @@ fun SettingsScreen(
                 }
 
                 // About Section
-                Text(
-                    text = "About",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.SemiBold,
-                    color = MaterialTheme.colorScheme.primary,
+                ScreenSectionHeader(
+                    text = stringResource(R.string.settings_about_title),
                     modifier = Modifier.padding(start = 4.dp, top = 8.dp)
                 )
 
@@ -1112,7 +1109,7 @@ fun SettingsScreen(
                             }
                             Icon(
                                 imageVector = Icons.Filled.ChevronRight,
-                                contentDescription = "Open",
+                                contentDescription = stringResource(R.string.tooltip_open),
                                 tint = MaterialTheme.colorScheme.primary
                             )
                         }
