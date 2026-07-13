@@ -31,14 +31,40 @@ jobs:
           KEYSTORE_PASSWORD: ${{ secrets.ANDROID_FOSS_KEYSTORE_PASSWORD }}
           KEY_ALIAS: ${{ secrets.ANDROID_FOSS_KEY_ALIAS }}
         run: |
+          # Fail fast rather than let app/build.gradle.kts silently fall back to
+          # debug signing when a secret is missing/misconfigured (see signingConfigs
+          # in app/build.gradle.kts) — that fallback exists for local dev convenience
+          # only and must never be reachable in a release build.
+          if [ -z "$KEYSTORE_PASSWORD" ] || [ -z "$KEY_ALIAS" ]; then
+            echo "::error::ANDROID_FOSS_KEYSTORE_PASSWORD or ANDROID_FOSS_KEY_ALIAS secret is empty. Refusing to build a release artifact that could silently fall back to debug signing." >&2
+            exit 1
+          fi
           cat <<EOF > keystore.properties
           fossStoreFile=$(pwd)/tidy-foss-ci.jks
           fossPassword=$KEYSTORE_PASSWORD
           fossKeyAlias=$KEY_ALIAS
           EOF
 
+      - name: Run Unit Tests
+        run: ./gradlew testFossDebugUnitTest :shared:testAndroidHostTest
+
       - name: Build FOSS Release APK
         run: ./gradlew assembleFossRelease
+
+      - name: Verify Release Signing
+        run: |
+          APKSIGNER=$(find "$ANDROID_HOME"/build-tools -name apksigner | sort -V | tail -1)
+          APK=$(find app/build/outputs/apk/foss/release -name "Tidy-foss-v*.apk" | head -1)
+          if [ -z "$APK" ]; then
+            echo "::error::No FOSS release APK found to verify." >&2
+            exit 1
+          fi
+          CERT_INFO=$("$APKSIGNER" verify --print-certs "$APK")
+          echo "$CERT_INFO"
+          if echo "$CERT_INFO" | grep -qi "CN=Android Debug"; then
+            echo "::error::$APK is signed with the Android debug certificate, not the release key. Aborting publish." >&2
+            exit 1
+          fi
 
       - name: Extract Changelog Section
         id: extract_changelog
