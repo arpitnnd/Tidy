@@ -182,6 +182,14 @@ the same either way. The build commands below are for the `foss` flavor.
 
 ---
 
+## Contributing
+
+Bug fixes, blocklist corrections, and improvements to the `foss`
+flavour are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) for setup,
+code style, and how to submit changes.
+
+---
+
 ## Security policy
 
 If you discover a security vulnerability in Tidy, please report it
