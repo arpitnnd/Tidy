@@ -17,6 +17,7 @@ datastore = "1.2.1"
 kotlinxSerializationJson = "1.11.0"
 acra = "5.13.1"
 playBilling = "7.1.1"
+mockitoCore = "5.14.2"
 
 [libraries]
 androidx-core-ktx = { module = "androidx.core:core-ktx", version.ref = "androidxCore" }
@@ -48,6 +49,7 @@ kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serializa
 acra-core = { module = "ch.acra:acra-core", version.ref = "acra" }
 acra-dialog = { module = "ch.acra:acra-dialog", version.ref = "acra" }
 play-billing = { module = "com.android.billingclient:billing-ktx", version.ref = "playBilling" }
+mockito-core = { module = "org.mockito:mockito-core", version.ref = "mockitoCore" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "androidGradlePlugin" }

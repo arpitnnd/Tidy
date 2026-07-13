@@ -9,7 +9,14 @@ import java.net.HttpURLConnection
 import java.net.URL
 
 object BlocklistSyncer {
-    suspend fun sync(context: Context, settingsRepository: SettingsRepository) =
+    const val DEFAULT_BLOCKLIST_URL =
+        "https://raw.githubusercontent.com/arpitnnd/Tidy/main/blocklist/trackers.json"
+
+    suspend fun sync(
+        context: Context,
+        settingsRepository: SettingsRepository,
+        urlStr: String = DEFAULT_BLOCKLIST_URL
+    ) =
         withContext(Dispatchers.IO) {
             val lastFetch = settingsRepository.blocklistLastFetchTime.first()
             val now = System.currentTimeMillis()
@@ -20,8 +27,6 @@ object BlocklistSyncer {
                 return@withContext
             }
 
-            val urlStr =
-                "https://raw.githubusercontent.com/arpitnnd/Tidy/main/blocklist/trackers.json"
             var connection: HttpURLConnection? = null
             try {
                 val url = URL(urlStr)
