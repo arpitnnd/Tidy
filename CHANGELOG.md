@@ -19,6 +19,9 @@ First public release.
   actions.
 - Back up your rules and history to a JSON file, and restore them
   whenever you need to.
+- Opt-in Android system backups (disabled by default) to prevent silent
+  cloud uploads of your history or settings. Enable them from Settings →
+  Data & Backup.
 - Clean whatever's on your clipboard from the Quick Settings tile or on
   app launch, no need to open the full app.
 - Crash reports stay on-device: read, delete, or share them yourself

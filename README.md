@@ -86,6 +86,11 @@ If Tidy crashes, the report stays on your device. Find it under
 yourself through the system share sheet if you want to help. Tidy never
 sends anything without you choosing to.
 
+The same goes for Android's Auto Backup (Google account or ADB). Tidy blocks
+these by default to prevent silent cloud uploads of your settings and
+sanitisation history. You can opt in any time under **Settings → Data &
+Backup**.
+
 An app that claims zero remote logging shouldn't ask you to trust that
 blindly. The code's right here. Go check.
 
