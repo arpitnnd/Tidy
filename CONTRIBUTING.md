@@ -33,6 +33,7 @@ are documented in the README under
 ./gradlew :app:assembleFossDebug
 ./gradlew :shared:testAndroidHostTest
 ./gradlew :app:testFossDebugUnitTest
+./gradlew lintFossDebug
 ```
 
 You only need the `foss` flavour to work on anything in this repo —

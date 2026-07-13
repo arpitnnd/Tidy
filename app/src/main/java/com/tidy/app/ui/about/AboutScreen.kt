@@ -304,8 +304,8 @@ fun AboutScreen(
                     scope.launch {
                         snackbarHostState.showSnackbar(toastCrashDeleted)
                     }
-                } catch (e: Exception) {
-                    e.printStackTrace()
+                } catch (_: Exception) {
+                    // Best-effort deletion; nothing to do if it fails.
                 }
             }
         )

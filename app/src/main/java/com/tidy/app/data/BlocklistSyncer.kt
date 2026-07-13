@@ -67,8 +67,7 @@ object BlocklistSyncer {
                         settingsRepository.setBlocklistLastFetchTime(now)
                     }
                 }
-            } catch (e: Exception) {
-                e.printStackTrace()
+            } catch (_: Exception) {
                 // Keep using currently cached blocklist silently on failure
             } finally {
                 connection?.disconnect()

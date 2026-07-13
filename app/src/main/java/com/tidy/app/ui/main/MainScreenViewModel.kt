@@ -203,9 +203,8 @@ class MainScreenViewModel(
                         )
                     }
                 }
-            } catch (e: Throwable) {
-                println("Exception in cleanUrl: $e")
-                e.printStackTrace()
+            } catch (_: Throwable) {
+                // Swallowed: isLoading reset below leaves the UI in its pre-clean state.
             } finally {
                 _uiState.update { it.copy(isLoading = false) }
             }
@@ -220,8 +219,8 @@ class MainScreenViewModel(
             try {
                 val resolvedUrl = UrlExpander.resolve(original)
                 cleanUrl(resolvedUrl, originalShortUrl = original)
-            } catch (e: Throwable) {
-                println("Exception in expandShortUrl: $e")
+            } catch (_: Throwable) {
+                // Swallowed: isExpanding reset below leaves the UI in its pre-expand state.
             } finally {
                 _uiState.update { it.copy(isExpanding = false) }
             }
