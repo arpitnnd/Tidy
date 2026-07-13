@@ -6,7 +6,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
 class FossEntitlementManager : AndroidEntitlementManager {
-    private val _isPlusUnlocked = MutableStateFlow(true)
+    private val _isPlusUnlocked = MutableStateFlow(false)
     override val isPlusUnlocked: StateFlow<Boolean> = _isPlusUnlocked.asStateFlow()
 
     private val _isPurchasePending = MutableStateFlow(false)
