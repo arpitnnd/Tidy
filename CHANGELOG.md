@@ -2,9 +2,7 @@
 
 All notable changes to Tidy will be documented in this file.
 
-## [1.0.0] - 2026-07-15
-
-> **Draft — pending review.** First-pass wording only, not final.
+## [1.0.0]
 
 First public release.
 
