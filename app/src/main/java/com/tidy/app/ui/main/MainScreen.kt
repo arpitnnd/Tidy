@@ -181,9 +181,12 @@ fun MainScreen(
         hasShownCrashSheetThisSession = true
     }
 
-    // Clean URL if shared through Android intent
+    // Clean URL if shared through Android intent. Guarded against state.originalUrl so
+    // returning to this NavKey (e.g. navigating back from Settings/History disposes and
+    // recomposes MainScreen, re-running this effect) doesn't re-clean the same shared URL
+    // and double-count it in history/analytics.
     LaunchedEffect(sharedUrl) {
-        if (sharedUrl != null) {
+        if (sharedUrl != null && sharedUrl != state.originalUrl) {
             viewModel.cleanUrl(sharedUrl, isShared = true)
         }
     }
