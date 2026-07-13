@@ -79,6 +79,10 @@
     <string name="settings_remove_mobile_subdomains_title">Remove mobile subdomains</string>
     <string name="settings_remove_mobile_subdomains_desc">Automatically strip \'m.\' or \'mobile.\' subdomains from cleaned links</string>
 
+    <string name="settings_data_backup_title">Data &amp; Backup</string>
+    <string name="settings_allow_system_backup_title">Back up app data</string>
+    <string name="settings_allow_system_backup_desc">Off by default. When on, your history and rules can be included in Android\'s system backup (e.g. Google account or ADB backup) so they survive a reinstall.</string>
+
     <string name="settings_param_whitelist_title">Domain Parameter Whitelist</string>
     <string name="settings_no_params_whitelisted">No parameters whitelisted</string>
     <string name="settings_param_whitelisted_single">parameter whitelisted</string>

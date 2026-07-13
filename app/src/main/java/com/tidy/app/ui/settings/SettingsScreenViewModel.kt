@@ -3,6 +3,7 @@ package com.tidy.app.ui.settings
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.tidy.app.TidyApp
+import com.tidy.app.data.BackupPreference
 import com.tidy.app.data.SettingsRepository
 import com.tidy.app.data.TrackerEntry
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -31,7 +32,8 @@ class SettingsScreenViewModel(
         val autoExpandShortUrls: Boolean = true,
         val autoRemoveMobileSubdomains: Boolean = true,
         val autoCleanClipboardOnLaunch: Boolean = false,
-        val autoCleanOnInput: Boolean = true
+        val autoCleanOnInput: Boolean = true,
+        val allowSystemBackup: Boolean = false
     )
 
     private data class BooleanSettings(
@@ -50,7 +52,9 @@ class SettingsScreenViewModel(
         val trackers: List<TrackerEntry>
     )
 
-    private val _uiState = MutableStateFlow(UiState())
+    private val _uiState = MutableStateFlow(
+        UiState(allowSystemBackup = BackupPreference.isAllowed(TidyApp.instance))
+    )
     val uiState: StateFlow<UiState> = combine(
         combine(
             settingsRepository.whitelistedDomains,
@@ -170,6 +174,11 @@ class SettingsScreenViewModel(
         viewModelScope.launch {
             settingsRepository.setAutoCleanOnInput(enabled)
         }
+    }
+
+    fun setAllowSystemBackup(enabled: Boolean) {
+        BackupPreference.setAllowed(TidyApp.instance, enabled)
+        _uiState.update { it.copy(allowSystemBackup = enabled) }
     }
 
     fun onNewParamWhitelistDomainChanged(value: String) {

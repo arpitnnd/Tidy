@@ -1072,6 +1072,48 @@ fun SettingsScreen(
                     }
                 }
 
+                // Data & Backup Section
+                ScreenSectionHeader(
+                    text = stringResource(R.string.settings_data_backup_title),
+                    modifier = Modifier.padding(start = 4.dp, top = 8.dp)
+                )
+
+                SettingCard {
+                    Column(
+                        modifier = Modifier.padding(12.dp)
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(12.dp))
+                                .clickable { viewModel.setAllowSystemBackup(!state.allowSystemBackup) }
+                                .padding(horizontal = 8.dp, vertical = 12.dp),
+                            horizontalArrangement = Arrangement.spacedBy(16.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = stringResource(R.string.settings_allow_system_backup_title),
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                                Spacer(modifier = Modifier.height(2.dp))
+                                Text(
+                                    text = stringResource(R.string.settings_allow_system_backup_desc),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                            Switch(
+                                checked = state.allowSystemBackup,
+                                onCheckedChange = null,
+                                colors = clearSwitchColors()
+                            )
+                        }
+                    }
+                }
+
                 // About Section
                 ScreenSectionHeader(
                     text = stringResource(R.string.settings_about_title),
