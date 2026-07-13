@@ -178,6 +178,9 @@ the same either way. The build commands below are for the `foss` flavor.
 # Run unit tests
 ./gradlew :shared:testAndroidHostTest
 ./gradlew :app:testFossDebugUnitTest
+
+# Run lint checks
+./gradlew lintFossDebug
 ```
 
 ---
