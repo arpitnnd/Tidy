@@ -1,0 +1,59 @@
+name: Bug report
+description: Something in Tidy isn't behaving the way it should
+title: "[Bug]: "
+labels: [ "bug" ]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting this. If this came from the "Report" button
+        inside Tidy, some of these fields may already be filled in.
+  - type: dropdown
+    id: build
+    attributes:
+      label: Which build are you using?
+      options:
+        - GitHub Release (foss)
+        - Google Play (free)
+        - Google Play (Tidy+)
+    validations:
+      required: true
+  - type: input
+    id: app-version
+    attributes:
+      label: Tidy version
+      placeholder: "e.g. 1.2.0"
+    validations:
+      required: true
+  - type: input
+    id: android-version
+    attributes:
+      label: Android version
+      placeholder: "e.g. Android 14"
+    validations:
+      required: true
+  - type: input
+    id: domain
+    attributes:
+      label: Domain or URL pattern involved (if relevant)
+      description: >
+        Share the domain or general pattern, not the full personal link,
+        if you'd rather keep it private. e.g. "youtube.com" not the
+        specific video link.
+      placeholder: "example.com"
+  - type: textarea
+    id: expected
+    attributes:
+      label: What did you expect to happen?
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: What actually happened?
+    validations:
+      required: true
+  - type: textarea
+    id: extra
+    attributes:
+      label: Anything else worth knowing?

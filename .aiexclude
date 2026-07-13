@@ -1,0 +1,7 @@
+# Keystore files
+*.jks
+*.keystore
+
+# Signing files
+.signing/
+keystore.properties
