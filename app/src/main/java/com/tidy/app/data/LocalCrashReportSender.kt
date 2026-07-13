@@ -34,8 +34,8 @@ class LocalCrashReportSender : ReportSender {
                 appendLine(stackTrace)
             }
             reportFile.writeText(reportText)
-        } catch (e: Exception) {
-            e.printStackTrace()
+        } catch (_: Exception) {
+            // Best-effort local write; nothing to do if it fails.
         }
     }
 }
