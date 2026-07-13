@@ -81,6 +81,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.tidy.app.R
 import com.tidy.app.data.HistoryEntry
+import com.tidy.app.ui.components.ParamDetailBottomSheet
 import com.tidy.app.ui.components.ScreenSectionHeader
 import com.tidy.app.ui.components.TidyTopAppBar
 import com.tidy.app.ui.components.TooltipWrapper
@@ -113,6 +114,7 @@ fun HistoryScreen(
     val mainCopied = stringResource(R.string.main_copied)
     val mainCleanedUrl = stringResource(R.string.main_cleaned_url)
     val toastNoBrowserApp = stringResource(R.string.toast_no_browser_app)
+    val crashToastBrowserError = stringResource(R.string.crash_toast_browser_error)
 
     val exportLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.CreateDocument("application/json")
@@ -351,7 +353,9 @@ fun HistoryScreen(
                             trackerDescriptions = state.trackerDescriptions,
                             onShowSnackbar = { msg ->
                                 scope.launch { snackbarHostState.showSnackbar(msg) }
-                            }
+                            },
+                            onWhitelist = viewModel::addDomainWhitelistedParam,
+                            reportIssueFailedMessage = crashToastBrowserError
                         )
                     }
                 }
@@ -528,6 +532,8 @@ private fun HistoryItem(
     entry: HistoryEntry,
     trackerDescriptions: Map<String, String>,
     onShowSnackbar: (String) -> Unit,
+    onWhitelist: (domain: String, param: String) -> Unit,
+    reportIssueFailedMessage: String,
     modifier: Modifier = Modifier
 ) {
     var expanded by remember { mutableStateOf(false) }
@@ -837,27 +843,13 @@ private fun HistoryItem(
         val param = selectedParam!!
         val desc = trackerDescriptions[param.lowercase().trim()]
             ?: stringResource(R.string.details_no_explanation)
-        AlertDialog(
-            onDismissRequest = { selectedParam = null },
-            title = {
-                Text(
-                    text = param,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.primary
-                )
-            },
-            text = {
-                Text(
-                    text = desc,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            },
-            confirmButton = {
-                TextButton(onClick = { selectedParam = null }) {
-                    Text(stringResource(R.string.dialog_close))
-                }
-            }
+        ParamDetailBottomSheet(
+            param = param,
+            description = desc,
+            domain = entry.domain,
+            onDismiss = { selectedParam = null },
+            onWhitelist = onWhitelist,
+            onReportIssueFailed = { onShowSnackbar(reportIssueFailedMessage) }
         )
     }
 }

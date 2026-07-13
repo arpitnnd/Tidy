@@ -115,9 +115,11 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.tidy.app.FlavorConfig
 import com.tidy.app.R
 import com.tidy.app.TidyApp
+import com.tidy.app.data.HistoryRepository
 import com.tidy.app.data.UrlCleaner
 import com.tidy.app.ui.components.FeatureRow
 import com.tidy.app.ui.components.CrashReportBottomSheet
+import com.tidy.app.ui.components.ParamDetailBottomSheet
 import com.tidy.app.ui.components.TidyModalBottomSheet
 import com.tidy.app.ui.components.TooltipWrapper
 import com.tidy.app.ui.components.shimmer
@@ -518,7 +520,7 @@ fun MainScreen(
                                 verticalArrangement = Arrangement.spacedBy(12.dp)
                             ) {
                                 val domainToWhitelist = remember(state.originalUrl) {
-                                    extractDomain(state.originalUrl)
+                                    HistoryRepository.extractDomain(state.originalUrl)
                                 }
 
                                 Row(
@@ -1203,76 +1205,22 @@ fun MainScreen(
 
     if (paramToWhitelist != null) {
         val param = paramToWhitelist!!
-        val domain = extractDomain(state.originalUrl)
+        val domain = HistoryRepository.extractDomain(state.originalUrl)
         val description =
             trackerDescriptions[param] ?: stringResource(R.string.details_no_explanation)
 
-        TidyModalBottomSheet(
-            onDismissRequest = { paramToWhitelist = null }
-        ) { scrollFix ->
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .navigationBarsPadding()
-                    .padding(horizontal = 24.dp)
-                    .padding(bottom = 32.dp)
-                    .nestedScroll(scrollFix),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                Text(
-                    text = param,
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.primary
-                )
-
-                Text(
-                    text = description,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 8.dp),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    OutlinedButton(
-                        onClick = {
-                            val success = launchGitHubBugReport(context, param, domain)
-                            if (!success) {
-                                scope.launch {
-                                    snackbarHostState.showSnackbar(crashToastBrowserError)
-                                }
-                            }
-                            paramToWhitelist = null
-                        },
-                        modifier = Modifier.weight(1f),
-                        shape = RoundedCornerShape(16.dp)
-                    ) {
-                        Text(
-                            stringResource(R.string.details_report_issue),
-                            fontWeight = FontWeight.Bold
-                        )
-                    }
-
-                    Button(
-                        onClick = {
-                            viewModel.addDomainWhitelistedParam(domain, param)
-                            paramToWhitelist = null
-                        },
-                        modifier = Modifier.weight(1f),
-                        shape = RoundedCornerShape(16.dp)
-                    ) {
-                        Text(
-                            stringResource(R.string.details_always_keep),
-                            fontWeight = FontWeight.Bold
-                        )
-                    }
+        ParamDetailBottomSheet(
+            param = param,
+            description = description,
+            domain = domain,
+            onDismiss = { paramToWhitelist = null },
+            onWhitelist = { d, p -> viewModel.addDomainWhitelistedParam(d, p) },
+            onReportIssueFailed = {
+                scope.launch {
+                    snackbarHostState.showSnackbar(crashToastBrowserError)
                 }
             }
-        }
+        )
     }
 
     if (showUpsellSheet) {
@@ -1479,50 +1427,6 @@ private fun ClipboardActionBanner(
     }
 }
 
-private fun extractDomain(url: String): String {
-    var temp = url
-    val protoIndex = temp.indexOf("://")
-    if (protoIndex != -1) temp = temp.substring(protoIndex + 3)
-    val slashIndex = temp.indexOf('/')
-    if (slashIndex != -1) temp = temp.substring(0, slashIndex)
-    val qIndex = temp.indexOf('?')
-    if (qIndex != -1) temp = temp.substring(0, qIndex)
-    val hashIndex = temp.indexOf('#')
-    if (hashIndex != -1) temp = temp.substring(0, hashIndex)
-    val portIndex = temp.indexOf(':')
-    if (portIndex != -1) temp = temp.substring(0, portIndex)
-    return temp.trim().lowercase()
-}
-
-private fun launchGitHubBugReport(
-    context: android.content.Context,
-    param: String,
-    domain: String
-): Boolean {
-    val title = "Broken parameter: $param on $domain"
-    val body = """
-**Parameter:** $param
-**Domain:** $domain
-
-**Description:**
-The parameter `$param` was removed from `$domain`, which broke the site or removed required information. Please review this rule.
-""".trimIndent()
-
-    return try {
-        val encodedTitle = java.net.URLEncoder.encode(title, "UTF-8")
-        val encodedBody = java.net.URLEncoder.encode(body, "UTF-8")
-        val urlStr =
-            "https://github.com/arpitnnd/Tidy/issues/new?title=$encodedTitle&body=$encodedBody&labels=bug-report"
-
-        val intent = Intent(Intent.ACTION_VIEW, urlStr.toUri()).apply {
-            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-        }
-        context.startActivity(intent)
-        true
-    } catch (e: Exception) {
-        false
-    }
-}
 
 @Composable
 private fun CompactFeatureRow(

@@ -96,4 +96,10 @@ class HistoryScreenViewModel(
             onResult(count)
         }
     }
+
+    fun addDomainWhitelistedParam(domain: String, param: String) {
+        viewModelScope.launch {
+            settingsRepository.addDomainWhitelistedParam(domain, param)
+        }
+    }
 }
