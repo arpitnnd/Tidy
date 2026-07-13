@@ -176,7 +176,7 @@ the same either way. The build commands below are for the `foss` flavor.
 ./gradlew :app:assembleFossDebug
 
 # Run unit tests
-./gradlew :shared:testDebugUnitTest
+./gradlew :shared:testAndroidHostTest
 ./gradlew :app:testFossDebugUnitTest
 ```
 
