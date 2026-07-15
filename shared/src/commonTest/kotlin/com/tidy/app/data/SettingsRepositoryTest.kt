@@ -26,20 +26,23 @@ class SettingsRepositoryTest {
         }
     }
 
+    private lateinit var dataStore: FakeDataStore
     private lateinit var repository: SettingsRepository
 
     @Before
     fun setUp() {
-        repository = SettingsRepository(FakeDataStore())
+        dataStore = FakeDataStore()
+        repository = SettingsRepository(dataStore)
     }
 
     @Test
     fun defaultsMatchDocumentedBehavior() = runTest {
-        assertFalse(repository.autoCopyOnShare.first())
-        assertFalse(repository.autoCloseOnShare.first())
+        assertTrue(repository.checkClipboardForLinks.first())
+        assertEquals(ClipboardCleanTier.SUGGEST, repository.clipboardCleanTier.first())
+        assertEquals(ShareCleanTier.CLEAN, repository.shareCleanTier.first())
+        assertFalse(repository.closeInsteadOfSharing.first())
         assertTrue(repository.autoExpandShortUrls.first())
         assertTrue(repository.autoRemoveMobileSubdomains.first())
-        assertFalse(repository.autoCleanClipboardOnLaunch.first())
         assertTrue(repository.autoCleanOnInput.first())
         assertFalse(repository.dontAskAgainCrash.first())
         assertFalse(repository.migrationDone.first())
@@ -51,14 +54,58 @@ class SettingsRepositoryTest {
 
     @Test
     fun settersPersistNewValues() = runTest {
-        repository.setAutoCopyOnShare(true)
-        assertTrue(repository.autoCopyOnShare.first())
+        repository.setCheckClipboardForLinks(false)
+        assertFalse(repository.checkClipboardForLinks.first())
+
+        repository.setClipboardCleanTier(ClipboardCleanTier.AUTO_CLEAN)
+        assertEquals(ClipboardCleanTier.AUTO_CLEAN, repository.clipboardCleanTier.first())
+
+        repository.setShareCleanTier(ShareCleanTier.CLEAN_COPY_AND_SHARE)
+        assertEquals(ShareCleanTier.CLEAN_COPY_AND_SHARE, repository.shareCleanTier.first())
+
+        repository.setCloseInsteadOfSharing(true)
+        assertTrue(repository.closeInsteadOfSharing.first())
 
         repository.setAutoExpandShortUrls(false)
         assertFalse(repository.autoExpandShortUrls.first())
 
         repository.setSelectedTheme("midnight")
         assertEquals("midnight", repository.selectedTheme.first())
+    }
+
+    @Test
+    fun legacyShareAutomationKeysSeedShareTier() = runTest {
+        dataStore.updateData { prefs ->
+            val mutable = prefs.toMutablePreferences()
+            mutable[SettingsRepository.KEY_AUTO_COPY_ON_SHARE] = true
+            mutable
+        }
+        assertEquals(ShareCleanTier.CLEAN_AND_COPY, repository.shareCleanTier.first())
+
+        dataStore.updateData { prefs ->
+            val mutable = prefs.toMutablePreferences()
+            mutable[SettingsRepository.KEY_AUTO_CLOSE_ON_SHARE] = true
+            mutable
+        }
+        assertEquals(ShareCleanTier.CLEAN_COPY_AND_SHARE, repository.shareCleanTier.first())
+        assertTrue(repository.closeInsteadOfSharing.first())
+
+        // An explicit tier choice wins over the legacy keys.
+        repository.setShareCleanTier(ShareCleanTier.CLEAN)
+        assertEquals(ShareCleanTier.CLEAN, repository.shareCleanTier.first())
+    }
+
+    @Test
+    fun legacyLaunchAutoCleanKeySeedsClipboardTier() = runTest {
+        dataStore.updateData { prefs ->
+            val mutable = prefs.toMutablePreferences()
+            mutable[SettingsRepository.KEY_AUTO_CLEAN_CLIPBOARD_ON_LAUNCH] = true
+            mutable
+        }
+        assertEquals(ClipboardCleanTier.AUTO_CLEAN, repository.clipboardCleanTier.first())
+
+        repository.setClipboardCleanTier(ClipboardCleanTier.SUGGEST_AND_COPY)
+        assertEquals(ClipboardCleanTier.SUGGEST_AND_COPY, repository.clipboardCleanTier.first())
     }
 
     @Test
