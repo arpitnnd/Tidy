@@ -47,10 +47,10 @@ You stay in charge of the rules, not just the outcome:
 
 - **Quick Settings tile.** Clean whatever's on your clipboard from the
   notification shade, no app launch required.
-- **Launch auto-clean.** Open Tidy and your clipboard link is cleaned,
-  copied back, and the app is gone before it's had time to matter.
-- **Share automation** (Tidy+). A shared link gets cleaned, copied, and
-  Tidy closes itself, dropping you right back where you were.
+- **Clipboard checking.** Off by default. Turn it on and choose how
+  far it goes, from a quick review prompt up to fully automatic.
+- **Share to Tidy.** Same choice for shared links: see the cleaned
+  result, or let Tidy copy and even re-share it for you.
 - **Clean from anywhere** (Tidy+). Select a URL in any app, tap *Clean
   with Tidy* in the selection toolbar. No switching apps to do it.
 
@@ -103,11 +103,11 @@ that gives you control, the cleaning engine, custom rules, whitelist
 profiles, unlimited history, your own backups, stays free, for good.
 
 **Tidy+** is a one-time unlock on Google Play for people who already
-trust how Tidy behaves and want a few less taps: auto-copy and
-auto-close on share, cleaning from any text field, extra themes. It's
-also how this stays a real, maintained project instead of an app that
-quietly stops getting updates. No ads, no subscription, no data
-collected to sell instead.
+trust how Tidy behaves and want a few less taps: the upper tiers of
+clipboard and share automation, cleaning from any text field, extra
+themes. It's also how this stays a real, maintained project instead of
+an app that quietly stops getting updates. No ads, no subscription, no
+data collected to sell instead.
 
 > Tidy+ isn't live yet. The GitHub build above works fully today. Tidy+
 > is finishing testing before it lands on Google Play, and this README
@@ -119,8 +119,11 @@ collected to sell instead.
 | Cleaning engine, short-link expansion | ✅ | ✅ |
 | Custom rules, whitelist profiles | ✅ | ✅ |
 | Unlimited history, dashboard, backup/restore | ✅ | ✅ |
-| Quick Settings tile, launch auto-clean | ✅ | ✅ |
-| Auto-copy & auto-close on share | — | ✅ |
+| Quick Settings tile | ✅ | ✅ |
+| Clipboard checking, review before copying | ✅ | ✅ |
+| Clipboard checking, auto-copy or auto-clean | — | ✅ |
+| Share to Tidy, view the cleaned link | ✅ | ✅ |
+| Share to Tidy, auto-copy or auto-share | — | ✅ |
 | Inline text-selection cleaning | — | ✅ |
 | Extra themes | — | ✅ |
 
@@ -155,8 +158,9 @@ Kotlin Multiplatform, split cleanly between core logic and the Android
 client:
 
 - **`:shared`**: `UrlCleaner` (the parameter-stripping and whitelisting
-  engine), `SettingsRepository` (DataStore-backed rules, stats, and
-  automation settings).
+  engine), `UrlDetection` (the single loose "looks like a URL" check
+  used everywhere a link needs spotting), `SettingsRepository`
+  (DataStore-backed rules, stats, and tiered automation settings).
 - **`:app`**: Compose UI (Navigation3), share-intent handling, the
   Quick Settings `TileService`, and `UrlExpander` for redirect
   resolution.
