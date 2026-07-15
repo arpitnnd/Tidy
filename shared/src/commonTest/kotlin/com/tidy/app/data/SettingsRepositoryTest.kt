@@ -37,7 +37,8 @@ class SettingsRepositoryTest {
 
     @Test
     fun defaultsMatchDocumentedBehavior() = runTest {
-        assertTrue(repository.checkClipboardForLinks.first())
+        assertFalse(repository.checkClipboardForLinks.first())
+        assertFalse(repository.clipboardCalloutDismissed.first())
         assertEquals(ClipboardCleanTier.SUGGEST, repository.clipboardCleanTier.first())
         assertEquals(ShareCleanTier.CLEAN, repository.shareCleanTier.first())
         assertFalse(repository.closeInsteadOfSharing.first())
@@ -54,8 +55,11 @@ class SettingsRepositoryTest {
 
     @Test
     fun settersPersistNewValues() = runTest {
-        repository.setCheckClipboardForLinks(false)
-        assertFalse(repository.checkClipboardForLinks.first())
+        repository.setCheckClipboardForLinks(true)
+        assertTrue(repository.checkClipboardForLinks.first())
+
+        repository.setClipboardCalloutDismissed(true)
+        assertTrue(repository.clipboardCalloutDismissed.first())
 
         repository.setClipboardCleanTier(ClipboardCleanTier.AUTO_CLEAN)
         assertEquals(ClipboardCleanTier.AUTO_CLEAN, repository.clipboardCleanTier.first())
@@ -106,6 +110,22 @@ class SettingsRepositoryTest {
 
         repository.setClipboardCleanTier(ClipboardCleanTier.SUGGEST_AND_COPY)
         assertEquals(ClipboardCleanTier.SUGGEST_AND_COPY, repository.clipboardCleanTier.first())
+    }
+
+    @Test
+    fun legacyLaunchAutoCleanKeySeedsCheckClipboardForLinks() = runTest {
+        // Clipboard checking is off by default, but a pre-tiered user who'd already
+        // opted into launch auto-clean keeps clipboard checking on after upgrading.
+        dataStore.updateData { prefs ->
+            val mutable = prefs.toMutablePreferences()
+            mutable[SettingsRepository.KEY_AUTO_CLEAN_CLIPBOARD_ON_LAUNCH] = true
+            mutable
+        }
+        assertTrue(repository.checkClipboardForLinks.first())
+
+        // An explicit choice wins over the legacy key.
+        repository.setCheckClipboardForLinks(false)
+        assertFalse(repository.checkClipboardForLinks.first())
     }
 
     @Test

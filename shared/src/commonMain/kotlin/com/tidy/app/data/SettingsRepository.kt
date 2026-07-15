@@ -22,6 +22,7 @@ class SettingsRepository(private val dataStore: DataStore<Preferences>) {
         val KEY_AUTO_COPY_ON_SHARE = booleanPreferencesKey("auto_copy_on_share")
         val KEY_AUTO_CLOSE_ON_SHARE = booleanPreferencesKey("auto_close_on_share")
         val KEY_CHECK_CLIPBOARD_FOR_LINKS = booleanPreferencesKey("check_clipboard_for_links")
+        val KEY_CLIPBOARD_CALLOUT_DISMISSED = booleanPreferencesKey("clipboard_callout_dismissed")
         val KEY_CLIPBOARD_CLEAN_TIER = stringPreferencesKey("clipboard_clean_tier")
         val KEY_SHARE_CLEAN_TIER = stringPreferencesKey("share_clean_tier")
         val KEY_AUTO_EXPAND_SHORT_URLS = booleanPreferencesKey("auto_expand_short_urls")
@@ -79,7 +80,14 @@ class SettingsRepository(private val dataStore: DataStore<Preferences>) {
     }
 
     val checkClipboardForLinks: Flow<Boolean> = dataStore.data.map { preferences ->
-        preferences[KEY_CHECK_CLIPBOARD_FOR_LINKS] ?: true
+        // Off by default; pre-tiered "auto-clean clipboard on launch" users who'd
+        // already opted in keep clipboard checking on after upgrading.
+        preferences[KEY_CHECK_CLIPBOARD_FOR_LINKS]
+            ?: (preferences[KEY_AUTO_CLEAN_CLIPBOARD_ON_LAUNCH] == true)
+    }
+
+    val clipboardCalloutDismissed: Flow<Boolean> = dataStore.data.map { preferences ->
+        preferences[KEY_CLIPBOARD_CALLOUT_DISMISSED] ?: false
     }
 
     val clipboardCleanTier: Flow<ClipboardCleanTier> = dataStore.data.map { preferences ->
@@ -146,6 +154,12 @@ class SettingsRepository(private val dataStore: DataStore<Preferences>) {
     suspend fun setCheckClipboardForLinks(enabled: Boolean) {
         dataStore.edit { preferences ->
             preferences[KEY_CHECK_CLIPBOARD_FOR_LINKS] = enabled
+        }
+    }
+
+    suspend fun setClipboardCalloutDismissed(dismissed: Boolean) {
+        dataStore.edit { preferences ->
+            preferences[KEY_CLIPBOARD_CALLOUT_DISMISSED] = dismissed
         }
     }
 
