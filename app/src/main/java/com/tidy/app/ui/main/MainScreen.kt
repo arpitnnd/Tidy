@@ -155,6 +155,12 @@ fun MainScreen(
     val dontAskAgainCrash by settingsRepository.dontAskAgainCrash.collectAsStateWithLifecycle(
         initialValue = false
     )
+    val checkClipboardForLinks by settingsRepository.checkClipboardForLinks.collectAsStateWithLifecycle(
+        initialValue = false
+    )
+    val clipboardCalloutDismissed by settingsRepository.clipboardCalloutDismissed.collectAsStateWithLifecycle(
+        initialValue = false
+    )
 
     val entitlementManager = TidyApp.instance.entitlementManager
     val isPlusUnlocked by entitlementManager.isPlusUnlocked.collectAsStateWithLifecycle(initialValue = false)
@@ -495,6 +501,21 @@ fun MainScreen(
                             }
                         }
                     } else {
+                        AnimatedVisibility(visible = !checkClipboardForLinks && !clipboardCalloutDismissed) {
+                            ClipboardCalloutBanner(
+                                onEnable = {
+                                    scope.launch {
+                                        settingsRepository.setCheckClipboardForLinks(true)
+                                    }
+                                },
+                                onDismiss = {
+                                    scope.launch {
+                                        settingsRepository.setClipboardCalloutDismissed(true)
+                                    }
+                                },
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                        }
                         ManualEntryRow(
                             state = state,
                             viewModel = viewModel
@@ -1288,6 +1309,92 @@ private fun ClipboardActionBanner(
     }
 }
 
+
+/**
+ * Suggests turning on clipboard checking (off by default). Shown above the manual
+ * entry fallback until the user enables it or dismisses the callout for good.
+ */
+@Composable
+private fun ClipboardCalloutBanner(
+    onEnable: () -> Unit,
+    onDismiss: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Card(
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f)
+        ),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.15f)),
+        modifier = modifier
+    ) {
+        Column(modifier = Modifier.padding(12.dp)) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(40.dp)
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Outlined.ContentPaste,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(20.dp)
+                    )
+                }
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = stringResource(R.string.banner_clipboard_callout_title),
+                        style = MaterialTheme.typography.labelMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    Spacer(modifier = Modifier.height(2.dp))
+                    Text(
+                        text = stringResource(R.string.banner_clipboard_callout_desc),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+            Row(
+                horizontalArrangement = Arrangement.End,
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 8.dp)
+            ) {
+                TextButton(onClick = onDismiss) {
+                    Text(
+                        text = stringResource(R.string.banner_clipboard_callout_dismiss),
+                        style = MaterialTheme.typography.labelSmall
+                    )
+                }
+                Spacer(modifier = Modifier.width(4.dp))
+                Button(
+                    onClick = onEnable,
+                    shape = RoundedCornerShape(12.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.primary
+                    ),
+                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
+                ) {
+                    Text(
+                        text = stringResource(R.string.banner_clipboard_callout_enable),
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            }
+        }
+    }
+}
 
 @Composable
 private fun CompactFeatureRow(

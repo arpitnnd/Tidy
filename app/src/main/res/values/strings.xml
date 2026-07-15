@@ -37,6 +37,10 @@
 
     <string name="banner_found_clipboard">Found URL in clipboard</string>
     <string name="banner_paste_clean">Paste and clean</string>
+    <string name="banner_clipboard_callout_title">Check clipboard for links?</string>
+    <string name="banner_clipboard_callout_desc">Looks for a link each time you open Tidy.</string>
+    <string name="banner_clipboard_callout_enable">Enable</string>
+    <string name="banner_clipboard_callout_dismiss">Dismiss</string>
     <string name="button_clean_url">Clean URL</string>
     <string name="toast_no_browser_app">No app found to open URL</string>
     <string name="toast_copied">Copied to clipboard</string>
