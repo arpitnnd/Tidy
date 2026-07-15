@@ -46,11 +46,26 @@ object FlavorConfig {
         // No-op for FOSS
     }
 
+    suspend fun resolveClipboardTier(
+        settingsRepository: com.tidy.app.data.SettingsRepository
+    ): com.tidy.app.data.ClipboardCleanTier {
+        // FOSS has no Tidy+ automation: always the free Suggest baseline.
+        return com.tidy.app.data.ClipboardCleanTier.SUGGEST
+    }
+
     suspend fun handleShareAutomation(
-        cleanedUrl: String,
         settingsRepository: com.tidy.app.data.SettingsRepository,
-        onCopyAndClose: (Boolean) -> Unit
+        onOutcome: (com.tidy.app.data.ShareAutomationOutcome) -> Unit
     ) {
+        // No-op for FOSS: the free Clean baseline shows the result in-app.
+    }
+
+    // The text-selection "Clean with Tidy" entry ships in the plus module only.
+    val isProcessTextAvailable: Boolean = false
+
+    fun isProcessTextEnabled(context: android.content.Context): Boolean = false
+
+    fun setProcessTextEnabled(context: android.content.Context, enabled: Boolean) {
         // No-op for FOSS
     }
 }
