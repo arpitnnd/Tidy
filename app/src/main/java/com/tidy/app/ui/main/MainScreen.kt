@@ -48,7 +48,6 @@ import androidx.compose.material.icons.outlined.CleaningServices
 import androidx.compose.material.icons.outlined.CloudOff
 import androidx.compose.material.icons.outlined.ContentPaste
 import androidx.compose.material.icons.outlined.History
-import androidx.compose.material.icons.outlined.Link
 import androidx.compose.material.icons.outlined.Tune
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.AssistChip
@@ -114,6 +113,7 @@ import com.tidy.app.data.ClipboardCleanTier
 import com.tidy.app.data.HistoryRepository
 import com.tidy.app.data.UrlCleaner
 import com.tidy.app.data.UrlDetection
+import com.tidy.app.ui.components.ArrowsOutward
 import com.tidy.app.ui.components.FeatureRow
 import com.tidy.app.ui.components.CrashReportBottomSheet
 import com.tidy.app.ui.components.ParamDetailBottomSheet
@@ -662,7 +662,7 @@ fun MainScreen(
                                                     )
                                                 } else {
                                                     Icon(
-                                                        imageVector = Icons.Outlined.Link,
+                                                        imageVector = Icons.Outlined.ArrowsOutward,
                                                         contentDescription = stringResource(R.string.main_expand_url)
                                                     )
                                                 }
