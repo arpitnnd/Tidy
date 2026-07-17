@@ -141,6 +141,7 @@ object SettingsMigrationViews {
                                 ComingSoonBadge()
                             }
                         }
+                        Spacer(modifier = Modifier.height(4.dp))
                         Text(
                             text = stringResource(R.string.settings_tidy_plus_upgrade_desc),
                             style = MaterialTheme.typography.bodySmall,
