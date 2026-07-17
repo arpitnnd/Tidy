@@ -36,9 +36,9 @@
     <string name="dialog_cancel">Cancel</string>
 
     <string name="banner_found_clipboard">Found URL in clipboard</string>
-    <string name="banner_paste_clean">Paste and clean</string>
-    <string name="banner_clipboard_callout_title">Check clipboard for links?</string>
-    <string name="banner_clipboard_callout_desc">Looks for a link each time you open Tidy.</string>
+    <string name="banner_paste_clean">Clean</string>
+    <string name="banner_clipboard_callout_title">Check clipboard on launch?</string>
+    <string name="banner_clipboard_callout_desc">Tidy will look for a link each time you open it.</string>
     <string name="banner_clipboard_callout_enable">Enable</string>
     <string name="banner_clipboard_callout_dismiss">Dismiss</string>
     <string name="button_clean_url">Clean URL</string>
@@ -77,12 +77,12 @@
     <string name="settings_remove_mobile_subdomains_title">Remove \"m.\" from links</string>
     <string name="settings_remove_mobile_subdomains_desc">Some links use an old mobile-only address. The regular version opens the same page everywhere, so Tidy uses that instead.</string>
 
-    <string name="settings_check_clipboard_title">Check clipboard for links</string>
+    <string name="settings_check_clipboard_title">Check clipboard on launch</string>
     <string name="settings_check_clipboard_desc">Looks for a link on your clipboard when you open Tidy.</string>
-    <string name="settings_clipboard_tier_heading">When a link is copied</string>
+    <string name="settings_clipboard_tier_heading">If a link is found on clipboard</string>
     <string name="tier_suggest_title">Suggest</string>
     <string name="tier_suggest_subtitle">Review before copying</string>
-    <string name="tier_suggest_copy_title">Suggest &amp; copy</string>
+    <string name="tier_suggest_copy_title">Suggest\n&amp; copy</string>
     <string name="tier_suggest_copy_subtitle">One tap does both</string>
     <string name="tier_auto_clean_title">Auto-clean</string>
     <string name="tier_auto_clean_subtitle">No tapping needed</string>
@@ -91,7 +91,7 @@
     <string name="tier_clean_subtitle">Shows the clean link in Tidy</string>
     <string name="tier_clean_copy_title">Clean &amp; copy</string>
     <string name="tier_clean_copy_subtitle">Copies it, ready to paste</string>
-    <string name="tier_clean_copy_share_title">Clean, copy &amp; share</string>
+    <string name="tier_clean_copy_share_title">Clean, copy\n&amp; share</string>
     <string name="tier_clean_copy_share_subtitle">Continues sharing it for you</string>
     <string name="settings_close_instead_title">Close Tidy instead of sharing</string>
     <string name="settings_close_instead_desc">Copies the clean link and closes Tidy, without opening the share sheet again.</string>
