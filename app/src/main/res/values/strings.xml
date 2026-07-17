@@ -225,8 +225,9 @@
     <string name="settings_tidy_plus_upgrade_title">Upgrade to Tidy+</string>
     <string name="settings_tidy_plus_upgrade_desc">Unlock share automation, bulk clipboard clean, and more</string>
     <string name="settings_tidy_plus_get_title">Get Tidy+</string>
-    <string name="tidy_plus_coming_soon_title">Tidy+ (Coming Soon)</string>
-    <string name="tidy_plus_coming_soon_desc">Tidy+ is in final testing on Google Play, check back soon.</string>
+    <string name="settings_coming_soon_badge">Coming soon</string>
+    <string name="tidy_plus_coming_soon_title">Tidy+ isn\'t live yet</string>
+    <string name="tidy_plus_coming_soon_desc">It\'s finishing testing before it lands on Google Play. Check back soon.</string>
     <string name="plus_migration_value_proposition">Zero subscription. Pay once, own forever.</string>
 
     <!-- UI Refactoring & Settings -->

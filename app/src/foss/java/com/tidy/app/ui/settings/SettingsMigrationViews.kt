@@ -123,20 +123,24 @@ object SettingsMigrationViews {
                     }
 
                     Column(modifier = Modifier.weight(1f)) {
-                        Text(
-                            text = if (isAvailable) {
-                                stringResource(R.string.settings_tidy_plus_get_title)
-                            } else {
-                                stringResource(R.string.settings_tidy_plus_get_title) + " (Coming soon)"
-                            },
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold,
-                            color = if (isAvailable) {
-                                MaterialTheme.colorScheme.onPrimaryContainer
-                            } else {
-                                MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Text(
+                                text = stringResource(R.string.settings_tidy_plus_get_title),
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = if (isAvailable) {
+                                    MaterialTheme.colorScheme.onPrimaryContainer
+                                } else {
+                                    MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
+                                }
+                            )
+                            if (!isAvailable) {
+                                ComingSoonBadge()
                             }
-                        )
+                        }
                         Text(
                             text = stringResource(R.string.settings_tidy_plus_upgrade_desc),
                             style = MaterialTheme.typography.bodySmall,
@@ -225,6 +229,22 @@ object SettingsMigrationViews {
 
         if (showComingSoonSheet) {
             ComingSoonSheet(onDismiss = { showComingSoonSheet = false })
+        }
+    }
+
+    @Composable
+    private fun ComingSoonBadge() {
+        Surface(
+            shape = RoundedCornerShape(12.dp),
+            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f)
+        ) {
+            Text(
+                text = stringResource(R.string.settings_coming_soon_badge),
+                style = MaterialTheme.typography.labelSmall,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
+            )
         }
     }
 
