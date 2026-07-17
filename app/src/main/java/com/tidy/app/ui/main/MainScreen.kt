@@ -139,6 +139,10 @@ private val BannerEnterTransition = fadeIn(tween(BannerAnimDurationMs)) +
 private val BannerExitTransition = fadeOut(tween(BannerAnimDurationMs)) +
     shrinkVertically(animationSpec = tween(BannerAnimDurationMs))
 
+// Matches the gap this screen already uses between other distinct stacked sections (the
+// results Column below), rather than the tighter 12.dp used for spacing within one section.
+private val BannerGap = 16.dp
+
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun MainScreen(
@@ -444,7 +448,7 @@ fun MainScreen(
                                         modifier = Modifier.fillMaxWidth()
                                     )
                                 }
-                                Spacer(modifier = Modifier.height(12.dp))
+                                Spacer(modifier = Modifier.height(BannerGap))
                             }
                         }
 
@@ -567,7 +571,7 @@ fun MainScreen(
                                         },
                                         modifier = Modifier.fillMaxWidth()
                                     )
-                                    Spacer(modifier = Modifier.height(12.dp))
+                                    Spacer(modifier = Modifier.height(BannerGap))
                                 }
                             }
                             AnimatedVisibility(
@@ -584,7 +588,7 @@ fun MainScreen(
                                         onLater = { showClipboardEnabledSuccess = false },
                                         modifier = Modifier.fillMaxWidth()
                                     )
-                                    Spacer(modifier = Modifier.height(12.dp))
+                                    Spacer(modifier = Modifier.height(BannerGap))
                                 }
                             }
                             ManualEntryRow(
