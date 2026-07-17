@@ -997,7 +997,8 @@ fun SettingsScreen(
                                     com.tidy.app.FlavorConfig.isProcessTextEnabled(context)
                             },
                             enabled = isPlusUnlocked,
-                            showLock = !isPlusUnlocked
+                            showLock = !isPlusUnlocked,
+                            onLockedTap = { showUpsellSheet = true }
                         )
                     }
                 }
@@ -1104,8 +1105,9 @@ fun SettingsScreen(
 
 /**
  * A standard settings toggle row: title + description on the left, switch on the right.
- * [enabled] = false renders the row greyed and non-interactive; [showLock] adds the
- * Tidy+ lock indicator next to the title.
+ * [enabled] = false renders the row greyed; it stays tappable so a locked row can still
+ * surface the Tidy+ upsell via [onLockedTap]. [showLock] adds the lock indicator next to
+ * the title.
  */
 @Composable
 private fun SettingToggleRow(
@@ -1114,14 +1116,15 @@ private fun SettingToggleRow(
     checked: Boolean,
     onToggle: () -> Unit,
     enabled: Boolean = true,
-    showLock: Boolean = false
+    showLock: Boolean = false,
+    onLockedTap: () -> Unit = {}
 ) {
     val contentAlpha = if (enabled) 1f else 0.38f
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(12.dp))
-            .then(if (enabled) Modifier.clickable { onToggle() } else Modifier)
+            .clickable { if (enabled) onToggle() else onLockedTap() }
             .padding(horizontal = 8.dp, vertical = 12.dp),
         horizontalArrangement = Arrangement.spacedBy(16.dp),
         verticalAlignment = Alignment.CenterVertically
