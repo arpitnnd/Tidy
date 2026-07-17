@@ -41,6 +41,10 @@
     <string name="banner_clipboard_callout_desc">Tidy will look for a link each time you open it.</string>
     <string name="banner_clipboard_callout_enable">Enable</string>
     <string name="banner_clipboard_callout_dismiss">Dismiss</string>
+    <string name="banner_clipboard_enabled_title">Clipboard checking is on</string>
+    <string name="banner_clipboard_enabled_desc">Customise how Tidy responds to links from Settings, any time.</string>
+    <string name="banner_view_settings">View settings</string>
+    <string name="banner_later">Later</string>
     <string name="button_clean_url">Clean URL</string>
     <string name="toast_no_browser_app">No app found to open URL</string>
     <string name="toast_copied">Copied to clipboard</string>

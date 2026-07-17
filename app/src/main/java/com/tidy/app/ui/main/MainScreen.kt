@@ -203,6 +203,9 @@ fun MainScreen(
         }
     }
 
+    // Shown after the user taps "Enable" on the clipboard callout, in place of it.
+    var showClipboardEnabledSuccess by remember { mutableStateOf(false) }
+
     var hasShownCrashSheetThisSession by rememberSaveable { mutableStateOf(false) }
     var showCrashSheet by remember { mutableStateOf(crashReportText != null && !dontAskAgainCrash && !hasShownCrashSheetThisSession) }
     val onDismissCrashReport = {
@@ -538,7 +541,7 @@ fun MainScreen(
                             }
                         } else {
                             AnimatedVisibility(
-                                visible = !checkClipboardForLinks && !clipboardCalloutDismissed,
+                                visible = !checkClipboardForLinks && !clipboardCalloutDismissed && !showClipboardEnabledSuccess,
                                 enter = BannerEnterTransition,
                                 exit = BannerExitTransition
                             ) {
@@ -547,12 +550,27 @@ fun MainScreen(
                                         scope.launch {
                                             settingsRepository.setCheckClipboardForLinks(true)
                                         }
+                                        showClipboardEnabledSuccess = true
                                     },
                                     onDismiss = {
                                         scope.launch {
                                             settingsRepository.setClipboardCalloutDismissed(true)
                                         }
                                     },
+                                    modifier = Modifier.fillMaxWidth()
+                                )
+                            }
+                            AnimatedVisibility(
+                                visible = showClipboardEnabledSuccess,
+                                enter = BannerEnterTransition,
+                                exit = BannerExitTransition
+                            ) {
+                                ClipboardEnabledSuccessBanner(
+                                    onViewSettings = {
+                                        showClipboardEnabledSuccess = false
+                                        onSettingsClick()
+                                    },
+                                    onLater = { showClipboardEnabledSuccess = false },
                                     modifier = Modifier.fillMaxWidth()
                                 )
                             }
@@ -1428,6 +1446,93 @@ private fun ClipboardCalloutBanner(
                 ) {
                     Text(
                         text = stringResource(R.string.banner_clipboard_callout_enable),
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            }
+        }
+    }
+}
+
+/**
+ * Confirms clipboard checking was enabled, in place of the callout that requested it.
+ * Points the user at Settings to customise the tier behaviour, or lets them dismiss it.
+ */
+@Composable
+private fun ClipboardEnabledSuccessBanner(
+    onViewSettings: () -> Unit,
+    onLater: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Card(
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.6f)
+        ),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.tertiary.copy(alpha = 0.25f)),
+        modifier = modifier
+    ) {
+        Column(modifier = Modifier.padding(12.dp)) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(40.dp)
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(MaterialTheme.colorScheme.tertiary.copy(alpha = 0.15f)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.Check,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.tertiary,
+                        modifier = Modifier.size(20.dp)
+                    )
+                }
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = stringResource(R.string.banner_clipboard_enabled_title),
+                        style = MaterialTheme.typography.labelMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onTertiaryContainer
+                    )
+                    Spacer(modifier = Modifier.height(2.dp))
+                    Text(
+                        text = stringResource(R.string.banner_clipboard_enabled_desc),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onTertiaryContainer.copy(alpha = 0.8f)
+                    )
+                }
+            }
+            Row(
+                horizontalArrangement = Arrangement.End,
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 8.dp)
+            ) {
+                TextButton(onClick = onLater) {
+                    Text(
+                        text = stringResource(R.string.banner_later),
+                        style = MaterialTheme.typography.labelSmall
+                    )
+                }
+                Spacer(modifier = Modifier.width(4.dp))
+                Button(
+                    onClick = onViewSettings,
+                    shape = RoundedCornerShape(12.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.tertiary,
+                        contentColor = MaterialTheme.colorScheme.onTertiary
+                    ),
+                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
+                ) {
+                    Text(
+                        text = stringResource(R.string.banner_view_settings),
                         style = MaterialTheme.typography.labelSmall,
                         fontWeight = FontWeight.Bold
                     )
