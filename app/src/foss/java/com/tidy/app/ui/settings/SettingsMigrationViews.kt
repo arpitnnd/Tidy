@@ -224,37 +224,49 @@ object SettingsMigrationViews {
         }
 
         if (showComingSoonSheet) {
-            TidyModalBottomSheet(
-                onDismissRequest = { showComingSoonSheet = false }
-            ) { comingSoonScrollFix ->
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(start = 24.dp, end = 24.dp, bottom = 32.dp)
-                        .navigationBarsPadding()
-                        .nestedScroll(comingSoonScrollFix),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(16.dp)
+            ComingSoonSheet(onDismiss = { showComingSoonSheet = false })
+        }
+    }
+
+    /**
+     * The "Tidy+ (Coming soon)" prompt shown from the upgrade row above. Also the prompt
+     * every other locked/Plus-gated control in the FOSS build surfaces on tap, via
+     * FlavorConfig.ShowUpsellBottomSheet -- there's no in-app purchase flow to offer here,
+     * so this is the FOSS equivalent of the Play flavor's upsell sheet.
+     */
+    @OptIn(ExperimentalMaterial3Api::class)
+    @Composable
+    fun ComingSoonSheet(onDismiss: () -> Unit) {
+        TidyModalBottomSheet(
+            onDismissRequest = onDismiss
+        ) { comingSoonScrollFix ->
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(start = 24.dp, end = 24.dp, bottom = 32.dp)
+                    .navigationBarsPadding()
+                    .nestedScroll(comingSoonScrollFix),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                Text(
+                    text = stringResource(R.string.tidy_plus_coming_soon_title),
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                Text(
+                    text = stringResource(R.string.tidy_plus_coming_soon_desc),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    textAlign = TextAlign.Center
+                )
+                Button(
+                    onClick = onDismiss,
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(16.dp)
                 ) {
-                    Text(
-                        text = stringResource(R.string.tidy_plus_coming_soon_title),
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                    Text(
-                        text = stringResource(R.string.tidy_plus_coming_soon_desc),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        textAlign = TextAlign.Center
-                    )
-                    Button(
-                        onClick = { showComingSoonSheet = false },
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(16.dp)
-                    ) {
-                        Text("OK", fontWeight = FontWeight.Bold)
-                    }
+                    Text("OK", fontWeight = FontWeight.Bold)
                 }
             }
         }

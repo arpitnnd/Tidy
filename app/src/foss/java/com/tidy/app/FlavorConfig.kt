@@ -25,7 +25,14 @@ object FlavorConfig {
 
     @Composable
     fun ShowUpsellBottomSheet(onDismiss: () -> Unit) {
-        // No-op for FOSS
+        // FOSS has no in-app purchase flow, so this mirrors whatever the "Get Tidy+"
+        // row itself shows on tap: the migration flow once Plus ships, the coming-soon
+        // sheet until then.
+        if (com.tidy.app.BuildConfig.TIDY_PLUS_AVAILABLE) {
+            com.tidy.app.ui.settings.SettingsMigrationViews.MigrationSheet(onDismiss = onDismiss)
+        } else {
+            com.tidy.app.ui.settings.SettingsMigrationViews.ComingSoonSheet(onDismiss = onDismiss)
+        }
     }
 
     fun getPremiumColorScheme(
