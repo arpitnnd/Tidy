@@ -59,6 +59,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -415,6 +416,23 @@ fun MainScreen(
                                 horizontalArrangement = Arrangement.spacedBy(12.dp),
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
+                                TooltipWrapper(tooltipText = stringResource(R.string.tooltip_clean_new)) {
+                                    FilledIconButton(
+                                        onClick = { viewModel.clear() },
+                                        modifier = Modifier.size(48.dp),
+                                        shape = RoundedCornerShape(16.dp),
+                                        colors = IconButtonDefaults.filledIconButtonColors(
+                                            containerColor = MaterialTheme.colorScheme.errorContainer,
+                                            contentColor = MaterialTheme.colorScheme.onErrorContainer
+                                        )
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Filled.Clear,
+                                            contentDescription = stringResource(R.string.main_clean_new_url)
+                                        )
+                                    }
+                                }
+
                                 Box(modifier = Modifier.weight(1f)) {
                                     TooltipWrapper(
                                         tooltipText = stringResource(R.string.tooltip_copy_clean),
@@ -487,21 +505,6 @@ fun MainScreen(
                                                 style = MaterialTheme.typography.labelLarge
                                             )
                                         }
-                                    }
-                                }
-
-                                TooltipWrapper(tooltipText = stringResource(R.string.tooltip_clean_new)) {
-                                    IconButton(
-                                        onClick = { viewModel.clear() },
-                                        colors = IconButtonDefaults.iconButtonColors(
-                                            containerColor = MaterialTheme.colorScheme.primaryContainer,
-                                            contentColor = MaterialTheme.colorScheme.onPrimaryContainer
-                                        )
-                                    ) {
-                                        Icon(
-                                            imageVector = Icons.Outlined.CleaningServices,
-                                            contentDescription = stringResource(R.string.main_clean_new_url)
-                                        )
                                     }
                                 }
                             }
