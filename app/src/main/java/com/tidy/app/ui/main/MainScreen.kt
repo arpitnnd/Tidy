@@ -5,6 +5,11 @@ import android.content.Context
 import android.content.Intent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -126,6 +131,14 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
+// Shared by every bottom-container banner (clipboard suggestion, callout, enabled-success)
+// so their fade and size animations run on identical timing and never drift out of sync.
+private const val BannerAnimDurationMs = 220
+private val BannerEnterTransition = fadeIn(tween(BannerAnimDurationMs)) +
+    expandVertically(animationSpec = tween(BannerAnimDurationMs))
+private val BannerExitTransition = fadeOut(tween(BannerAnimDurationMs)) +
+    shrinkVertically(animationSpec = tween(BannerAnimDurationMs))
+
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun MainScreen(
@@ -178,6 +191,17 @@ fun MainScreen(
     var suggestionCopiesOnClean by remember { mutableStateOf(false) }
     var paramToWhitelist by remember { mutableStateOf<String?>(null) }
     val introSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+
+    // AnimatedVisibility keeps composing its content lambda while it animates out, so if
+    // that lambda reads clipboardUrl directly it goes blank the instant clipboardUrl is
+    // nulled, leaving the exit animation to collapse an empty box. Caching the last
+    // non-null value keeps the banner's content visible for the whole exit transition.
+    var lastClipboardBannerUrl by remember { mutableStateOf<String?>(null) }
+    LaunchedEffect(clipboardUrl) {
+        if (clipboardUrl != null) {
+            lastClipboardBannerUrl = clipboardUrl
+        }
+    }
 
     var hasShownCrashSheetThisSession by rememberSaveable { mutableStateOf(false) }
     var showCrashSheet by remember { mutableStateOf(crashReportText != null && !dontAskAgainCrash && !hasShownCrashSheetThisSession) }
@@ -394,8 +418,12 @@ fun MainScreen(
                             .fillMaxWidth(),
                         verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
-                        AnimatedVisibility(visible = clipboardUrl != null) {
-                            clipboardUrl?.let { url ->
+                        AnimatedVisibility(
+                            visible = clipboardUrl != null,
+                            enter = BannerEnterTransition,
+                            exit = BannerExitTransition
+                        ) {
+                            lastClipboardBannerUrl?.let { url ->
                                 ClipboardActionBanner(
                                     url = url,
                                     onActionClick = {
@@ -509,7 +537,11 @@ fun MainScreen(
                                 }
                             }
                         } else {
-                            AnimatedVisibility(visible = !checkClipboardForLinks && !clipboardCalloutDismissed) {
+                            AnimatedVisibility(
+                                visible = !checkClipboardForLinks && !clipboardCalloutDismissed,
+                                enter = BannerEnterTransition,
+                                exit = BannerExitTransition
+                            ) {
                                 ClipboardCalloutBanner(
                                     onEnable = {
                                         scope.launch {
