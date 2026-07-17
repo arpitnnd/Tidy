@@ -373,153 +373,159 @@ fun MainScreen(
             // The one adaptive bottom action container. Its states: clipboard
             // suggestion, manual entry fallback, the copy/share row for a cleaned
             // result, and the stacked state (new suggestion above the copy/share row).
-            Surface(
-                tonalElevation = 8.dp,
-                shadowElevation = 8.dp,
-                color = MaterialTheme.colorScheme.surface,
-                modifier = Modifier.fillMaxWidth()
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .navigationBarsPadding()
+                    .imePadding()
             ) {
-                Column(
-                    modifier = Modifier
-                        .navigationBarsPadding()
-                        .imePadding()
-                        .padding(horizontal = 20.dp, vertical = 12.dp)
-                        .fillMaxWidth()
-                        .animateContentSize(),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                Surface(
+                    tonalElevation = 8.dp,
+                    shadowElevation = 8.dp,
+                    color = MaterialTheme.colorScheme.surface,
+                    shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
+                    modifier = Modifier.fillMaxWidth()
                 ) {
-                    AnimatedVisibility(visible = clipboardUrl != null) {
-                        clipboardUrl?.let { url ->
-                            ClipboardActionBanner(
-                                url = url,
-                                onActionClick = {
-                                    clipboardUrl = null
-                                    viewModel.cleanUrl(
-                                        url,
-                                        copyResultToClipboard = suggestionCopiesOnClean
-                                    )
-                                },
-                                modifier = Modifier.fillMaxWidth()
-                            )
-                        }
-                    }
-
-                    if (state.isCleaned) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(12.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Box(modifier = Modifier.weight(1f)) {
-                                TooltipWrapper(
-                                    tooltipText = stringResource(R.string.tooltip_copy_clean),
+                    Column(
+                        modifier = Modifier
+                            .padding(horizontal = 20.dp)
+                            .padding(top = 22.dp, bottom = 18.dp)
+                            .fillMaxWidth(),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        AnimatedVisibility(visible = clipboardUrl != null) {
+                            clipboardUrl?.let { url ->
+                                ClipboardActionBanner(
+                                    url = url,
+                                    onActionClick = {
+                                        clipboardUrl = null
+                                        viewModel.cleanUrl(
+                                            url,
+                                            copyResultToClipboard = suggestionCopiesOnClean
+                                        )
+                                    },
                                     modifier = Modifier.fillMaxWidth()
-                                ) {
-                                    Button(
-                                        onClick = {
-                                            viewModel.copyToClipboard(context)
-                                            scope.launch {
-                                                snackbarHostState.showSnackbar(toastCopied)
-                                            }
-                                        },
-                                        modifier = Modifier.fillMaxWidth(),
-                                        shape = RoundedCornerShape(16.dp),
-                                        colors = ButtonDefaults.buttonColors(
-                                            containerColor = if (state.copySuccess) {
-                                                MaterialTheme.colorScheme.tertiary
-                                            } else {
-                                                MaterialTheme.colorScheme.primary
+                                )
+                            }
+                        }
+
+                        if (state.isCleaned) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Box(modifier = Modifier.weight(1f)) {
+                                    TooltipWrapper(
+                                        tooltipText = stringResource(R.string.tooltip_copy_clean),
+                                        modifier = Modifier.fillMaxWidth()
+                                    ) {
+                                        Button(
+                                            onClick = {
+                                                viewModel.copyToClipboard(context)
+                                                scope.launch {
+                                                    snackbarHostState.showSnackbar(toastCopied)
+                                                }
                                             },
-                                            contentColor = if (state.copySuccess) {
-                                                MaterialTheme.colorScheme.onTertiary
-                                            } else {
-                                                MaterialTheme.colorScheme.onPrimary
-                                            }
-                                        ),
-                                        contentPadding = PaddingValues(vertical = 14.dp)
-                                    ) {
-                                        Icon(
-                                            imageVector = if (state.copySuccess) Icons.Filled.Check else Icons.Filled.ContentCopy,
-                                            contentDescription = null,
-                                            modifier = Modifier.size(20.dp)
-                                        )
-                                        Spacer(modifier = Modifier.width(8.dp))
-                                        Text(
-                                            text = if (state.copySuccess) stringResource(R.string.main_copied) else stringResource(
-                                                R.string.main_copy
+                                            modifier = Modifier.fillMaxWidth(),
+                                            shape = RoundedCornerShape(16.dp),
+                                            colors = ButtonDefaults.buttonColors(
+                                                containerColor = if (state.copySuccess) {
+                                                    MaterialTheme.colorScheme.tertiary
+                                                } else {
+                                                    MaterialTheme.colorScheme.primary
+                                                },
+                                                contentColor = if (state.copySuccess) {
+                                                    MaterialTheme.colorScheme.onTertiary
+                                                } else {
+                                                    MaterialTheme.colorScheme.onPrimary
+                                                }
                                             ),
-                                            fontWeight = FontWeight.Bold,
-                                            style = MaterialTheme.typography.labelLarge
-                                        )
+                                            contentPadding = PaddingValues(vertical = 14.dp)
+                                        ) {
+                                            Icon(
+                                                imageVector = if (state.copySuccess) Icons.Filled.Check else Icons.Filled.ContentCopy,
+                                                contentDescription = null,
+                                                modifier = Modifier.size(20.dp)
+                                            )
+                                            Spacer(modifier = Modifier.width(8.dp))
+                                            Text(
+                                                text = if (state.copySuccess) stringResource(R.string.main_copied) else stringResource(
+                                                    R.string.main_copy
+                                                ),
+                                                fontWeight = FontWeight.Bold,
+                                                style = MaterialTheme.typography.labelLarge
+                                            )
+                                        }
                                     }
                                 }
-                            }
 
-                            Box(modifier = Modifier.weight(1f)) {
-                                TooltipWrapper(
-                                    tooltipText = stringResource(R.string.tooltip_share_clean),
-                                    modifier = Modifier.fillMaxWidth()
-                                ) {
-                                    Button(
-                                        onClick = { viewModel.shareUrl(context) },
-                                        modifier = Modifier.fillMaxWidth(),
-                                        shape = RoundedCornerShape(16.dp),
-                                        colors = ButtonDefaults.buttonColors(
-                                            containerColor = MaterialTheme.colorScheme.primary,
-                                            contentColor = MaterialTheme.colorScheme.onPrimary
-                                        ),
-                                        contentPadding = PaddingValues(vertical = 14.dp)
+                                Box(modifier = Modifier.weight(1f)) {
+                                    TooltipWrapper(
+                                        tooltipText = stringResource(R.string.tooltip_share_clean),
+                                        modifier = Modifier.fillMaxWidth()
+                                    ) {
+                                        Button(
+                                            onClick = { viewModel.shareUrl(context) },
+                                            modifier = Modifier.fillMaxWidth(),
+                                            shape = RoundedCornerShape(16.dp),
+                                            colors = ButtonDefaults.buttonColors(
+                                                containerColor = MaterialTheme.colorScheme.primary,
+                                                contentColor = MaterialTheme.colorScheme.onPrimary
+                                            ),
+                                            contentPadding = PaddingValues(vertical = 14.dp)
+                                        ) {
+                                            Icon(
+                                                Icons.Filled.Share,
+                                                contentDescription = null,
+                                                modifier = Modifier.size(20.dp)
+                                            )
+                                            Spacer(modifier = Modifier.width(8.dp))
+                                            Text(
+                                                stringResource(R.string.main_share),
+                                                fontWeight = FontWeight.Bold,
+                                                style = MaterialTheme.typography.labelLarge
+                                            )
+                                        }
+                                    }
+                                }
+
+                                TooltipWrapper(tooltipText = stringResource(R.string.tooltip_clean_new)) {
+                                    IconButton(
+                                        onClick = { viewModel.clear() },
+                                        colors = IconButtonDefaults.iconButtonColors(
+                                            containerColor = MaterialTheme.colorScheme.primaryContainer,
+                                            contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                                        )
                                     ) {
                                         Icon(
-                                            Icons.Filled.Share,
-                                            contentDescription = null,
-                                            modifier = Modifier.size(20.dp)
-                                        )
-                                        Spacer(modifier = Modifier.width(8.dp))
-                                        Text(
-                                            stringResource(R.string.main_share),
-                                            fontWeight = FontWeight.Bold,
-                                            style = MaterialTheme.typography.labelLarge
+                                            imageVector = Icons.Outlined.CleaningServices,
+                                            contentDescription = stringResource(R.string.main_clean_new_url)
                                         )
                                     }
                                 }
                             }
-
-                            TooltipWrapper(tooltipText = stringResource(R.string.tooltip_clean_new)) {
-                                IconButton(
-                                    onClick = { viewModel.clear() },
-                                    colors = IconButtonDefaults.iconButtonColors(
-                                        containerColor = MaterialTheme.colorScheme.primaryContainer,
-                                        contentColor = MaterialTheme.colorScheme.onPrimaryContainer
-                                    )
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.Outlined.CleaningServices,
-                                        contentDescription = stringResource(R.string.main_clean_new_url)
-                                    )
-                                }
+                        } else {
+                            AnimatedVisibility(visible = !checkClipboardForLinks && !clipboardCalloutDismissed) {
+                                ClipboardCalloutBanner(
+                                    onEnable = {
+                                        scope.launch {
+                                            settingsRepository.setCheckClipboardForLinks(true)
+                                        }
+                                    },
+                                    onDismiss = {
+                                        scope.launch {
+                                            settingsRepository.setClipboardCalloutDismissed(true)
+                                        }
+                                    },
+                                    modifier = Modifier.fillMaxWidth()
+                                )
                             }
-                        }
-                    } else {
-                        AnimatedVisibility(visible = !checkClipboardForLinks && !clipboardCalloutDismissed) {
-                            ClipboardCalloutBanner(
-                                onEnable = {
-                                    scope.launch {
-                                        settingsRepository.setCheckClipboardForLinks(true)
-                                    }
-                                },
-                                onDismiss = {
-                                    scope.launch {
-                                        settingsRepository.setClipboardCalloutDismissed(true)
-                                    }
-                                },
-                                modifier = Modifier.fillMaxWidth()
+                            ManualEntryRow(
+                                state = state,
+                                viewModel = viewModel
                             )
                         }
-                        ManualEntryRow(
-                            state = state,
-                            viewModel = viewModel
-                        )
                     }
                 }
             }
