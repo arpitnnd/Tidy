@@ -418,26 +418,33 @@ fun MainScreen(
                         modifier = Modifier
                             .padding(horizontal = 20.dp)
                             .padding(top = 22.dp, bottom = 18.dp)
-                            .fillMaxWidth(),
-                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                            .fillMaxWidth()
                     ) {
+                        // The 12dp gap after each banner lives inside its own AnimatedVisibility
+                        // rather than on this Column's arrangement, so it only exists -- and only
+                        // animates -- while that banner does. A blanket Arrangement.spacedBy here
+                        // would reserve that gap even when every banner below is fully collapsed,
+                        // leaving permanent phantom whitespace above the manual entry row.
                         AnimatedVisibility(
                             visible = clipboardUrl != null,
                             enter = BannerEnterTransition,
                             exit = BannerExitTransition
                         ) {
-                            lastClipboardBannerUrl?.let { url ->
-                                ClipboardActionBanner(
-                                    url = url,
-                                    onActionClick = {
-                                        clipboardUrl = null
-                                        viewModel.cleanUrl(
-                                            url,
-                                            copyResultToClipboard = suggestionCopiesOnClean
-                                        )
-                                    },
-                                    modifier = Modifier.fillMaxWidth()
-                                )
+                            Column {
+                                lastClipboardBannerUrl?.let { url ->
+                                    ClipboardActionBanner(
+                                        url = url,
+                                        onActionClick = {
+                                            clipboardUrl = null
+                                            viewModel.cleanUrl(
+                                                url,
+                                                copyResultToClipboard = suggestionCopiesOnClean
+                                            )
+                                        },
+                                        modifier = Modifier.fillMaxWidth()
+                                    )
+                                }
+                                Spacer(modifier = Modifier.height(12.dp))
                             }
                         }
 
@@ -545,34 +552,40 @@ fun MainScreen(
                                 enter = BannerEnterTransition,
                                 exit = BannerExitTransition
                             ) {
-                                ClipboardCalloutBanner(
-                                    onEnable = {
-                                        scope.launch {
-                                            settingsRepository.setCheckClipboardForLinks(true)
-                                        }
-                                        showClipboardEnabledSuccess = true
-                                    },
-                                    onDismiss = {
-                                        scope.launch {
-                                            settingsRepository.setClipboardCalloutDismissed(true)
-                                        }
-                                    },
-                                    modifier = Modifier.fillMaxWidth()
-                                )
+                                Column {
+                                    ClipboardCalloutBanner(
+                                        onEnable = {
+                                            scope.launch {
+                                                settingsRepository.setCheckClipboardForLinks(true)
+                                            }
+                                            showClipboardEnabledSuccess = true
+                                        },
+                                        onDismiss = {
+                                            scope.launch {
+                                                settingsRepository.setClipboardCalloutDismissed(true)
+                                            }
+                                        },
+                                        modifier = Modifier.fillMaxWidth()
+                                    )
+                                    Spacer(modifier = Modifier.height(12.dp))
+                                }
                             }
                             AnimatedVisibility(
                                 visible = showClipboardEnabledSuccess,
                                 enter = BannerEnterTransition,
                                 exit = BannerExitTransition
                             ) {
-                                ClipboardEnabledSuccessBanner(
-                                    onViewSettings = {
-                                        showClipboardEnabledSuccess = false
-                                        onSettingsClick()
-                                    },
-                                    onLater = { showClipboardEnabledSuccess = false },
-                                    modifier = Modifier.fillMaxWidth()
-                                )
+                                Column {
+                                    ClipboardEnabledSuccessBanner(
+                                        onViewSettings = {
+                                            showClipboardEnabledSuccess = false
+                                            onSettingsClick()
+                                        },
+                                        onLater = { showClipboardEnabledSuccess = false },
+                                        modifier = Modifier.fillMaxWidth()
+                                    )
+                                    Spacer(modifier = Modifier.height(12.dp))
+                                }
                             }
                             ManualEntryRow(
                                 state = state,
