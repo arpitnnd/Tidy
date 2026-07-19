@@ -16,7 +16,6 @@ lifecycleViewmodelNav3 = "2.11.0"
 datastore = "1.2.1"
 kotlinxSerializationJson = "1.11.0"
 acra = "5.13.1"
-playBilling = "9.1.0"
 mockitoCore = "5.23.0"
 
 [libraries]
@@ -48,7 +47,6 @@ androidx-datastore = { module = "androidx.datastore:datastore", version.ref = "d
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinxSerializationJson" }
 acra-core = { module = "ch.acra:acra-core", version.ref = "acra" }
 acra-dialog = { module = "ch.acra:acra-dialog", version.ref = "acra" }
-play-billing = { module = "com.android.billingclient:billing-ktx", version.ref = "playBilling" }
 mockito-core = { module = "org.mockito:mockito-core", version.ref = "mockitoCore" }
 
 [plugins]

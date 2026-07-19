@@ -23,6 +23,14 @@ dependencyResolutionManagement {
         }
         mavenCentral()
     }
+    val plusCatalog = file("feature-plus/gradle/libs.versions.toml")
+    if (plusCatalog.exists()) {
+        versionCatalogs {
+            create("plusLibs") {
+                from(files(plusCatalog))
+            }
+        }
+    }
 }
 
 plugins {
