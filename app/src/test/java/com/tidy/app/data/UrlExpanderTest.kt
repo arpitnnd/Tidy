@@ -40,6 +40,15 @@ class UrlExpanderTest {
     }
 
     @Test
+    fun recognizesNewlyAddedShortenerDomains() {
+        assertTrue(UrlExpander.isShortUrl("https://share.google/abc123"))
+        assertTrue(UrlExpander.isShortUrl("https://amzn.to/abc123"))
+        assertTrue(UrlExpander.isShortUrl("https://v.gd/abc123"))
+        assertTrue(UrlExpander.isShortUrl("https://rb.gy/abc123"))
+        assertTrue(UrlExpander.isShortUrl("https://shrtco.de/abc123"))
+    }
+
+    @Test
     fun recognizesSubdomainsOfKnownShorteners() {
         assertTrue(UrlExpander.isShortUrl("https://www.bit.ly/abc"))
     }

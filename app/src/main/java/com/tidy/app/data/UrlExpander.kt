@@ -9,7 +9,8 @@ object UrlExpander {
     private val SHORT_URL_DOMAINS = setOf(
         "bit.ly", "tinyurl.com", "t.co", "rebrand.ly", "shorturl.at",
         "is.gd", "buff.ly", "bit.do", "lnkd.in", "db.tt", "qr.ae",
-        "goo.gl", "ow.ly", "tiny.cc", "t.ly", "cutt.ly"
+        "goo.gl", "ow.ly", "tiny.cc", "t.ly", "cutt.ly",
+        "share.google", "amzn.to", "v.gd", "rb.gy", "shrtco.de"
     )
 
     private const val CACHE_MAX_SIZE = 100
