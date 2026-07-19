@@ -63,7 +63,16 @@ class SettingsRepository(private val dataStore: DataStore<Preferences>) {
   {"name": "gclsrc", "description": "Google Click Source parameter, specifying the AdWords platform source for conversion tracking."},
   {"name": "rb_clickid", "description": "Rebounce Click ID, used for redirect tracking and attribution."},
   {"name": "affclick", "description": "Affiliate Click ID, used to track affiliate sales conversions."},
-  {"name": "campid", "description": "Campaign ID, used by various marketing platforms to identify the active campaign."}
+  {"name": "campid", "description": "Campaign ID, used by various marketing platforms to identify the active campaign."},
+  {"name": "gbraid", "description": "Google Ads Click ID for web-to-app conversions on iOS, used alongside gclid under App Tracking Transparency."},
+  {"name": "wbraid", "description": "Google Ads Click ID for app-to-web conversions on iOS, used alongside gclid under App Tracking Transparency."},
+  {"name": "twclid", "description": "X (Twitter) Click ID, used by X Ads to track clicks and attribute conversions."},
+  {"name": "ttclid", "description": "TikTok Click ID, used by TikTok Ads to track clicks and attribute conversions."},
+  {"name": "srsltid", "description": "Google Merchant/Shopping Click ID, appended to search and shopping result links for conversion tracking."},
+  {"name": "li_fat_id", "description": "LinkedIn Ads first-party ad tracking Click ID."},
+  {"name": "sc_cid", "description": "Snapchat Click ID, used by Snapchat Ads to track clicks and attribute conversions."},
+  {"name": "_hsenc", "description": "HubSpot email tracking parameter, used to identify the recipient of a marketing email."},
+  {"name": "_hsmi", "description": "HubSpot email tracking parameter, used to identify the specific marketing email send."}
 ]"""
     }
 

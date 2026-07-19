@@ -23,6 +23,25 @@ class UrlCleanerTest {
     }
 
     @Test
+    fun testCleanNewlyAddedTrackingParams() {
+        val original =
+            "https://example.com/page?gbraid=1&wbraid=2&twclid=3&ttclid=4&srsltid=5&li_fat_id=6&sc_cid=7&_hsenc=8&_hsmi=9"
+        val result = cleaner.clean(original)
+
+        assertEquals("https://example.com/page", result.cleanedUrl)
+        assertEquals(9, result.removedParams.size)
+        assertTrue(result.removedParams.contains("gbraid"))
+        assertTrue(result.removedParams.contains("wbraid"))
+        assertTrue(result.removedParams.contains("twclid"))
+        assertTrue(result.removedParams.contains("ttclid"))
+        assertTrue(result.removedParams.contains("srsltid"))
+        assertTrue(result.removedParams.contains("li_fat_id"))
+        assertTrue(result.removedParams.contains("sc_cid"))
+        assertTrue(result.removedParams.contains("_hsenc"))
+        assertTrue(result.removedParams.contains("_hsmi"))
+    }
+
+    @Test
     fun testPreserveOtherParams() {
         val original = "https://example.com/search?q=kmp&utm_source=google&page=2"
         val result = cleaner.clean(original)

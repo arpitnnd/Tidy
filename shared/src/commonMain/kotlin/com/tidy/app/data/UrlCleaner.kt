@@ -19,7 +19,10 @@ class UrlCleaner {
             "gclsrc",
             "rb_clickid",
             "affclick",
-            "campid"
+            "campid",
+            "gbraid", "wbraid", "twclid", "ttclid",
+            "srsltid", "li_fat_id", "sc_cid",
+            "_hsenc", "_hsmi"
         )
     }
 
