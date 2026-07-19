@@ -23,7 +23,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.tidy.app.data.PlayEntitlementManager
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 object FlavorConfig {
@@ -85,19 +84,30 @@ object FlavorConfig {
         )
     }
 
+    suspend fun resolveClipboardTier(
+        settingsRepository: com.tidy.app.data.SettingsRepository
+    ): com.tidy.app.data.ClipboardCleanTier {
+        return com.tidy.app.featureplus.PlusAutomation.resolveClipboardTier(settingsRepository)
+    }
+
     suspend fun handleShareAutomation(
-        cleanedUrl: String,
         settingsRepository: com.tidy.app.data.SettingsRepository,
-        onCopyAndClose: (Boolean) -> Unit
+        onOutcome: (com.tidy.app.data.ShareAutomationOutcome) -> Unit
     ) {
-        val isUnlocked = TidyApp.instance.entitlementManager.isPlusUnlocked.first()
-        if (isUnlocked) {
-            val autoCopy = settingsRepository.autoCopyOnShare.first()
-            if (autoCopy) {
-                val autoClose = settingsRepository.autoCloseOnShare.first()
-                onCopyAndClose(autoClose)
-            }
-        }
+        com.tidy.app.featureplus.PlusAutomation.handleShareAutomation(
+            settingsRepository,
+            onOutcome
+        )
+    }
+
+    val isProcessTextAvailable: Boolean = true
+
+    fun isProcessTextEnabled(context: android.content.Context): Boolean {
+        return com.tidy.app.featureplus.ProcessTextMenu.isEnabled(context)
+    }
+
+    fun setProcessTextEnabled(context: android.content.Context, enabled: Boolean) {
+        com.tidy.app.featureplus.ProcessTextMenu.setEnabled(context, enabled)
     }
 }
 

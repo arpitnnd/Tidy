@@ -31,7 +31,12 @@ import androidx.compose.material.icons.automirrored.filled.OpenInNew
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.outlined.Bolt
+import androidx.compose.material.icons.outlined.CleaningServices
+import androidx.compose.material.icons.outlined.ContentCopy
 import androidx.compose.material.icons.outlined.Lock
+import androidx.compose.material.icons.outlined.Share
+import androidx.compose.material.icons.outlined.Visibility
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.HorizontalDivider
@@ -69,9 +74,13 @@ import androidx.core.net.toUri
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.tidy.app.R
+import com.tidy.app.data.ClipboardCleanTier
+import com.tidy.app.data.ShareCleanTier
 import com.tidy.app.ui.components.ExpandableSettingRow
 import com.tidy.app.ui.components.ScreenSectionHeader
 import com.tidy.app.ui.components.SettingCard
+import com.tidy.app.ui.components.TierCard
+import com.tidy.app.ui.components.TierSelectorRow
 import com.tidy.app.ui.components.TidyModalBottomSheet
 import com.tidy.app.ui.components.TidyTopAppBar
 import com.tidy.app.ui.components.TooltipWrapper
@@ -812,61 +821,131 @@ fun SettingsScreen(
                     modifier = Modifier.padding(start = 4.dp, top = 8.dp)
                 )
 
-                // Automation Card
+                // Clipboard checking: master toggle + tiered selector
+                SettingCard(modifier = Modifier.animateContentSize()) {
+                    Column(
+                        modifier = Modifier.padding(12.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        SettingToggleRow(
+                            title = stringResource(R.string.settings_check_clipboard_title),
+                            description = stringResource(R.string.settings_check_clipboard_desc),
+                            checked = state.checkClipboardForLinks,
+                            onToggle = { viewModel.setCheckClipboardForLinks(!state.checkClipboardForLinks) }
+                        )
+
+                        if (state.checkClipboardForLinks) {
+                            Text(
+                                text = stringResource(R.string.settings_clipboard_tier_heading),
+                                style = MaterialTheme.typography.labelLarge,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.padding(start = 8.dp, top = 4.dp)
+                            )
+                            TierSelectorRow(
+                                cards = listOf(
+                                    TierCard(
+                                        value = ClipboardCleanTier.SUGGEST,
+                                        icon = Icons.Outlined.Visibility,
+                                        title = stringResource(R.string.tier_suggest_title),
+                                        subtitle = stringResource(R.string.tier_suggest_subtitle)
+                                    ),
+                                    TierCard(
+                                        value = ClipboardCleanTier.SUGGEST_AND_COPY,
+                                        icon = Icons.Outlined.ContentCopy,
+                                        title = stringResource(R.string.tier_suggest_copy_title),
+                                        subtitle = stringResource(R.string.tier_suggest_copy_subtitle),
+                                        locked = !isPlusUnlocked
+                                    ),
+                                    TierCard(
+                                        value = ClipboardCleanTier.AUTO_CLEAN,
+                                        icon = Icons.Outlined.Bolt,
+                                        title = stringResource(R.string.tier_auto_clean_title),
+                                        subtitle = stringResource(R.string.tier_auto_clean_subtitle),
+                                        locked = !isPlusUnlocked
+                                    )
+                                ),
+                                selected = if (isPlusUnlocked) state.clipboardCleanTier else ClipboardCleanTier.SUGGEST,
+                                onSelect = { viewModel.setClipboardCleanTier(it) },
+                                onLockedTap = { showUpsellSheet = true },
+                                modifier = Modifier.padding(horizontal = 4.dp, vertical = 4.dp)
+                            )
+                        }
+                    }
+                }
+
+                // Share-to-clean tiered selector
+                SettingCard(modifier = Modifier.animateContentSize()) {
+                    Column(
+                        modifier = Modifier.padding(12.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Text(
+                            text = stringResource(R.string.settings_share_tier_heading),
+                            style = MaterialTheme.typography.labelLarge,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.padding(start = 8.dp, top = 4.dp)
+                        )
+                        val effectiveShareTier =
+                            if (isPlusUnlocked) state.shareCleanTier else ShareCleanTier.CLEAN
+                        TierSelectorRow(
+                            cards = listOf(
+                                TierCard(
+                                    value = ShareCleanTier.CLEAN,
+                                    icon = Icons.Outlined.CleaningServices,
+                                    title = stringResource(R.string.tier_clean_title),
+                                    subtitle = stringResource(R.string.tier_clean_subtitle)
+                                ),
+                                TierCard(
+                                    value = ShareCleanTier.CLEAN_AND_COPY,
+                                    icon = Icons.Outlined.ContentCopy,
+                                    title = stringResource(R.string.tier_clean_copy_title),
+                                    subtitle = stringResource(R.string.tier_clean_copy_subtitle),
+                                    locked = !isPlusUnlocked
+                                ),
+                                TierCard(
+                                    value = ShareCleanTier.CLEAN_COPY_AND_SHARE,
+                                    icon = Icons.Outlined.Share,
+                                    title = stringResource(R.string.tier_clean_copy_share_title),
+                                    subtitle = stringResource(R.string.tier_clean_copy_share_subtitle),
+                                    locked = !isPlusUnlocked
+                                )
+                            ),
+                            selected = effectiveShareTier,
+                            onSelect = { viewModel.setShareCleanTier(it) },
+                            onLockedTap = { showUpsellSheet = true },
+                            modifier = Modifier.padding(horizontal = 4.dp, vertical = 4.dp)
+                        )
+
+                        if (effectiveShareTier == ShareCleanTier.CLEAN_COPY_AND_SHARE) {
+                            HorizontalDivider(
+                                color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f),
+                                thickness = 1.dp,
+                                modifier = Modifier.padding(horizontal = 8.dp)
+                            )
+                            SettingToggleRow(
+                                title = stringResource(R.string.settings_close_instead_title),
+                                description = stringResource(R.string.settings_close_instead_desc),
+                                checked = state.closeInsteadOfSharing,
+                                onToggle = { viewModel.setCloseInsteadOfSharing(!state.closeInsteadOfSharing) }
+                            )
+                        }
+                    }
+                }
+
+                // Other automation toggles
                 SettingCard {
                     Column(
                         modifier = Modifier.padding(12.dp),
                         verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clip(RoundedCornerShape(12.dp))
-                                .clickable {
-                                    if (isPlusUnlocked) {
-                                        viewModel.setAutoCopyOnShare(!state.autoCopyOnShare)
-                                    } else {
-                                        showUpsellSheet = true
-                                    }
-                                }
-                                .padding(horizontal = 8.dp, vertical = 12.dp),
-                            horizontalArrangement = Arrangement.spacedBy(16.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Column(modifier = Modifier.weight(1f)) {
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.spacedBy(6.dp)
-                                ) {
-                                    Text(
-                                        text = stringResource(R.string.settings_copy_shared_title),
-                                        style = MaterialTheme.typography.bodyMedium,
-                                        fontWeight = FontWeight.SemiBold,
-                                        color = MaterialTheme.colorScheme.onSurface
-                                    )
-                                    if (!isPlusUnlocked) {
-                                        Icon(
-                                            imageVector = androidx.compose.material.icons.Icons.Outlined.Lock,
-                                            contentDescription = stringResource(R.string.tooltip_premium_feature),
-                                            tint = MaterialTheme.colorScheme.primary,
-                                            modifier = Modifier.size(16.dp)
-                                        )
-                                    }
-                                }
-                                Spacer(modifier = Modifier.height(2.dp))
-                                Text(
-                                    text = stringResource(R.string.settings_copy_shared_desc),
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            }
-                            Switch(
-                                checked = state.autoCopyOnShare && isPlusUnlocked,
-                                onCheckedChange = null,
-                                colors = clearSwitchColors()
-                            )
-                        }
+                        SettingToggleRow(
+                            title = stringResource(R.string.settings_auto_expand_title),
+                            description = stringResource(R.string.settings_auto_expand_desc),
+                            checked = state.autoExpandShortUrls,
+                            onToggle = { viewModel.setAutoExpandShortUrls(!state.autoExpandShortUrls) }
+                        )
 
                         HorizontalDivider(
                             color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f),
@@ -874,93 +953,12 @@ fun SettingsScreen(
                             modifier = Modifier.padding(horizontal = 8.dp)
                         )
 
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clip(RoundedCornerShape(12.dp))
-                                .clickable {
-                                    when {
-                                        !isPlusUnlocked -> showUpsellSheet = true
-                                        state.autoCopyOnShare -> viewModel.setAutoCloseOnShare(!state.autoCloseOnShare)
-                                    }
-                                }
-                                .padding(horizontal = 8.dp, vertical = 12.dp),
-                            horizontalArrangement = Arrangement.spacedBy(16.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Column(modifier = Modifier.weight(1f)) {
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.spacedBy(6.dp)
-                                ) {
-                                    Text(
-                                        text = stringResource(R.string.settings_close_shared_title),
-                                        style = MaterialTheme.typography.bodyMedium,
-                                        fontWeight = FontWeight.SemiBold,
-                                        color = if (state.autoCopyOnShare || !isPlusUnlocked) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurface.copy(
-                                            alpha = 0.38f
-                                        )
-                                    )
-                                    if (!isPlusUnlocked) {
-                                        Icon(
-                                            imageVector = androidx.compose.material.icons.Icons.Outlined.Lock,
-                                            contentDescription = stringResource(R.string.tooltip_premium_feature),
-                                            tint = MaterialTheme.colorScheme.primary,
-                                            modifier = Modifier.size(16.dp)
-                                        )
-                                    }
-                                }
-                                Spacer(modifier = Modifier.height(2.dp))
-                                Text(
-                                    text = stringResource(R.string.settings_close_shared_desc),
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = if (state.autoCopyOnShare || !isPlusUnlocked) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurfaceVariant.copy(
-                                        alpha = 0.38f
-                                    )
-                                )
-                            }
-                            Switch(
-                                checked = state.autoCloseOnShare && isPlusUnlocked,
-                                onCheckedChange = null,
-                                enabled = (state.autoCopyOnShare && isPlusUnlocked) || !isPlusUnlocked,
-                                colors = clearSwitchColors()
-                            )
-                        }
-
-                        HorizontalDivider(
-                            color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f),
-                            thickness = 1.dp
+                        SettingToggleRow(
+                            title = stringResource(R.string.settings_remove_mobile_subdomains_title),
+                            description = stringResource(R.string.settings_remove_mobile_subdomains_desc),
+                            checked = state.autoRemoveMobileSubdomains,
+                            onToggle = { viewModel.setAutoRemoveMobileSubdomains(!state.autoRemoveMobileSubdomains) }
                         )
-
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clip(RoundedCornerShape(12.dp))
-                                .clickable { viewModel.setAutoExpandShortUrls(!state.autoExpandShortUrls) }
-                                .padding(horizontal = 8.dp, vertical = 12.dp),
-                            horizontalArrangement = Arrangement.spacedBy(16.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Column(modifier = Modifier.weight(1f)) {
-                                Text(
-                                    text = stringResource(R.string.settings_auto_expand_title),
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    fontWeight = FontWeight.SemiBold,
-                                    color = MaterialTheme.colorScheme.onSurface
-                                )
-                                Spacer(modifier = Modifier.height(2.dp))
-                                Text(
-                                    text = stringResource(R.string.settings_auto_expand_desc),
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            }
-                            Switch(
-                                checked = state.autoExpandShortUrls,
-                                onCheckedChange = null,
-                                colors = clearSwitchColors()
-                            )
-                        }
 
                         HorizontalDivider(
                             color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f),
@@ -968,35 +966,12 @@ fun SettingsScreen(
                             modifier = Modifier.padding(horizontal = 8.dp)
                         )
 
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clip(RoundedCornerShape(12.dp))
-                                .clickable { viewModel.setAutoRemoveMobileSubdomains(!state.autoRemoveMobileSubdomains) }
-                                .padding(horizontal = 8.dp, vertical = 12.dp),
-                            horizontalArrangement = Arrangement.spacedBy(16.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Column(modifier = Modifier.weight(1f)) {
-                                Text(
-                                    text = stringResource(R.string.settings_remove_mobile_subdomains_title),
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    fontWeight = FontWeight.SemiBold,
-                                    color = MaterialTheme.colorScheme.onSurface
-                                )
-                                Spacer(modifier = Modifier.height(2.dp))
-                                Text(
-                                    text = stringResource(R.string.settings_remove_mobile_subdomains_desc),
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            }
-                            Switch(
-                                checked = state.autoRemoveMobileSubdomains,
-                                onCheckedChange = null,
-                                colors = clearSwitchColors()
-                            )
-                        }
+                        SettingToggleRow(
+                            title = stringResource(R.string.settings_auto_clean_input_title),
+                            description = stringResource(R.string.settings_auto_clean_input_desc),
+                            checked = state.autoCleanOnInput,
+                            onToggle = { viewModel.setAutoCleanOnInput(!state.autoCleanOnInput) }
+                        )
 
                         HorizontalDivider(
                             color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f),
@@ -1004,71 +979,27 @@ fun SettingsScreen(
                             modifier = Modifier.padding(horizontal = 8.dp)
                         )
 
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clip(RoundedCornerShape(12.dp))
-                                .clickable { viewModel.setAutoCleanClipboardOnLaunch(!state.autoCleanClipboardOnLaunch) }
-                                .padding(horizontal = 8.dp, vertical = 12.dp),
-                            horizontalArrangement = Arrangement.spacedBy(16.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Column(modifier = Modifier.weight(1f)) {
-                                Text(
-                                    text = stringResource(R.string.settings_auto_clean_launch_title),
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    fontWeight = FontWeight.SemiBold,
-                                    color = MaterialTheme.colorScheme.onSurface
-                                )
-                                Spacer(modifier = Modifier.height(2.dp))
-                                Text(
-                                    text = stringResource(R.string.settings_auto_clean_launch_desc),
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            }
-                            Switch(
-                                checked = state.autoCleanClipboardOnLaunch,
-                                onCheckedChange = null,
-                                colors = clearSwitchColors()
-                            )
+                        // "Clean from any app" genuinely toggles the ACTION_PROCESS_TEXT
+                        // component; it renders disabled (never hidden) for non-Plus users.
+                        var processTextEnabled by remember {
+                            mutableStateOf(com.tidy.app.FlavorConfig.isProcessTextEnabled(context))
                         }
-
-                        HorizontalDivider(
-                            color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f),
-                            thickness = 1.dp,
-                            modifier = Modifier.padding(horizontal = 8.dp)
+                        SettingToggleRow(
+                            title = stringResource(R.string.settings_clean_any_app_title),
+                            description = stringResource(R.string.settings_clean_any_app_desc),
+                            checked = processTextEnabled && isPlusUnlocked,
+                            onToggle = {
+                                com.tidy.app.FlavorConfig.setProcessTextEnabled(
+                                    context,
+                                    !processTextEnabled
+                                )
+                                processTextEnabled =
+                                    com.tidy.app.FlavorConfig.isProcessTextEnabled(context)
+                            },
+                            enabled = isPlusUnlocked,
+                            showLock = !isPlusUnlocked,
+                            onLockedTap = { showUpsellSheet = true }
                         )
-
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clip(RoundedCornerShape(12.dp))
-                                .clickable { viewModel.setAutoCleanOnInput(!state.autoCleanOnInput) }
-                                .padding(horizontal = 8.dp, vertical = 12.dp),
-                            horizontalArrangement = Arrangement.spacedBy(16.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Column(modifier = Modifier.weight(1f)) {
-                                Text(
-                                    text = stringResource(R.string.settings_auto_clean_input_title),
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    fontWeight = FontWeight.SemiBold,
-                                    color = MaterialTheme.colorScheme.onSurface
-                                )
-                                Spacer(modifier = Modifier.height(2.dp))
-                                Text(
-                                    text = stringResource(R.string.settings_auto_clean_input_desc),
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            }
-                            Switch(
-                                checked = state.autoCleanOnInput,
-                                onCheckedChange = null,
-                                colors = clearSwitchColors()
-                            )
-                        }
                     }
                 }
 
@@ -1168,6 +1099,68 @@ fun SettingsScreen(
     if (showUpsellSheet) {
         com.tidy.app.FlavorConfig.ShowUpsellBottomSheet(
             onDismiss = { showUpsellSheet = false }
+        )
+    }
+}
+
+/**
+ * A standard settings toggle row: title + description on the left, switch on the right.
+ * [enabled] = false renders the row greyed; it stays tappable so a locked row can still
+ * surface the Tidy+ upsell via [onLockedTap]. [showLock] adds the lock indicator next to
+ * the title.
+ */
+@Composable
+private fun SettingToggleRow(
+    title: String,
+    description: String,
+    checked: Boolean,
+    onToggle: () -> Unit,
+    enabled: Boolean = true,
+    showLock: Boolean = false,
+    onLockedTap: () -> Unit = {}
+) {
+    val contentAlpha = if (enabled) 1f else 0.38f
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(12.dp))
+            .clickable { if (enabled) onToggle() else onLockedTap() }
+            .padding(horizontal = 8.dp, vertical = 12.dp),
+        horizontalArrangement = Arrangement.spacedBy(16.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Column(modifier = Modifier.weight(1f)) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(6.dp)
+            ) {
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = contentAlpha)
+                )
+                if (showLock) {
+                    Icon(
+                        imageVector = Icons.Outlined.Lock,
+                        contentDescription = stringResource(R.string.tooltip_premium_feature),
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(16.dp)
+                    )
+                }
+            }
+            Spacer(modifier = Modifier.height(2.dp))
+            Text(
+                text = description,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = contentAlpha)
+            )
+        }
+        Switch(
+            checked = checked,
+            onCheckedChange = null,
+            enabled = enabled,
+            colors = clearSwitchColors()
         )
     }
 }

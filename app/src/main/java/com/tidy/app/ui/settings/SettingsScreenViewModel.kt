@@ -4,7 +4,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.tidy.app.TidyApp
 import com.tidy.app.data.BackupPreference
+import com.tidy.app.data.ClipboardCleanTier
 import com.tidy.app.data.SettingsRepository
+import com.tidy.app.data.ShareCleanTier
 import com.tidy.app.data.TrackerEntry
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -27,21 +29,23 @@ class SettingsScreenViewModel(
         val paramInput: String = "",
         val newParamWhitelistDomain: String = "",
         val newParamWhitelistParam: String = "",
-        val autoCopyOnShare: Boolean = false,
-        val autoCloseOnShare: Boolean = false,
+        val checkClipboardForLinks: Boolean = true,
+        val clipboardCleanTier: ClipboardCleanTier = ClipboardCleanTier.SUGGEST,
+        val shareCleanTier: ShareCleanTier = ShareCleanTier.CLEAN,
+        val closeInsteadOfSharing: Boolean = false,
         val autoExpandShortUrls: Boolean = true,
         val autoRemoveMobileSubdomains: Boolean = true,
-        val autoCleanClipboardOnLaunch: Boolean = false,
         val autoCleanOnInput: Boolean = true,
         val allowSystemBackup: Boolean = false
     )
 
-    private data class BooleanSettings(
-        val autoCopy: Boolean,
-        val autoClose: Boolean,
+    private data class AutomationSettings(
+        val checkClipboard: Boolean,
+        val clipboardTier: ClipboardCleanTier,
+        val shareTier: ShareCleanTier,
+        val closeInsteadOfSharing: Boolean,
         val autoExpand: Boolean,
         val autoRemoveMobile: Boolean,
-        val autoCleanLaunch: Boolean,
         val autoCleanInput: Boolean
     )
 
@@ -64,21 +68,23 @@ class SettingsScreenViewModel(
         ) { whitelist, blacklist, domainParams, trackers ->
             RulesData(whitelist, blacklist, domainParams, trackers)
         },
-        combine(
-            settingsRepository.autoCopyOnShare,
-            settingsRepository.autoCloseOnShare,
+        combine<Any, AutomationSettings>(
+            settingsRepository.checkClipboardForLinks,
+            settingsRepository.clipboardCleanTier,
+            settingsRepository.shareCleanTier,
+            settingsRepository.closeInsteadOfSharing,
             settingsRepository.autoExpandShortUrls,
             settingsRepository.autoRemoveMobileSubdomains,
-            settingsRepository.autoCleanClipboardOnLaunch,
             settingsRepository.autoCleanOnInput
         ) { array ->
-            BooleanSettings(
-                autoCopy = array[0],
-                autoClose = array[1],
-                autoExpand = array[2],
-                autoRemoveMobile = array[3],
-                autoCleanLaunch = array[4],
-                autoCleanInput = array[5]
+            AutomationSettings(
+                checkClipboard = array[0] as Boolean,
+                clipboardTier = array[1] as ClipboardCleanTier,
+                shareTier = array[2] as ShareCleanTier,
+                closeInsteadOfSharing = array[3] as Boolean,
+                autoExpand = array[4] as Boolean,
+                autoRemoveMobile = array[5] as Boolean,
+                autoCleanInput = array[6] as Boolean
             )
         },
         _uiState
@@ -88,24 +94,37 @@ class SettingsScreenViewModel(
             blacklistedParams = reposFlow1.blacklist,
             domainWhitelistedParams = reposFlow1.domainParams,
             trackers = reposFlow1.trackers,
-            autoCopyOnShare = reposFlow2.autoCopy,
-            autoCloseOnShare = reposFlow2.autoClose,
+            checkClipboardForLinks = reposFlow2.checkClipboard,
+            clipboardCleanTier = reposFlow2.clipboardTier,
+            shareCleanTier = reposFlow2.shareTier,
+            closeInsteadOfSharing = reposFlow2.closeInsteadOfSharing,
             autoExpandShortUrls = reposFlow2.autoExpand,
             autoRemoveMobileSubdomains = reposFlow2.autoRemoveMobile,
-            autoCleanClipboardOnLaunch = reposFlow2.autoCleanLaunch,
             autoCleanOnInput = reposFlow2.autoCleanInput
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), UiState())
 
-    fun setAutoCopyOnShare(enabled: Boolean) {
+    fun setCheckClipboardForLinks(enabled: Boolean) {
         viewModelScope.launch {
-            settingsRepository.setAutoCopyOnShare(enabled)
+            settingsRepository.setCheckClipboardForLinks(enabled)
         }
     }
 
-    fun setAutoCloseOnShare(enabled: Boolean) {
+    fun setClipboardCleanTier(tier: ClipboardCleanTier) {
         viewModelScope.launch {
-            settingsRepository.setAutoCloseOnShare(enabled)
+            settingsRepository.setClipboardCleanTier(tier)
+        }
+    }
+
+    fun setShareCleanTier(tier: ShareCleanTier) {
+        viewModelScope.launch {
+            settingsRepository.setShareCleanTier(tier)
+        }
+    }
+
+    fun setCloseInsteadOfSharing(enabled: Boolean) {
+        viewModelScope.launch {
+            settingsRepository.setCloseInsteadOfSharing(enabled)
         }
     }
 
@@ -161,12 +180,6 @@ class SettingsScreenViewModel(
     fun setAutoRemoveMobileSubdomains(enabled: Boolean) {
         viewModelScope.launch {
             settingsRepository.setAutoRemoveMobileSubdomains(enabled)
-        }
-    }
-
-    fun setAutoCleanClipboardOnLaunch(enabled: Boolean) {
-        viewModelScope.launch {
-            settingsRepository.setAutoCleanClipboardOnLaunch(enabled)
         }
     }
 

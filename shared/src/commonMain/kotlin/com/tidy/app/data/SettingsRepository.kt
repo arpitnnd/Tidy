@@ -17,8 +17,14 @@ class SettingsRepository(private val dataStore: DataStore<Preferences>) {
         val KEY_WHITELISTED_DOMAINS = stringSetPreferencesKey("whitelisted_domains")
         val KEY_BLACKLISTED_PARAMS = stringSetPreferencesKey("blacklisted_params")
         val KEY_DOMAIN_WHITELISTED_PARAMS = stringSetPreferencesKey("domain_whitelisted_params")
+        // Legacy single-behaviour automation keys, still read to seed the tier defaults
+        // for users upgrading from the pre-tiered settings.
         val KEY_AUTO_COPY_ON_SHARE = booleanPreferencesKey("auto_copy_on_share")
         val KEY_AUTO_CLOSE_ON_SHARE = booleanPreferencesKey("auto_close_on_share")
+        val KEY_CHECK_CLIPBOARD_FOR_LINKS = booleanPreferencesKey("check_clipboard_for_links")
+        val KEY_CLIPBOARD_CALLOUT_DISMISSED = booleanPreferencesKey("clipboard_callout_dismissed")
+        val KEY_CLIPBOARD_CLEAN_TIER = stringPreferencesKey("clipboard_clean_tier")
+        val KEY_SHARE_CLEAN_TIER = stringPreferencesKey("share_clean_tier")
         val KEY_AUTO_EXPAND_SHORT_URLS = booleanPreferencesKey("auto_expand_short_urls")
         val KEY_AUTO_REMOVE_MOBILE_SUBDOMAINS =
             booleanPreferencesKey("auto_remove_mobile_subdomains")
@@ -73,11 +79,41 @@ class SettingsRepository(private val dataStore: DataStore<Preferences>) {
         preferences[KEY_DOMAIN_WHITELISTED_PARAMS] ?: emptySet()
     }
 
-    val autoCopyOnShare: Flow<Boolean> = dataStore.data.map { preferences ->
-        preferences[KEY_AUTO_COPY_ON_SHARE] ?: false
+    val checkClipboardForLinks: Flow<Boolean> = dataStore.data.map { preferences ->
+        // Off by default; pre-tiered "auto-clean clipboard on launch" users who'd
+        // already opted in keep clipboard checking on after upgrading.
+        preferences[KEY_CHECK_CLIPBOARD_FOR_LINKS]
+            ?: (preferences[KEY_AUTO_CLEAN_CLIPBOARD_ON_LAUNCH] == true)
     }
 
-    val autoCloseOnShare: Flow<Boolean> = dataStore.data.map { preferences ->
+    val clipboardCalloutDismissed: Flow<Boolean> = dataStore.data.map { preferences ->
+        preferences[KEY_CLIPBOARD_CALLOUT_DISMISSED] ?: false
+    }
+
+    val clipboardCleanTier: Flow<ClipboardCleanTier> = dataStore.data.map { preferences ->
+        val stored = preferences[KEY_CLIPBOARD_CLEAN_TIER]
+        when {
+            stored != null -> ClipboardCleanTier.fromKey(stored)
+            // Pre-tiered "auto-clean clipboard on launch" users keep hands-off cleaning.
+            preferences[KEY_AUTO_CLEAN_CLIPBOARD_ON_LAUNCH] == true -> ClipboardCleanTier.AUTO_CLEAN
+            else -> ClipboardCleanTier.SUGGEST
+        }
+    }
+
+    val shareCleanTier: Flow<ShareCleanTier> = dataStore.data.map { preferences ->
+        val stored = preferences[KEY_SHARE_CLEAN_TIER]
+        when {
+            stored != null -> ShareCleanTier.fromKey(stored)
+            // Pre-tiered "Share automation" users: copy+close maps to the top tier with the
+            // close toggle already on (same key), copy-only maps to the middle tier.
+            preferences[KEY_AUTO_COPY_ON_SHARE] == true &&
+                preferences[KEY_AUTO_CLOSE_ON_SHARE] == true -> ShareCleanTier.CLEAN_COPY_AND_SHARE
+            preferences[KEY_AUTO_COPY_ON_SHARE] == true -> ShareCleanTier.CLEAN_AND_COPY
+            else -> ShareCleanTier.CLEAN
+        }
+    }
+
+    val closeInsteadOfSharing: Flow<Boolean> = dataStore.data.map { preferences ->
         preferences[KEY_AUTO_CLOSE_ON_SHARE] ?: false
     }
 
@@ -87,10 +123,6 @@ class SettingsRepository(private val dataStore: DataStore<Preferences>) {
 
     val autoRemoveMobileSubdomains: Flow<Boolean> = dataStore.data.map { preferences ->
         preferences[KEY_AUTO_REMOVE_MOBILE_SUBDOMAINS] ?: true
-    }
-
-    val autoCleanClipboardOnLaunch: Flow<Boolean> = dataStore.data.map { preferences ->
-        preferences[KEY_AUTO_CLEAN_CLIPBOARD_ON_LAUNCH] ?: false
     }
 
     val autoCleanOnInput: Flow<Boolean> = dataStore.data.map { preferences ->
@@ -119,13 +151,31 @@ class SettingsRepository(private val dataStore: DataStore<Preferences>) {
         preferences[KEY_TOTAL_TRACKERS_BLOCKED] ?: 0
     }
 
-    suspend fun setAutoCopyOnShare(enabled: Boolean) {
+    suspend fun setCheckClipboardForLinks(enabled: Boolean) {
         dataStore.edit { preferences ->
-            preferences[KEY_AUTO_COPY_ON_SHARE] = enabled
+            preferences[KEY_CHECK_CLIPBOARD_FOR_LINKS] = enabled
         }
     }
 
-    suspend fun setAutoCloseOnShare(enabled: Boolean) {
+    suspend fun setClipboardCalloutDismissed(dismissed: Boolean) {
+        dataStore.edit { preferences ->
+            preferences[KEY_CLIPBOARD_CALLOUT_DISMISSED] = dismissed
+        }
+    }
+
+    suspend fun setClipboardCleanTier(tier: ClipboardCleanTier) {
+        dataStore.edit { preferences ->
+            preferences[KEY_CLIPBOARD_CLEAN_TIER] = tier.key
+        }
+    }
+
+    suspend fun setShareCleanTier(tier: ShareCleanTier) {
+        dataStore.edit { preferences ->
+            preferences[KEY_SHARE_CLEAN_TIER] = tier.key
+        }
+    }
+
+    suspend fun setCloseInsteadOfSharing(enabled: Boolean) {
         dataStore.edit { preferences ->
             preferences[KEY_AUTO_CLOSE_ON_SHARE] = enabled
         }
@@ -194,12 +244,6 @@ class SettingsRepository(private val dataStore: DataStore<Preferences>) {
     suspend fun setAutoRemoveMobileSubdomains(enabled: Boolean) {
         dataStore.edit { preferences ->
             preferences[KEY_AUTO_REMOVE_MOBILE_SUBDOMAINS] = enabled
-        }
-    }
-
-    suspend fun setAutoCleanClipboardOnLaunch(enabled: Boolean) {
-        dataStore.edit { preferences ->
-            preferences[KEY_AUTO_CLEAN_CLIPBOARD_ON_LAUNCH] = enabled
         }
     }
 

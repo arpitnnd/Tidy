@@ -2,6 +2,18 @@
 
 All notable changes to Tidy will be documented in this file.
 
+## [Unreleased]
+
+- Clipboard checking and share-to-clean now offer multiple automation
+  levels instead of one fixed behaviour each.
+- Clipboard checking is now off by default.
+- "Clean from any app" (Tidy+) toggle now really enables/disables the
+  system text-selection entry, not a cosmetic switch.
+- One adaptive bottom area on the home screen, replacing separate
+  manual-entry and clipboard-suggestion elements.
+- Clipboard checking runs identically on cold start and resume, and
+  opening Tidy directly can never auto-close it.
+
 ## [1.0.0]
 
 First public release.

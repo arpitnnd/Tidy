@@ -36,7 +36,15 @@
     <string name="dialog_cancel">Cancel</string>
 
     <string name="banner_found_clipboard">Found URL in clipboard</string>
-    <string name="banner_paste_clean">Paste and clean</string>
+    <string name="banner_paste_clean">Clean</string>
+    <string name="banner_clipboard_callout_title">Check clipboard on launch?</string>
+    <string name="banner_clipboard_callout_desc">Tidy will look for a link each time you open it.</string>
+    <string name="banner_clipboard_callout_enable">Enable</string>
+    <string name="banner_clipboard_callout_dismiss">Dismiss</string>
+    <string name="banner_clipboard_enabled_title">Clipboard checking is on</string>
+    <string name="banner_clipboard_enabled_desc">Customise how Tidy responds to links from Settings, any time.</string>
+    <string name="banner_view_settings">View settings</string>
+    <string name="banner_later">Later</string>
     <string name="button_clean_url">Clean URL</string>
     <string name="toast_no_browser_app">No app found to open URL</string>
     <string name="toast_copied">Copied to clipboard</string>
@@ -66,18 +74,33 @@
     <string name="settings_no_custom_params_text">No custom parameters added</string>
 
     <string name="settings_automation">Automation</string>
-    <string name="settings_copy_shared_title">Copy when shared</string>
-    <string name="settings_copy_shared_desc">Copy cleaned URLs to clipboard immediately when shared with Tidy</string>
-    <string name="settings_close_shared_title">Close after copying</string>
-    <string name="settings_close_shared_desc">Close the app automatically after a shared URL is copied</string>
-    <string name="settings_auto_expand_title">Auto-expand short URLs</string>
-    <string name="settings_auto_expand_desc">Automatically resolve and expand short URLs before cleaning</string>
-    <string name="settings_auto_clean_launch_title">Auto-clean clipboard on launch</string>
-    <string name="settings_auto_clean_launch_desc">Instantly clean clipboard URL, copy back, and exit the app on launch</string>
+    <string name="settings_auto_expand_title">Expand short links automatically</string>
+    <string name="settings_auto_expand_desc">Unwraps links like bit.ly or t.co before cleaning, so trackers hidden behind them get caught too.</string>
     <string name="settings_auto_clean_input_title">Auto-clean typed URLs</string>
     <string name="settings_auto_clean_input_desc">Clean URLs automatically as you type or paste without clicking clean</string>
-    <string name="settings_remove_mobile_subdomains_title">Remove mobile subdomains</string>
-    <string name="settings_remove_mobile_subdomains_desc">Automatically strip \'m.\' or \'mobile.\' subdomains from cleaned links</string>
+    <string name="settings_remove_mobile_subdomains_title">Remove \"m.\" from links</string>
+    <string name="settings_remove_mobile_subdomains_desc">Some links use an old mobile-only address. The regular version opens the same page everywhere, so Tidy uses that instead.</string>
+
+    <string name="settings_check_clipboard_title">Check clipboard on launch</string>
+    <string name="settings_check_clipboard_desc">Looks for a link on your clipboard when you open Tidy.</string>
+    <string name="settings_clipboard_tier_heading">If a link is found on clipboard</string>
+    <string name="tier_suggest_title">Suggest</string>
+    <string name="tier_suggest_subtitle">Review before copying</string>
+    <string name="tier_suggest_copy_title">Suggest\n&amp; copy</string>
+    <string name="tier_suggest_copy_subtitle">One tap does both</string>
+    <string name="tier_auto_clean_title">Auto-clean</string>
+    <string name="tier_auto_clean_subtitle">No tapping needed</string>
+    <string name="settings_share_tier_heading">When you share a link to Tidy</string>
+    <string name="tier_clean_title">Clean</string>
+    <string name="tier_clean_subtitle">Shows the clean link in Tidy</string>
+    <string name="tier_clean_copy_title">Clean &amp; copy</string>
+    <string name="tier_clean_copy_subtitle">Copies it, ready to paste</string>
+    <string name="tier_clean_copy_share_title">Clean, copy\n&amp; share</string>
+    <string name="tier_clean_copy_share_subtitle">Continues sharing it for you</string>
+    <string name="settings_close_instead_title">Close Tidy instead of sharing</string>
+    <string name="settings_close_instead_desc">Copies the clean link and closes Tidy, without opening the share sheet again.</string>
+    <string name="settings_clean_any_app_title">Clean from any app</string>
+    <string name="settings_clean_any_app_desc">Select a link in any app and choose \"Clean with Tidy\" from the menu that pops up.</string>
 
     <string name="settings_data_backup_title">Data &amp; Backup</string>
     <string name="settings_allow_system_backup_title">Back up app data</string>
@@ -202,8 +225,9 @@
     <string name="settings_tidy_plus_upgrade_title">Upgrade to Tidy+</string>
     <string name="settings_tidy_plus_upgrade_desc">Unlock share automation, bulk clipboard clean, and more</string>
     <string name="settings_tidy_plus_get_title">Get Tidy+</string>
-    <string name="tidy_plus_coming_soon_title">Tidy+ (Coming Soon)</string>
-    <string name="tidy_plus_coming_soon_desc">Tidy+ is in final testing on Google Play, check back soon.</string>
+    <string name="settings_coming_soon_badge">Coming soon</string>
+    <string name="tidy_plus_coming_soon_title">Tidy+ isn\'t live yet</string>
+    <string name="tidy_plus_coming_soon_desc">It\'s finishing testing before it lands on Google Play. Check back soon.</string>
     <string name="plus_migration_value_proposition">Zero subscription. Pay once, own forever.</string>
 
     <!-- UI Refactoring & Settings -->

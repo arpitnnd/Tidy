@@ -25,7 +25,14 @@ object FlavorConfig {
 
     @Composable
     fun ShowUpsellBottomSheet(onDismiss: () -> Unit) {
-        // No-op for FOSS
+        // FOSS has no in-app purchase flow, so this mirrors whatever the "Get Tidy+"
+        // row itself shows on tap: the migration flow once Plus ships, the coming-soon
+        // sheet until then.
+        if (com.tidy.app.BuildConfig.TIDY_PLUS_AVAILABLE) {
+            com.tidy.app.ui.settings.SettingsMigrationViews.MigrationSheet(onDismiss = onDismiss)
+        } else {
+            com.tidy.app.ui.settings.SettingsMigrationViews.ComingSoonSheet(onDismiss = onDismiss)
+        }
     }
 
     fun getPremiumColorScheme(
@@ -46,11 +53,26 @@ object FlavorConfig {
         // No-op for FOSS
     }
 
+    suspend fun resolveClipboardTier(
+        settingsRepository: com.tidy.app.data.SettingsRepository
+    ): com.tidy.app.data.ClipboardCleanTier {
+        // FOSS has no Tidy+ automation: always the free Suggest baseline.
+        return com.tidy.app.data.ClipboardCleanTier.SUGGEST
+    }
+
     suspend fun handleShareAutomation(
-        cleanedUrl: String,
         settingsRepository: com.tidy.app.data.SettingsRepository,
-        onCopyAndClose: (Boolean) -> Unit
+        onOutcome: (com.tidy.app.data.ShareAutomationOutcome) -> Unit
     ) {
+        // No-op for FOSS: the free Clean baseline shows the result in-app.
+    }
+
+    // The text-selection "Clean with Tidy" entry ships in the plus module only.
+    val isProcessTextAvailable: Boolean = false
+
+    fun isProcessTextEnabled(context: android.content.Context): Boolean = false
+
+    fun setProcessTextEnabled(context: android.content.Context, enabled: Boolean) {
         // No-op for FOSS
     }
 }

@@ -123,20 +123,25 @@ object SettingsMigrationViews {
                     }
 
                     Column(modifier = Modifier.weight(1f)) {
-                        Text(
-                            text = if (isAvailable) {
-                                stringResource(R.string.settings_tidy_plus_get_title)
-                            } else {
-                                stringResource(R.string.settings_tidy_plus_get_title) + " (Coming soon)"
-                            },
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold,
-                            color = if (isAvailable) {
-                                MaterialTheme.colorScheme.onPrimaryContainer
-                            } else {
-                                MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Text(
+                                text = stringResource(R.string.settings_tidy_plus_get_title),
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = if (isAvailable) {
+                                    MaterialTheme.colorScheme.onPrimaryContainer
+                                } else {
+                                    MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
+                                }
+                            )
+                            if (!isAvailable) {
+                                ComingSoonBadge()
                             }
-                        )
+                        }
+                        Spacer(modifier = Modifier.height(4.dp))
                         Text(
                             text = stringResource(R.string.settings_tidy_plus_upgrade_desc),
                             style = MaterialTheme.typography.bodySmall,
@@ -224,37 +229,65 @@ object SettingsMigrationViews {
         }
 
         if (showComingSoonSheet) {
-            TidyModalBottomSheet(
-                onDismissRequest = { showComingSoonSheet = false }
-            ) { comingSoonScrollFix ->
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(start = 24.dp, end = 24.dp, bottom = 32.dp)
-                        .navigationBarsPadding()
-                        .nestedScroll(comingSoonScrollFix),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(16.dp)
+            ComingSoonSheet(onDismiss = { showComingSoonSheet = false })
+        }
+    }
+
+    @Composable
+    private fun ComingSoonBadge() {
+        Surface(
+            shape = RoundedCornerShape(12.dp),
+            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f)
+        ) {
+            Text(
+                text = stringResource(R.string.settings_coming_soon_badge),
+                style = MaterialTheme.typography.labelSmall,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
+            )
+        }
+    }
+
+    /**
+     * The "Tidy+ (Coming soon)" prompt shown from the upgrade row above. Also the prompt
+     * every other locked/Plus-gated control in the FOSS build surfaces on tap, via
+     * FlavorConfig.ShowUpsellBottomSheet -- there's no in-app purchase flow to offer here,
+     * so this is the FOSS equivalent of the Play flavor's upsell sheet.
+     */
+    @OptIn(ExperimentalMaterial3Api::class)
+    @Composable
+    fun ComingSoonSheet(onDismiss: () -> Unit) {
+        TidyModalBottomSheet(
+            onDismissRequest = onDismiss
+        ) { comingSoonScrollFix ->
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(start = 24.dp, end = 24.dp, bottom = 32.dp)
+                    .navigationBarsPadding()
+                    .nestedScroll(comingSoonScrollFix),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                Text(
+                    text = stringResource(R.string.tidy_plus_coming_soon_title),
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                Text(
+                    text = stringResource(R.string.tidy_plus_coming_soon_desc),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    textAlign = TextAlign.Center
+                )
+                Button(
+                    onClick = onDismiss,
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(16.dp)
                 ) {
-                    Text(
-                        text = stringResource(R.string.tidy_plus_coming_soon_title),
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                    Text(
-                        text = stringResource(R.string.tidy_plus_coming_soon_desc),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        textAlign = TextAlign.Center
-                    )
-                    Button(
-                        onClick = { showComingSoonSheet = false },
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(16.dp)
-                    ) {
-                        Text("OK", fontWeight = FontWeight.Bold)
-                    }
+                    Text("OK", fontWeight = FontWeight.Bold)
                 }
             }
         }
