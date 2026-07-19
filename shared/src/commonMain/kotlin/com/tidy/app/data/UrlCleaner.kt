@@ -1,6 +1,7 @@
 package com.tidy.app.data
 
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.Json
 
 @Serializable
 data class TrackerEntry(
@@ -10,20 +11,13 @@ data class TrackerEntry(
 
 class UrlCleaner {
     companion object {
-        val DEFAULT_TRACKING_PARAMS = setOf(
-            "utm_source", "utm_medium", "utm_campaign", "utm_term", "utm_content", "utm_id",
-            "utm_source_platform", "utm_marketing_tactic",
-            "fbclid", "gclid", "msclkid", "yclid", "dclid",
-            "si", "igsh",
-            "mc_eid",
-            "gclsrc",
-            "rb_clickid",
-            "affclick",
-            "campid",
-            "gbraid", "wbraid", "twclid", "ttclid",
-            "srsltid", "li_fat_id", "sc_cid",
-            "_hsenc", "_hsmi"
-        )
+        // Derived from the same build-generated constant as SettingsRepository.DEFAULT_BLOCKLIST_JSON,
+        // which in turn is generated from blocklist/trackers.json — the single authored source of truth.
+        val DEFAULT_TRACKING_PARAMS: Set<String> by lazy {
+            Json.decodeFromString<List<TrackerEntry>>(GENERATED_DEFAULT_BLOCKLIST_JSON)
+                .map { it.name }
+                .toSet()
+        }
     }
 
     data class CleanResult(
