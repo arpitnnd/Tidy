@@ -1048,6 +1048,8 @@ fun MainScreen(
                                         val domainParams = settings.domainWhitelistedParams.first()
                                         val removeMobile =
                                             settings.autoRemoveMobileSubdomains.first()
+                                        val trackerNames =
+                                            settings.trackers.first().map { it.name }.toSet()
 
                                         val cleaned = urls.map { url ->
                                             UrlCleaner().clean(
@@ -1055,7 +1057,8 @@ fun MainScreen(
                                                 whitelistedDomains = whitelist,
                                                 customBlacklistParams = customBlacklist,
                                                 domainWhitelistedParams = domainParams,
-                                                removeMobileSubdomains = removeMobile
+                                                removeMobileSubdomains = removeMobile,
+                                                trackingParams = trackerNames
                                             ).cleanedUrl
                                         }
 

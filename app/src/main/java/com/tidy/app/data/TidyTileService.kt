@@ -26,13 +26,16 @@ class TidyTileService : TileService() {
                 val customBlacklist = runBlocking { settings.blacklistedParams.first() }
                 val domainParams = runBlocking { settings.domainWhitelistedParams.first() }
                 val removeMobile = runBlocking { settings.autoRemoveMobileSubdomains.first() }
+                val trackerNames =
+                    runBlocking { settings.trackers.first().map { it.name }.toSet() }
 
                 val cleanResult = UrlCleaner().clean(
                     urlStr = formattedText,
                     whitelistedDomains = whitelist,
                     customBlacklistParams = customBlacklist,
                     domainWhitelistedParams = domainParams,
-                    removeMobileSubdomains = removeMobile
+                    removeMobileSubdomains = removeMobile,
+                    trackingParams = trackerNames
                 )
                 if (cleanResult.removedParams.isNotEmpty()) {
                     runBlocking {

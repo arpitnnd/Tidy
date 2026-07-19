@@ -104,6 +104,36 @@ class MainScreenViewModelTest {
     }
 
     @Test
+    fun cleanUrlHonorsSyncedBlocklistOverCompiledDefault() = runTest {
+        // Simulate a GitHub-synced blocklist containing only a never-before-seen param
+        // (not utm_-prefixed, so only the live/synced list can cause it to be stripped).
+        fakeDataStore.updateData { prefs ->
+            val mutable = prefs.toMutablePreferences()
+            mutable[SettingsRepository.KEY_BLOCKLIST_JSON] =
+                """[{"name":"zzz_custom_tracker","description":"synced only"}]"""
+            mutable
+        }
+
+        viewModel.cleanUrl("https://example.com/page?zzz_custom_tracker=1&fbclid=2")
+
+        val state = viewModel.uiState.value
+        // The synced param is stripped...
+        assertTrue(state.removedParams.contains("zzz_custom_tracker"))
+        // ...but fbclid (a compiled default absent from the synced list) is kept, proving
+        // the live synced list is honored instead of UrlCleaner.DEFAULT_TRACKING_PARAMS.
+        assertEquals("https://example.com/page?fbclid=2", state.cleanedUrl)
+    }
+
+    @Test
+    fun cleanUrlUsesCompiledDefaultsWhenNoBlocklistSynced() = runTest {
+        viewModel.cleanUrl("https://example.com/page?fbclid=2&keep=1")
+
+        val state = viewModel.uiState.value
+        assertEquals("https://example.com/page?keep=1", state.cleanedUrl)
+        assertTrue(state.removedParams.contains("fbclid"))
+    }
+
+    @Test
     fun testMarkFirstLaunchDone() = runTest {
         viewModel.markFirstLaunchDone()
 
