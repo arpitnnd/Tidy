@@ -50,6 +50,8 @@ actually does something the moment it lands.
 - Tapping a locked Tidy+ feature (a premium theme, an automation toggle)
   on the FOSS build now actually shows the upgrade prompt, instead of
   silently doing nothing.
+- The "Back up app data" description now says what's actually backed up:
+  all your Tidy data, not just history and rules.
 
 ### Internal
 
@@ -63,6 +65,12 @@ actually does something the moment it lands.
 - APK output filenames are now set natively via AGP's `onVariants` API
   instead of a manual rename task, so Android Studio's Build Variants
   panel shows the right names too.
+- The Tidy+ migration backup (still hidden behind the coming-soon flag)
+  now backs up your rules and settings too, not just history. The
+  restore confirmation shows real counts instead of a hardcoded zero.
+- Fixed a stale Gradle wrapper checksum that was breaking CI, and bumped
+  CI's GitHub Actions to their Node 24 versions ahead of GitHub dropping
+  Node 20.
 
 ## [1.0.0]
 
