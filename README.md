@@ -1,4 +1,8 @@
-# Tidy 🧹
+<img src="app/src/main/res/mipmap-xxxhdpi/ic_launcher.webp" width="96" height="96" alt="Tidy app icon">
+
+# Tidy
+
+Control what a link shares with strangers when you're just sharing it with a friend.
 
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
 [![Platform](https://img.shields.io/badge/Platform-Android-green.svg)](https://developer.android.com)
@@ -18,6 +22,14 @@ you attached to it.
 It's a small, free app. No account, no setup, no ads.
 Everything happens right on your phone, nothing about your links is
 ever sent anywhere else.
+
+<table>
+<tr>
+<td><img src="docs/screenshots/hero.jpg" width="240" alt="Tidy's home screen"></td>
+<td><img src="docs/screenshots/cleaned-url.jpg" width="240" alt="A cleaned URL with the removed tracking parameters listed"></td>
+<td><img src="docs/screenshots/privacy-dashboard.jpg" width="240" alt="The Privacy Dashboard showing cleaning history and stats"></td>
+</tr>
+</table>
 
 ---
 
