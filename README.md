@@ -200,6 +200,11 @@ Bug fixes, blocklist corrections, and improvements to the `foss`
 flavor are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) for setup,
 code style, and how to submit changes.
 
+There's no iOS app, and I likely won't be the one to build it. I'm on
+Windows, I'd rather not take on another platform to context-switch
+into, and this project already uses up what spare time I have. If
+you'd like to bring Tidy to iOS, I'd genuinely welcome the help.
+
 ---
 
 ## Security policy
