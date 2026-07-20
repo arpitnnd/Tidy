@@ -261,6 +261,27 @@ class SettingsRepository(private val dataStore: DataStore<Preferences>) {
         }
     }
 
+    suspend fun mergeWhitelistedDomains(domains: Set<String>) {
+        dataStore.edit { preferences ->
+            val current = preferences[KEY_WHITELISTED_DOMAINS] ?: emptySet()
+            preferences[KEY_WHITELISTED_DOMAINS] = current + domains
+        }
+    }
+
+    suspend fun mergeBlacklistedParams(params: Set<String>) {
+        dataStore.edit { preferences ->
+            val current = preferences[KEY_BLACKLISTED_PARAMS] ?: emptySet()
+            preferences[KEY_BLACKLISTED_PARAMS] = current + params
+        }
+    }
+
+    suspend fun mergeDomainWhitelistedParams(pairs: Set<String>) {
+        dataStore.edit { preferences ->
+            val current = preferences[KEY_DOMAIN_WHITELISTED_PARAMS] ?: emptySet()
+            preferences[KEY_DOMAIN_WHITELISTED_PARAMS] = current + pairs
+        }
+    }
+
     val dontAskAgainCrash: Flow<Boolean> = dataStore.data.map { preferences ->
         preferences[KEY_DONT_ASK_AGAIN_CRASH] ?: false
     }

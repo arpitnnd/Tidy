@@ -88,6 +88,14 @@ class HistoryRepository(
         }
     }
 
+    suspend fun getEntriesSnapshot(): List<HistoryEntry> {
+        return withContext(Dispatchers.IO) {
+            mutex.withLock {
+                getOrLoadEntries()
+            }
+        }
+    }
+
     suspend fun importFromJson(jsonStr: String): Int {
         return withContext(Dispatchers.IO) {
             mutex.withLock {
