@@ -17,6 +17,7 @@ class SettingsRepository(private val dataStore: DataStore<Preferences>) {
         val KEY_WHITELISTED_DOMAINS = stringSetPreferencesKey("whitelisted_domains")
         val KEY_BLACKLISTED_PARAMS = stringSetPreferencesKey("blacklisted_params")
         val KEY_DOMAIN_WHITELISTED_PARAMS = stringSetPreferencesKey("domain_whitelisted_params")
+
         // Legacy single-behaviour automation keys, still read to seed the tier defaults
         // for users upgrading from the pre-tiered settings.
         val KEY_AUTO_COPY_ON_SHARE = booleanPreferencesKey("auto_copy_on_share")
@@ -89,7 +90,8 @@ class SettingsRepository(private val dataStore: DataStore<Preferences>) {
             // Pre-tiered "Share automation" users: copy+close maps to the top tier with the
             // close toggle already on (same key), copy-only maps to the middle tier.
             preferences[KEY_AUTO_COPY_ON_SHARE] == true &&
-                preferences[KEY_AUTO_CLOSE_ON_SHARE] == true -> ShareCleanTier.CLEAN_COPY_AND_SHARE
+                    preferences[KEY_AUTO_CLOSE_ON_SHARE] == true -> ShareCleanTier.CLEAN_COPY_AND_SHARE
+
             preferences[KEY_AUTO_COPY_ON_SHARE] == true -> ShareCleanTier.CLEAN_AND_COPY
             else -> ShareCleanTier.CLEAN
         }

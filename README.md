@@ -126,18 +126,18 @@ data collected to sell instead.
 > will update the moment it does. Think of the table below as a preview
 > of what's coming.
 
-| | **Tidy** | **Tidy+** |
-|---|---|---|
-| Cleaning engine, short-link expansion | ✅ | ✅ |
-| Custom rules, whitelist profiles | ✅ | ✅ |
-| Unlimited history, dashboard, backup/restore | ✅ | ✅ |
-| Quick Settings tile | ✅ | ✅ |
-| Clipboard checking, review before copying | ✅ | ✅ |
-| Clipboard checking, auto-copy or auto-clean | — | ✅ |
-| Share to Tidy, view the cleaned link | ✅ | ✅ |
-| Share to Tidy, auto-copy or auto-share | — | ✅ |
-| Inline text-selection cleaning | — | ✅ |
-| Extra themes | — | ✅ |
+|                                              | **Tidy** | **Tidy+** |
+|----------------------------------------------|----------|-----------|
+| Cleaning engine, short-link expansion        | ✅        | ✅         |
+| Custom rules, whitelist profiles             | ✅        | ✅         |
+| Unlimited history, dashboard, backup/restore | ✅        | ✅         |
+| Quick Settings tile                          | ✅        | ✅         |
+| Clipboard checking, review before copying    | ✅        | ✅         |
+| Clipboard checking, auto-copy or auto-clean  | —        | ✅         |
+| Share to Tidy, view the cleaned link         | ✅        | ✅         |
+| Share to Tidy, auto-copy or auto-share       | —        | ✅         |
+| Inline text-selection cleaning               | —        | ✅         |
+| Extra themes                                 | —        | ✅         |
 
 ## Installing
 

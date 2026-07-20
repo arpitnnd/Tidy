@@ -124,7 +124,8 @@ fun PlayOnboardingRestoreView(onDismiss: () -> Unit) {
     var resultText by remember { mutableStateOf("") }
     val snackbarHostState = remember { SnackbarHostState() }
 
-    val restoreSummaryTemplate = stringResource(com.tidy.app.R.string.migration_restore_summary_format)
+    val restoreSummaryTemplate =
+        stringResource(com.tidy.app.R.string.migration_restore_summary_format)
     val importInvalidText = stringResource(com.tidy.app.R.string.history_import_invalid)
     val importFailedTemplate = stringResource(com.tidy.app.R.string.migration_import_failed_format)
 
@@ -166,7 +167,8 @@ fun PlayOnboardingRestoreView(onDismiss: () -> Unit) {
                                 result.whitelistRulesCount,
                                 result.whitelistRulesCount
                             )
-                            resultText = restoreSummaryTemplate.format(urlsText, trackersText, rulesText)
+                            resultText =
+                                restoreSummaryTemplate.format(urlsText, trackersText, rulesText)
                             showResultDialog = true
                         } else {
                             snackbarHostState.showSnackbar(importInvalidText)
@@ -224,7 +226,10 @@ fun PlayOnboardingRestoreView(onDismiss: () -> Unit) {
                         onDismiss()
                     }
                 ) {
-                    Text(stringResource(com.tidy.app.R.string.dialog_ok), fontWeight = FontWeight.Bold)
+                    Text(
+                        stringResource(com.tidy.app.R.string.dialog_ok),
+                        fontWeight = FontWeight.Bold
+                    )
                 }
             }
         )

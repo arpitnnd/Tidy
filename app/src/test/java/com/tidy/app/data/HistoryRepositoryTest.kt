@@ -36,8 +36,18 @@ class HistoryRepositoryTest {
 
     @Test
     fun addEntryInsertsNewestFirst() = runTest {
-        repository.addEntry(sampleEntry(originalUrl = "https://a.com/1", cleanedUrl = "https://a.com/1"))
-        repository.addEntry(sampleEntry(originalUrl = "https://b.com/2", cleanedUrl = "https://b.com/2"))
+        repository.addEntry(
+            sampleEntry(
+                originalUrl = "https://a.com/1",
+                cleanedUrl = "https://a.com/1"
+            )
+        )
+        repository.addEntry(
+            sampleEntry(
+                originalUrl = "https://b.com/2",
+                cleanedUrl = "https://b.com/2"
+            )
+        )
 
         val history = repository.historyFlow.value
         assertEquals(2, history.size)
@@ -59,7 +69,12 @@ class HistoryRepositoryTest {
 
     @Test
     fun persistsAcrossRepositoryInstances() = runTest {
-        repository.addEntry(sampleEntry(originalUrl = "https://a.com/1?x=1", cleanedUrl = "https://a.com/1"))
+        repository.addEntry(
+            sampleEntry(
+                originalUrl = "https://a.com/1?x=1",
+                cleanedUrl = "https://a.com/1"
+            )
+        )
 
         val reloaded = HistoryRepository(testFile = historyFile)
         reloaded.loadHistory()
@@ -70,8 +85,18 @@ class HistoryRepositoryTest {
 
     @Test
     fun exportThenImportRoundTripsEntries() = runTest {
-        repository.addEntry(sampleEntry(originalUrl = "https://a.com/1", cleanedUrl = "https://a.com/1"))
-        repository.addEntry(sampleEntry(originalUrl = "https://b.com/2", cleanedUrl = "https://b.com/2"))
+        repository.addEntry(
+            sampleEntry(
+                originalUrl = "https://a.com/1",
+                cleanedUrl = "https://a.com/1"
+            )
+        )
+        repository.addEntry(
+            sampleEntry(
+                originalUrl = "https://b.com/2",
+                cleanedUrl = "https://b.com/2"
+            )
+        )
         val exported = repository.exportToJson()
 
         repository.clearAll()
@@ -107,7 +132,10 @@ class HistoryRepositoryTest {
 
     @Test
     fun extractDomainStripsSchemePortPathQueryAndFragment() {
-        assertEquals("example.com", HistoryRepository.extractDomain("https://example.com/path?x=1#frag"))
+        assertEquals(
+            "example.com",
+            HistoryRepository.extractDomain("https://example.com/path?x=1#frag")
+        )
         assertEquals("example.com", HistoryRepository.extractDomain("http://EXAMPLE.com:8080/path"))
         assertEquals("m.example.com", HistoryRepository.extractDomain("https://m.example.com/"))
         assertEquals("example.com", HistoryRepository.extractDomain("example.com"))

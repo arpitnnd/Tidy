@@ -79,10 +79,10 @@ import com.tidy.app.data.ShareCleanTier
 import com.tidy.app.ui.components.ExpandableSettingRow
 import com.tidy.app.ui.components.ScreenSectionHeader
 import com.tidy.app.ui.components.SettingCard
-import com.tidy.app.ui.components.TierCard
-import com.tidy.app.ui.components.TierSelectorRow
 import com.tidy.app.ui.components.TidyModalBottomSheet
 import com.tidy.app.ui.components.TidyTopAppBar
+import com.tidy.app.ui.components.TierCard
+import com.tidy.app.ui.components.TierSelectorRow
 import com.tidy.app.ui.components.TooltipWrapper
 import kotlinx.coroutines.launch
 
@@ -364,12 +364,18 @@ fun SettingsScreen(
                                                 trailingIcon = {
                                                     TooltipWrapper(tooltipText = stringResource(R.string.tooltip_remove_domain)) {
                                                         IconButton(
-                                                            onClick = { viewModel.removeDomain(domain) },
+                                                            onClick = {
+                                                                viewModel.removeDomain(
+                                                                    domain
+                                                                )
+                                                            },
                                                             modifier = Modifier.size(24.dp)
                                                         ) {
                                                             Icon(
                                                                 Icons.Filled.Delete,
-                                                                contentDescription = stringResource(R.string.tooltip_remove_domain),
+                                                                contentDescription = stringResource(
+                                                                    R.string.tooltip_remove_domain
+                                                                ),
                                                                 modifier = Modifier.size(16.dp)
                                                             )
                                                         }
@@ -529,7 +535,9 @@ fun SettingsScreen(
                                                         ) {
                                                             Icon(
                                                                 Icons.Filled.Delete,
-                                                                contentDescription = stringResource(R.string.tooltip_remove_whitelist_param),
+                                                                contentDescription = stringResource(
+                                                                    R.string.tooltip_remove_whitelist_param
+                                                                ),
                                                                 modifier = Modifier.size(16.dp)
                                                             )
                                                         }
@@ -656,7 +664,9 @@ fun SettingsScreen(
                                                         ) {
                                                             Icon(
                                                                 Icons.Filled.Delete,
-                                                                contentDescription = stringResource(R.string.tooltip_remove_custom_param),
+                                                                contentDescription = stringResource(
+                                                                    R.string.tooltip_remove_custom_param
+                                                                ),
                                                                 modifier = Modifier.size(16.dp)
                                                             )
                                                         }
@@ -735,7 +745,13 @@ fun SettingsScreen(
                         val themeOceanBlue = stringResource(R.string.theme_ocean_blue)
                         val themeDarkVelvet = stringResource(R.string.theme_dark_velvet)
 
-                        val themes = remember(themeSageSlate, themeMaterialYou, themeForestGreen, themeOceanBlue, themeDarkVelvet) {
+                        val themes = remember(
+                            themeSageSlate,
+                            themeMaterialYou,
+                            themeForestGreen,
+                            themeOceanBlue,
+                            themeDarkVelvet
+                        ) {
                             buildList {
                                 add("slate" to themeSageSlate)
                                 if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {

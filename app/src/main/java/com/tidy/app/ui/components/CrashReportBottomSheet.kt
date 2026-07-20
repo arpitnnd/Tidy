@@ -208,7 +208,10 @@ fun CrashReportBottomSheet(
                             modifier = Modifier.fillMaxWidth(),
                             shape = RoundedCornerShape(14.dp)
                         ) {
-                            Text(stringResource(R.string.dialog_share), fontWeight = FontWeight.Bold)
+                            Text(
+                                stringResource(R.string.dialog_share),
+                                fontWeight = FontWeight.Bold
+                            )
                         }
                     }
                 }

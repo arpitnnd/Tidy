@@ -84,7 +84,8 @@ suspend fun restoreMigrationBackup(
         }
     }
 
-    val importedCount = historyRepository.importFromJson(migrationJson.encodeToString(backup.history))
+    val importedCount =
+        historyRepository.importFromJson(migrationJson.encodeToString(backup.history))
     if (importedCount < 0) return null
 
     settingsRepository.mergeWhitelistedDomains(backup.whitelistedDomains)
@@ -107,8 +108,8 @@ suspend fun restoreMigrationBackup(
 
     val trackersBlocked = backup.history.sumOf { it.removedParamsCount }
     val whitelistRulesCount = backup.whitelistedDomains.size +
-        backup.blacklistedParams.size +
-        backup.domainWhitelistedParams.size
+            backup.blacklistedParams.size +
+            backup.domainWhitelistedParams.size
 
     return MigrationRestoreResult(
         urlsCleaned = backup.history.size,

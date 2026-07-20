@@ -69,7 +69,8 @@ class MigrationBackupTest {
         settingsRepository.setSelectedTheme("forest")
         settingsRepository.setDontAskAgainCrash(true)
 
-        val backupJson = buildMigrationBackup(historyRepository, settingsRepository, allowSystemBackup = true)
+        val backupJson =
+            buildMigrationBackup(historyRepository, settingsRepository, allowSystemBackup = true)
 
         val freshHistory = HistoryRepository(testFile = File(tempFolder.root, "restored.json"))
         val freshSettings = SettingsRepository(FakeDataStore())
@@ -111,7 +112,10 @@ class MigrationBackupTest {
 
         restoreMigrationBackup(backupJson, historyRepository, settingsRepository)
 
-        assertEquals(setOf("already-here.com", "imported.com"), settingsRepository.whitelistedDomains.first())
+        assertEquals(
+            setOf("already-here.com", "imported.com"),
+            settingsRepository.whitelistedDomains.first()
+        )
     }
 
     @Test
@@ -137,7 +141,8 @@ class MigrationBackupTest {
 
     @Test
     fun restoreReturnsNullOnMalformedJson() = runTest {
-        val result = restoreMigrationBackup("{ not valid json ", historyRepository, settingsRepository)
+        val result =
+            restoreMigrationBackup("{ not valid json ", historyRepository, settingsRepository)
         assertNull(result)
     }
 }

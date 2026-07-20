@@ -22,9 +22,9 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
-import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlin.time.Duration.Companion.seconds
 
 class MainScreenViewModel(
     private val settingsRepository: SettingsRepository = TidyApp.instance.settingsRepository,
@@ -204,8 +204,10 @@ class MainScreenViewModel(
                             when (outcome) {
                                 ShareAutomationOutcome.COPY ->
                                     AutomationAction.Copy(result.cleanedUrl)
+
                                 ShareAutomationOutcome.COPY_AND_SHARE ->
                                     AutomationAction.CopyAndShare(result.cleanedUrl)
+
                                 ShareAutomationOutcome.COPY_AND_CLOSE ->
                                     AutomationAction.CopyAndClose(result.cleanedUrl)
                             }

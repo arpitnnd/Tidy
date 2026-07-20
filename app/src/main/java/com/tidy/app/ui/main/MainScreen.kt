@@ -54,14 +54,12 @@ import androidx.compose.material.icons.outlined.CloudOff
 import androidx.compose.material.icons.outlined.ContentPaste
 import androidx.compose.material.icons.outlined.History
 import androidx.compose.material.icons.outlined.Tune
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.AssistChipDefaults
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledIconButton
@@ -70,7 +68,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
@@ -120,24 +117,24 @@ import com.tidy.app.data.HistoryRepository
 import com.tidy.app.data.UrlCleaner
 import com.tidy.app.data.UrlDetection
 import com.tidy.app.ui.components.ArrowsOutward
-import com.tidy.app.ui.components.FeatureRow
 import com.tidy.app.ui.components.CrashReportBottomSheet
+import com.tidy.app.ui.components.FeatureRow
 import com.tidy.app.ui.components.ParamDetailBottomSheet
 import com.tidy.app.ui.components.TidyModalBottomSheet
 import com.tidy.app.ui.components.TooltipWrapper
 import com.tidy.app.ui.components.shimmer
-import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlin.time.Duration.Companion.milliseconds
 
 // Shared by every bottom-container banner (clipboard suggestion, callout, enabled-success)
 // so their fade and size animations run on identical timing and never drift out of sync.
 private const val BannerAnimDurationMs = 220
 private val BannerEnterTransition = fadeIn(tween(BannerAnimDurationMs)) +
-    expandVertically(animationSpec = tween(BannerAnimDurationMs))
+        expandVertically(animationSpec = tween(BannerAnimDurationMs))
 private val BannerExitTransition = fadeOut(tween(BannerAnimDurationMs)) +
-    shrinkVertically(animationSpec = tween(BannerAnimDurationMs))
+        shrinkVertically(animationSpec = tween(BannerAnimDurationMs))
 
 // Matches the gap this screen already uses between other distinct stacked sections (the
 // results Column below), rather than the tighter 12.dp used for spacing within one section.
@@ -271,6 +268,7 @@ fun MainScreen(
                     // itself and the user picks it again, that's expected.
                     viewModel.shareUrl(context)
                 }
+
                 is MainScreenViewModel.AutomationAction.CopyAndClose -> {
                     // The only automation allowed to close the app, and it can only be
                     // reached from a genuine incoming share intent (isShared = true).
@@ -312,6 +310,7 @@ fun MainScreen(
                             bulkClipboardUrls = urls
                             clipboardUrl = null
                         }
+
                         urls.size == 1 -> {
                             bulkClipboardUrls = null
                             val candidate = viewModel.evaluateClipboardCandidate(text)
@@ -326,10 +325,12 @@ fun MainScreen(
                                             copyResultToClipboard = true
                                         )
                                     }
+
                                     ClipboardCleanTier.SUGGEST_AND_COPY -> {
                                         suggestionCopiesOnClean = true
                                         clipboardUrl = candidate
                                     }
+
                                     ClipboardCleanTier.SUGGEST -> {
                                         suggestionCopiesOnClean = false
                                         clipboardUrl = candidate
@@ -337,6 +338,7 @@ fun MainScreen(
                                 }
                             }
                         }
+
                         else -> clearSuggestions()
                     }
                 }
@@ -972,12 +974,15 @@ fun MainScreen(
                                                 .shimmer()
                                         )
                                     }
+
                                     state.totalCleanedCount > 0 -> {
                                         Spacer(modifier = Modifier.height(16.dp))
                                         Surface(
                                             onClick = onHistoryClick,
                                             shape = RoundedCornerShape(12.dp),
-                                            color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)
+                                            color = MaterialTheme.colorScheme.surfaceVariant.copy(
+                                                alpha = 0.4f
+                                            )
                                         ) {
                                             Text(
                                                 text = stringResource(

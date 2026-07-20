@@ -156,12 +156,13 @@ tasks.register("renameArtifacts") {
 tasks.configureEach {
     val taskName = name.lowercase()
     if ((taskName.startsWith("assemble") ||
-         taskName.startsWith("bundle") ||
-         taskName.startsWith("package") ||
-         taskName.startsWith("sign")) &&
+                taskName.startsWith("bundle") ||
+                taskName.startsWith("package") ||
+                taskName.startsWith("sign")) &&
         !taskName.contains("test") &&
         !taskName.contains("lint") &&
-        !taskName.contains("resources")) {
+        !taskName.contains("resources")
+    ) {
         finalizedBy("renameArtifacts")
     }
 }
