@@ -3,12 +3,15 @@ package com.tidy.app
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -20,6 +23,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.tidy.app.data.PlayEntitlementManager
@@ -27,8 +31,6 @@ import kotlinx.coroutines.launch
 
 object FlavorConfig {
     val isPlayFlavor: Boolean = true
-
-    val jsonInstance = kotlinx.serialization.json.Json { ignoreUnknownKeys = true }
 
     fun createEntitlementManager(context: android.content.Context): com.tidy.app.data.AndroidEntitlementManager {
         return PlayEntitlementManager(context)
@@ -120,6 +122,12 @@ fun PlayOnboardingRestoreView(onDismiss: () -> Unit) {
 
     var showResultDialog by remember { mutableStateOf(false) }
     var resultText by remember { mutableStateOf("") }
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    val restoreSummaryTemplate =
+        stringResource(com.tidy.app.R.string.migration_restore_summary_format)
+    val importInvalidText = stringResource(com.tidy.app.R.string.history_import_invalid)
+    val importFailedTemplate = stringResource(com.tidy.app.R.string.migration_import_failed_format)
 
     val importLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
@@ -131,49 +139,71 @@ fun PlayOnboardingRestoreView(onDismiss: () -> Unit) {
                     val json = inputStream?.bufferedReader()?.readText()
                     inputStream?.close()
                     if (json != null) {
-                        val importedCount = historyRepository.importFromJson(json)
-                        if (importedCount >= 0) {
-                            val list = FlavorConfig.jsonInstance
-                                .decodeFromString<List<com.tidy.app.data.HistoryEntry>>(json)
-                            val totalTrackers = list.sumOf { it.removedParamsCount }
-
+                        val result = com.tidy.app.data.restoreMigrationBackup(
+                            json,
+                            historyRepository,
+                            settingsRepository
+                        )
+                        if (result != null) {
                             // Save stats to settings repository
-                            settingsRepository.addStats(list.size, totalTrackers)
+                            settingsRepository.addStats(result.urlsCleaned, result.trackersBlocked)
+                            result.allowSystemBackup?.let {
+                                com.tidy.app.data.BackupPreference.setAllowed(context, it)
+                            }
 
+                            val resources = context.resources
+                            val urlsText = resources.getQuantityString(
+                                com.tidy.app.R.plurals.migration_restore_urls_cleaned,
+                                result.urlsCleaned,
+                                result.urlsCleaned
+                            )
+                            val trackersText = resources.getQuantityString(
+                                com.tidy.app.R.plurals.migration_restore_trackers_blocked,
+                                result.trackersBlocked,
+                                result.trackersBlocked
+                            )
+                            val rulesText = resources.getQuantityString(
+                                com.tidy.app.R.plurals.migration_restore_whitelist_rules,
+                                result.whitelistRulesCount,
+                                result.whitelistRulesCount
+                            )
                             resultText =
-                                "Restored: ${list.size} URLs cleaned, $totalTrackers trackers blocked, 0 whitelist rules"
+                                restoreSummaryTemplate.format(urlsText, trackersText, rulesText)
                             showResultDialog = true
                         } else {
-                            Toast.makeText(
-                                context,
-                                "Import failed: invalid file format",
-                                Toast.LENGTH_SHORT
-                            ).show()
+                            snackbarHostState.showSnackbar(importInvalidText)
                         }
                     }
                 } catch (e: Exception) {
-                    Toast.makeText(context, "Import failed: ${e.message}", Toast.LENGTH_SHORT)
-                        .show()
+                    snackbarHostState.showSnackbar(
+                        importFailedTemplate.format(com.tidy.app.data.errorDetail(e.message))
+                    )
                 }
             }
         }
     }
 
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(top = 8.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        TextButton(
-            onClick = { importLauncher.launch("application/json") }
+    Box(modifier = Modifier.fillMaxWidth()) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 8.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text(
-                text = "Used Tidy before? Restore your data",
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.primary
-            )
+            TextButton(
+                onClick = { importLauncher.launch("application/json") }
+            ) {
+                Text(
+                    text = stringResource(com.tidy.app.R.string.migration_restore_prompt),
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.primary
+                )
+            }
         }
+        SnackbarHost(
+            hostState = snackbarHostState,
+            modifier = Modifier.align(Alignment.BottomCenter)
+        )
     }
 
     if (showResultDialog) {
@@ -182,7 +212,12 @@ fun PlayOnboardingRestoreView(onDismiss: () -> Unit) {
                 showResultDialog = false
                 onDismiss()
             },
-            title = { Text("Restore Complete", fontWeight = FontWeight.Bold) },
+            title = {
+                Text(
+                    stringResource(com.tidy.app.R.string.migration_restore_complete_title),
+                    fontWeight = FontWeight.Bold
+                )
+            },
             text = { Text(resultText) },
             confirmButton = {
                 Button(
@@ -191,7 +226,10 @@ fun PlayOnboardingRestoreView(onDismiss: () -> Unit) {
                         onDismiss()
                     }
                 ) {
-                    Text("OK", fontWeight = FontWeight.Bold)
+                    Text(
+                        stringResource(com.tidy.app.R.string.dialog_ok),
+                        fontWeight = FontWeight.Bold
+                    )
                 }
             }
         )

@@ -1,7 +1,6 @@
 package com.tidy.app
 
 import androidx.compose.runtime.Composable
-import com.tidy.app.data.EntitlementManager
 import com.tidy.app.data.FossEntitlementManager
 
 object FlavorConfig {

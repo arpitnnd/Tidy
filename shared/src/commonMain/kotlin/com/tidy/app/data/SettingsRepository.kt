@@ -17,6 +17,7 @@ class SettingsRepository(private val dataStore: DataStore<Preferences>) {
         val KEY_WHITELISTED_DOMAINS = stringSetPreferencesKey("whitelisted_domains")
         val KEY_BLACKLISTED_PARAMS = stringSetPreferencesKey("blacklisted_params")
         val KEY_DOMAIN_WHITELISTED_PARAMS = stringSetPreferencesKey("domain_whitelisted_params")
+
         // Legacy single-behaviour automation keys, still read to seed the tier defaults
         // for users upgrading from the pre-tiered settings.
         val KEY_AUTO_COPY_ON_SHARE = booleanPreferencesKey("auto_copy_on_share")
@@ -89,7 +90,8 @@ class SettingsRepository(private val dataStore: DataStore<Preferences>) {
             // Pre-tiered "Share automation" users: copy+close maps to the top tier with the
             // close toggle already on (same key), copy-only maps to the middle tier.
             preferences[KEY_AUTO_COPY_ON_SHARE] == true &&
-                preferences[KEY_AUTO_CLOSE_ON_SHARE] == true -> ShareCleanTier.CLEAN_COPY_AND_SHARE
+                    preferences[KEY_AUTO_CLOSE_ON_SHARE] == true -> ShareCleanTier.CLEAN_COPY_AND_SHARE
+
             preferences[KEY_AUTO_COPY_ON_SHARE] == true -> ShareCleanTier.CLEAN_AND_COPY
             else -> ShareCleanTier.CLEAN
         }
@@ -258,6 +260,27 @@ class SettingsRepository(private val dataStore: DataStore<Preferences>) {
         dataStore.edit { preferences ->
             val current = preferences[KEY_DOMAIN_WHITELISTED_PARAMS] ?: emptySet()
             preferences[KEY_DOMAIN_WHITELISTED_PARAMS] = current - "$cleanDomain:$cleanParam"
+        }
+    }
+
+    suspend fun mergeWhitelistedDomains(domains: Set<String>) {
+        dataStore.edit { preferences ->
+            val current = preferences[KEY_WHITELISTED_DOMAINS] ?: emptySet()
+            preferences[KEY_WHITELISTED_DOMAINS] = current + domains
+        }
+    }
+
+    suspend fun mergeBlacklistedParams(params: Set<String>) {
+        dataStore.edit { preferences ->
+            val current = preferences[KEY_BLACKLISTED_PARAMS] ?: emptySet()
+            preferences[KEY_BLACKLISTED_PARAMS] = current + params
+        }
+    }
+
+    suspend fun mergeDomainWhitelistedParams(pairs: Set<String>) {
+        dataStore.edit { preferences ->
+            val current = preferences[KEY_DOMAIN_WHITELISTED_PARAMS] ?: emptySet()
+            preferences[KEY_DOMAIN_WHITELISTED_PARAMS] = current + pairs
         }
     }
 

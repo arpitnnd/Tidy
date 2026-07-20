@@ -183,7 +183,10 @@ class SettingsRepositoryTest {
 
         val descriptions = repository.trackerDescriptions.first()
         assertEquals(trackers.size, descriptions.size)
-        assertEquals(trackers.first { it.name == "utm_source" }.description, descriptions["utm_source"])
+        assertEquals(
+            trackers.first { it.name == "utm_source" }.description,
+            descriptions["utm_source"]
+        )
     }
 
     @Test

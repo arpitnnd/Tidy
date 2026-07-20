@@ -23,8 +23,8 @@ val generateTrackerDefaults = tasks.register("generateTrackerDefaults") {
         outFile.parentFile.mkdirs()
         outFile.writeText(
             "package com.tidy.app.data\n\n" +
-                "// GENERATED from blocklist/trackers.json by :shared:generateTrackerDefaults. Do not edit by hand.\n" +
-                "internal const val GENERATED_DEFAULT_BLOCKLIST_JSON: String = \"\"\"$json\"\"\"\n"
+                    "// GENERATED from blocklist/trackers.json by :shared:generateTrackerDefaults. Do not edit by hand.\n" +
+                    "internal const val GENERATED_DEFAULT_BLOCKLIST_JSON: String = \"\"\"$json\"\"\"\n"
         )
     }
 }

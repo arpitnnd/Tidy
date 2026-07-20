@@ -25,7 +25,8 @@ class MainScreenTest {
         // welcome hero, and mark first-launch done so the intro bottom sheet can't either --
         // this test must exercise the welcome hero regardless of ambient device/app state.
         val targetContext = InstrumentationRegistry.getInstrumentation().targetContext
-        val clipboard = targetContext.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+        val clipboard =
+            targetContext.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
         clipboard.setPrimaryClip(ClipData.newPlainText("", ""))
         runBlocking { TidyApp.instance.settingsRepository.setFirstLaunchDone() }
 
