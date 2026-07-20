@@ -97,7 +97,10 @@ class BlocklistSyncerTest {
 
         BlocklistSyncer.sync(context, settingsRepository, url)
 
-        assertEquals(SettingsRepository.DEFAULT_BLOCKLIST_JSON, settingsRepository.blocklistJson.first())
+        assertEquals(
+            SettingsRepository.DEFAULT_BLOCKLIST_JSON,
+            settingsRepository.blocklistJson.first()
+        )
         assertTrue(settingsRepository.blocklistLastFetchTime.first() > 0)
     }
 
@@ -112,7 +115,10 @@ class BlocklistSyncerTest {
 
         BlocklistSyncer.sync(context, settingsRepository, url)
 
-        assertEquals(SettingsRepository.DEFAULT_BLOCKLIST_JSON, settingsRepository.blocklistJson.first())
+        assertEquals(
+            SettingsRepository.DEFAULT_BLOCKLIST_JSON,
+            settingsRepository.blocklistJson.first()
+        )
     }
 
     @Test
@@ -126,7 +132,10 @@ class BlocklistSyncerTest {
 
         BlocklistSyncer.sync(context, settingsRepository, url)
 
-        assertEquals(SettingsRepository.DEFAULT_BLOCKLIST_JSON, settingsRepository.blocklistJson.first())
+        assertEquals(
+            SettingsRepository.DEFAULT_BLOCKLIST_JSON,
+            settingsRepository.blocklistJson.first()
+        )
     }
 
     @Test
@@ -135,6 +144,9 @@ class BlocklistSyncerTest {
         BlocklistSyncer.sync(context, settingsRepository, "http://127.0.0.1:1/trackers.json")
 
         assertEquals(0L, settingsRepository.blocklistLastFetchTime.first())
-        assertEquals(SettingsRepository.DEFAULT_BLOCKLIST_JSON, settingsRepository.blocklistJson.first())
+        assertEquals(
+            SettingsRepository.DEFAULT_BLOCKLIST_JSON,
+            settingsRepository.blocklistJson.first()
+        )
     }
 }

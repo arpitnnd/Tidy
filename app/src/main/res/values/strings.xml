@@ -36,7 +36,15 @@
     <string name="dialog_cancel">Cancel</string>
 
     <string name="banner_found_clipboard">Found URL in clipboard</string>
-    <string name="banner_paste_clean">Paste and clean</string>
+    <string name="banner_paste_clean">Clean</string>
+    <string name="banner_clipboard_callout_title">Check clipboard on launch?</string>
+    <string name="banner_clipboard_callout_desc">Tidy will look for a link each time you open it.</string>
+    <string name="banner_clipboard_callout_enable">Enable</string>
+    <string name="banner_clipboard_callout_dismiss">Dismiss</string>
+    <string name="banner_clipboard_enabled_title">Clipboard checking enabled</string>
+    <string name="banner_clipboard_enabled_desc">Customise how Tidy responds to links from Settings, any time.</string>
+    <string name="banner_view_settings">View settings</string>
+    <string name="banner_later">Later</string>
     <string name="button_clean_url">Clean URL</string>
     <string name="toast_no_browser_app">No app found to open URL</string>
     <string name="toast_copied">Copied to clipboard</string>
@@ -48,7 +56,7 @@
     <!-- Settings Screen -->
     <string name="settings_title">Settings</string>
     <string name="settings_back_desc">Back</string>
-    <string name="settings_bypass_list">Domains to Skip Entirely</string>
+    <string name="settings_bypass_list">Domains to skip entirely</string>
     <string name="settings_no_domains_bypassed">No domains skipped</string>
     <string name="settings_domain_bypassed_single">domain skipped</string>
     <string name="settings_domains_bypassed_plural">domains skipped</string>
@@ -59,31 +67,46 @@
     <string name="settings_no_domains_bypassed_text">No domains skipped</string>
     <string name="settings_placeholder_domain">google.com</string>
 
-    <string name="settings_custom_params_title">Custom Blocklist</string>
+    <string name="settings_custom_params_title">Custom blocklist</string>
     <string name="settings_custom_params_desc">Specify custom parameters to strip in addition to standard tracking tags</string>
     <string name="settings_placeholder_param">ref_code</string>
     <string name="settings_add_param_desc">Add custom parameter</string>
     <string name="settings_no_custom_params_text">No custom parameters added</string>
 
     <string name="settings_automation">Automation</string>
-    <string name="settings_copy_shared_title">Copy when shared</string>
-    <string name="settings_copy_shared_desc">Copy cleaned URLs to clipboard immediately when shared with Tidy</string>
-    <string name="settings_close_shared_title">Close after copying</string>
-    <string name="settings_close_shared_desc">Close the app automatically after a shared URL is copied</string>
-    <string name="settings_auto_expand_title">Auto-expand short URLs</string>
-    <string name="settings_auto_expand_desc">Automatically resolve and expand short URLs before cleaning</string>
-    <string name="settings_auto_clean_launch_title">Auto-clean clipboard on launch</string>
-    <string name="settings_auto_clean_launch_desc">Instantly clean clipboard URL, copy back, and exit the app on launch</string>
+    <string name="settings_auto_expand_title">Expand short links automatically</string>
+    <string name="settings_auto_expand_desc">Unwraps links like bit.ly or t.co before cleaning, so trackers hidden behind them get caught too.</string>
     <string name="settings_auto_clean_input_title">Auto-clean typed URLs</string>
     <string name="settings_auto_clean_input_desc">Clean URLs automatically as you type or paste without clicking clean</string>
-    <string name="settings_remove_mobile_subdomains_title">Remove mobile subdomains</string>
-    <string name="settings_remove_mobile_subdomains_desc">Automatically strip \'m.\' or \'mobile.\' subdomains from cleaned links</string>
+    <string name="settings_remove_mobile_subdomains_title">Remove \"m.\" from links</string>
+    <string name="settings_remove_mobile_subdomains_desc">Some links use an old mobile-only address. The regular version opens the same page everywhere, so Tidy uses that instead.</string>
 
-    <string name="settings_data_backup_title">Data &amp; Backup</string>
+    <string name="settings_check_clipboard_title">Check clipboard on launch</string>
+    <string name="settings_check_clipboard_desc">Looks for a link on your clipboard when you open Tidy.</string>
+    <string name="settings_clipboard_tier_heading">If a link is found on clipboard</string>
+    <string name="tier_suggest_title">Suggest</string>
+    <string name="tier_suggest_subtitle">Review before copying</string>
+    <string name="tier_suggest_copy_title">Suggest\n&amp; copy</string>
+    <string name="tier_suggest_copy_subtitle">One tap does both</string>
+    <string name="tier_auto_clean_title">Auto-clean</string>
+    <string name="tier_auto_clean_subtitle">No tapping needed</string>
+    <string name="settings_share_tier_heading">When you share a link to Tidy</string>
+    <string name="tier_clean_title">Clean</string>
+    <string name="tier_clean_subtitle">Shows the clean link in Tidy</string>
+    <string name="tier_clean_copy_title">Clean &amp; copy</string>
+    <string name="tier_clean_copy_subtitle">Copies it, ready to paste</string>
+    <string name="tier_clean_copy_share_title">Clean, copy\n&amp; share</string>
+    <string name="tier_clean_copy_share_subtitle">Continues sharing it for you</string>
+    <string name="settings_close_instead_title">Close Tidy instead of sharing</string>
+    <string name="settings_close_instead_desc">Copies the clean link and closes Tidy, without opening the share sheet again.</string>
+    <string name="settings_clean_any_app_title">Clean from any app</string>
+    <string name="settings_clean_any_app_desc">Select a link in any app and choose \"Clean with Tidy\" from the menu that pops up.</string>
+
+    <string name="settings_data_backup_title">Data &amp; backup</string>
     <string name="settings_allow_system_backup_title">Back up app data</string>
-    <string name="settings_allow_system_backup_desc">Off by default. When on, your history and rules can be included in Android\'s system backup (e.g. Google account or ADB backup) so they survive a reinstall.</string>
+    <string name="settings_allow_system_backup_desc">Off by default. When on, your Tidy data — history, rules, and other settings — can be included in Android\'s system backup (e.g. Google account or ADB backup) so it survives a reinstall.</string>
 
-    <string name="settings_param_whitelist_title">Domain Parameter Whitelist</string>
+    <string name="settings_param_whitelist_title">Domain parameter whitelist</string>
     <string name="settings_no_params_whitelisted">No parameters whitelisted</string>
     <string name="settings_param_whitelisted_single">parameter whitelisted</string>
     <string name="settings_params_whitelisted_plural">parameters whitelisted</string>
@@ -93,14 +116,14 @@
     <string name="settings_no_params_whitelisted_text">No parameters whitelisted for domains</string>
 
     <!-- History Screen -->
-    <string name="history_title">History and Stats</string>
+    <string name="history_title">History and stats</string>
     <string name="history_import_desc">Import history</string>
     <string name="history_export_desc">Export history</string>
     <string name="history_clear_desc">Clear history</string>
     <string name="history_dashboard">Privacy Dashboard</string>
     <string name="history_urls_cleaned">URLs cleaned</string>
     <string name="history_trackers_blocked">Trackers blocked</string>
-    <string name="history_clean_history">Clean History</string>
+    <string name="history_clean_history">Clean history</string>
     <string name="history_no_history">No history yet</string>
     <string name="history_no_history_desc">Cleaned URLs will appear here</string>
     <string name="history_clear_dialog_title">Clear all history?</string>
@@ -119,9 +142,9 @@
 
     <!-- Remote Blocklist & Issues -->
     <string name="rules_title">Rules</string>
-    <string name="settings_default_blocklist_title">Default Blocklist</string>
+    <string name="settings_default_blocklist_title">Default blocklist</string>
     <string name="settings_default_blocklist_desc">View default parameters stripped by Tidy and check for updates</string>
-    <string name="dialog_default_blocklist_title">Default Blocklist</string>
+    <string name="dialog_default_blocklist_title">Default blocklist</string>
     <string name="dialog_default_blocklist_desc">Tidy automatically strips tracking parameters that are commonly used to track users across websites:</string>
     <string name="dialog_default_blocklist_view_github">View updates on GitHub</string>
     <string name="dialog_close">Close</string>
@@ -134,10 +157,10 @@
     <string name="history_copy_original">Copy original</string>
 
     <!-- Diagnostics & Crashes -->
-    <string name="settings_diagnostics_title">Diagnostics and Crashes</string>
-    <string name="settings_crash_log_title">Latest Crash Report</string>
+    <string name="settings_diagnostics_title">Diagnostics and crashes</string>
+    <string name="settings_crash_log_title">Latest crash report</string>
     <string name="settings_crash_log_desc">Inspect, share, or delete the last recorded application crash</string>
-    <string name="dialog_crash_log_title">Latest Crash Log</string>
+    <string name="dialog_crash_log_title">Latest crash log</string>
     <string name="dialog_delete">Delete</string>
     <string name="dialog_share">Share</string>
     <string name="toast_crash_deleted">Crash report deleted</string>
@@ -159,9 +182,9 @@
     <string name="tooltip_copy_original">Copy original unmodified URL</string>
 
     <!-- Crash Reporting -->
-    <string name="crash_share_log">Share Log</string>
+    <string name="crash_share_log">Share log</string>
     <string name="crash_report_github">Report on GitHub</string>
-    <string name="crash_view_local">View Local Crash Log</string>
+    <string name="crash_view_local">View local crash log</string>
     <string name="crash_toast_copied">Copied log. Paste it on GitHub!</string>
     <string name="crash_toast_browser_error">Could not open browser</string>
 
@@ -182,7 +205,7 @@
     <string name="about_license">Licence</string>
     <string name="about_license_desc">Apache License 2.0</string>
     <string name="about_links">Links</string>
-    <string name="about_link_github">GitHub Repository</string>
+    <string name="about_link_github">GitHub repository</string>
     <string name="about_link_issues">Open Issues</string>
     <string name="about_link_releases">GitHub Releases</string>
     <string name="settings_about_desc">Version info, licence, links, and diagnostics</string>
@@ -195,36 +218,70 @@
     <string name="theme_dark_velvet">Dark Velvet</string>
 
     <!-- Tidy+ Upgrade Banner -->
-    <string name="settings_tidy_plus_active_title">Tidy+ Active</string>
+    <string name="settings_tidy_plus_active_title">Tidy+ active</string>
     <string name="settings_tidy_plus_active_desc">All premium convenience features unlocked</string>
-    <string name="settings_tidy_plus_pending_title">Tidy+ Pending</string>
+    <string name="settings_tidy_plus_pending_title">Tidy+ pending</string>
     <string name="settings_tidy_plus_pending_desc">Your transaction is pending approval</string>
     <string name="settings_tidy_plus_upgrade_title">Upgrade to Tidy+</string>
     <string name="settings_tidy_plus_upgrade_desc">Unlock share automation, bulk clipboard clean, and more</string>
     <string name="settings_tidy_plus_get_title">Get Tidy+</string>
-    <string name="tidy_plus_coming_soon_title">Tidy+ (Coming Soon)</string>
-    <string name="tidy_plus_coming_soon_desc">Tidy+ is in final testing on Google Play, check back soon.</string>
+    <string name="settings_coming_soon_badge">Coming soon</string>
+    <string name="tidy_plus_coming_soon_title">Tidy+ isn\'t live yet</string>
+    <string name="tidy_plus_coming_soon_desc">It\'s finishing testing before it lands on Google Play. Check back soon.</string>
     <string name="plus_migration_value_proposition">Zero subscription. Pay once, own forever.</string>
 
+    <!-- Tidy+ Migration Flow -->
+    <string name="dialog_ok">OK</string>
+    <string name="migration_headline">Tidy+</string>
+    <string name="migration_body">Tidy+ is distributed as a separate version via Google Play, which is what makes Play Billing and automatic updates possible. The core engine stays 100%% free and open source.</string>
+    <string name="migration_included_heading">Included with Tidy+</string>
+    <string name="migration_backup_continue_button">Back up &amp; continue</string>
+    <string name="migration_backup_saved_title">Backup saved</string>
+    <string name="migration_backup_saved_desc">Your data has been backed up locally. Share this backup to keep a copy somewhere safe, then install Tidy+ from Google Play — you can restore it right from the welcome screen the first time you open it.</string>
+    <string name="migration_backup_location_format">Backup location:\n%1$s</string>
+    <string name="migration_share_backup_button">Share backup file</string>
+    <string name="migration_share_backup_chooser_title">Share Tidy backup</string>
+    <string name="migration_open_play_button">Get Tidy+ on Google Play</string>
+    <string name="migration_backup_failed_format">Backup failed: %1$s</string>
+    <string name="migration_followup_title">Tidy+ is set up</string>
+    <string name="migration_followup_desc">You can safely uninstall this version anytime.</string>
+    <string name="migration_followup_uninstall_action">Uninstall</string>
+    <string name="migration_restore_prompt">Used Tidy before? Restore your data</string>
+    <string name="migration_restore_complete_title">Restore complete</string>
+    <string name="migration_import_failed_format">Import failed: %1$s</string>
+    <string name="migration_restore_summary_format">Restored: %1$s, %2$s, %3$s, and your preferences</string>
+    <plurals name="migration_restore_urls_cleaned">
+        <item quantity="one">%1$d URL cleaned</item>
+        <item quantity="other">%1$d URLs cleaned</item>
+    </plurals>
+    <plurals name="migration_restore_trackers_blocked">
+        <item quantity="one">%1$d tracker blocked</item>
+        <item quantity="other">%1$d trackers blocked</item>
+    </plurals>
+    <plurals name="migration_restore_whitelist_rules">
+        <item quantity="one">%1$d whitelist rule</item>
+        <item quantity="other">%1$d whitelist rules</item>
+    </plurals>
+
     <!-- UI Refactoring & Settings -->
-    <string name="settings_theme_title">App Theme</string>
+    <string name="settings_theme_title">App theme</string>
     <string name="settings_param_blacklisted_single">parameter blacklisted</string>
     <string name="settings_param_blacklisted_plural">parameters blacklisted</string>
     <string name="settings_about_title">About</string>
     <string name="about_version_format">Version %1$s (%2$d) · %3$s</string>
-    <string name="dialog_share_crash_title">Share Crash Report</string>
-    <string name="tooltip_premium_theme">Premium Theme</string>
-    <string name="tooltip_premium_feature">Premium Feature</string>
+    <string name="dialog_share_crash_title">Share crash report</string>
+    <string name="tooltip_premium_theme">Premium theme</string>
+    <string name="tooltip_premium_feature">Premium feature</string>
     <string name="tooltip_open">Open</string>
 
     <!-- Plus Features -->
-    <string name="plus_feature_share_automation_title">Share Automation</string>
+    <string name="plus_feature_share_automation_title">Share automation</string>
     <string name="plus_feature_share_automation_desc">Automatically clean, copy, and close when sharing links.</string>
-    <string name="plus_feature_bulk_clean_title">Bulk Clipboard Clean</string>
+    <string name="plus_feature_bulk_clean_title">Bulk clipboard clean</string>
     <string name="plus_feature_bulk_clean_desc">Clean multiple URLs from your clipboard in one tap.</string>
-    <string name="plus_feature_extra_themes_title">Extra Themes</string>
+    <string name="plus_feature_extra_themes_title">Extra themes</string>
     <string name="plus_feature_extra_themes_desc">Expressive colourways like Forest Green and Ocean Blue.</string>
-    <string name="plus_feature_text_selection_title">Inline Text Cleaning</string>
+    <string name="plus_feature_text_selection_title">Inline text cleaning</string>
     <string name="plus_feature_text_selection_desc">Clean URLs directly from any app\'s text-selection menu.</string>
 
     <string name="crash_sheet_title">Tidy crashed last time. Want to help fix it?</string>

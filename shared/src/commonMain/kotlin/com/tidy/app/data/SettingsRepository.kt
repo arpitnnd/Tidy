@@ -17,8 +17,15 @@ class SettingsRepository(private val dataStore: DataStore<Preferences>) {
         val KEY_WHITELISTED_DOMAINS = stringSetPreferencesKey("whitelisted_domains")
         val KEY_BLACKLISTED_PARAMS = stringSetPreferencesKey("blacklisted_params")
         val KEY_DOMAIN_WHITELISTED_PARAMS = stringSetPreferencesKey("domain_whitelisted_params")
+
+        // Legacy single-behaviour automation keys, still read to seed the tier defaults
+        // for users upgrading from the pre-tiered settings.
         val KEY_AUTO_COPY_ON_SHARE = booleanPreferencesKey("auto_copy_on_share")
         val KEY_AUTO_CLOSE_ON_SHARE = booleanPreferencesKey("auto_close_on_share")
+        val KEY_CHECK_CLIPBOARD_FOR_LINKS = booleanPreferencesKey("check_clipboard_for_links")
+        val KEY_CLIPBOARD_CALLOUT_DISMISSED = booleanPreferencesKey("clipboard_callout_dismissed")
+        val KEY_CLIPBOARD_CLEAN_TIER = stringPreferencesKey("clipboard_clean_tier")
+        val KEY_SHARE_CLEAN_TIER = stringPreferencesKey("share_clean_tier")
         val KEY_AUTO_EXPAND_SHORT_URLS = booleanPreferencesKey("auto_expand_short_urls")
         val KEY_AUTO_REMOVE_MOBILE_SUBDOMAINS =
             booleanPreferencesKey("auto_remove_mobile_subdomains")
@@ -37,28 +44,10 @@ class SettingsRepository(private val dataStore: DataStore<Preferences>) {
         val KEY_BLOCKLIST_ETAG = stringPreferencesKey("blocklist_etag")
         val KEY_BLOCKLIST_LAST_FETCH_TIME = longPreferencesKey("blocklist_last_fetch_time")
 
-        const val DEFAULT_BLOCKLIST_JSON = """[
-  {"name": "utm_source", "description": "Google Analytics campaign source parameter, used to track referrer website/app."},
-  {"name": "utm_medium", "description": "Google Analytics campaign medium parameter, used to identify marketing channel (e.g. email, CPC)."},
-  {"name": "utm_campaign", "description": "Google Analytics campaign name parameter, used to identify a specific marketing campaign."},
-  {"name": "utm_term", "description": "Google Analytics campaign term parameter, used to track keywords for search ads."},
-  {"name": "utm_content", "description": "Google Analytics campaign content parameter, used to distinguish different links in the same ad/email."},
-  {"name": "utm_id", "description": "Google Analytics campaign ID parameter, used to identify a specific ad campaign."},
-  {"name": "utm_source_platform", "description": "Google Analytics campaign source platform parameter, identifying the ad platform."},
-  {"name": "utm_marketing_tactic", "description": "Google Analytics campaign tactic parameter, used to track the marketing approach."},
-  {"name": "fbclid", "description": "Facebook Click ID, used by Facebook to track user clicks and link them to advertising campaigns."},
-  {"name": "gclid", "description": "Google Click ID, used by Google AdWords to track clicks and attribute conversions."},
-  {"name": "msclkid", "description": "Microsoft Click ID, used by Bing Ads to track clicks and attribute conversions."},
-  {"name": "yclid", "description": "Yandex Click ID, used by Yandex Direct to track clicks and attribute conversions."},
-  {"name": "dclid", "description": "DoubleClick Click ID, used to track display advertisements."},
-  {"name": "si", "description": "Spotify Share ID, containing analytical telemetry to identify the sharing source profile."},
-  {"name": "igsh", "description": "Instagram Share ID, containing analytical telemetry to identify the sharing source profile."},
-  {"name": "mc_eid", "description": "Mailchimp Email ID, used to link an email click back to a subscriber profile."},
-  {"name": "gclsrc", "description": "Google Click Source parameter, specifying the AdWords platform source for conversion tracking."},
-  {"name": "rb_clickid", "description": "Rebounce Click ID, used for redirect tracking and attribution."},
-  {"name": "affclick", "description": "Affiliate Click ID, used to track affiliate sales conversions."},
-  {"name": "campid", "description": "Campaign ID, used by various marketing platforms to identify the active campaign."}
-]"""
+        // Generated at build time from blocklist/trackers.json — the single authored
+        // source of truth, also fetched remotely by BlocklistSyncer. Do not hand-copy
+        // the tracker list here; edit blocklist/trackers.json instead.
+        const val DEFAULT_BLOCKLIST_JSON: String = GENERATED_DEFAULT_BLOCKLIST_JSON
     }
 
     val whitelistedDomains: Flow<Set<String>> = dataStore.data.map { preferences ->
@@ -73,11 +62,42 @@ class SettingsRepository(private val dataStore: DataStore<Preferences>) {
         preferences[KEY_DOMAIN_WHITELISTED_PARAMS] ?: emptySet()
     }
 
-    val autoCopyOnShare: Flow<Boolean> = dataStore.data.map { preferences ->
-        preferences[KEY_AUTO_COPY_ON_SHARE] ?: false
+    val checkClipboardForLinks: Flow<Boolean> = dataStore.data.map { preferences ->
+        // Off by default; pre-tiered "auto-clean clipboard on launch" users who'd
+        // already opted in keep clipboard checking on after upgrading.
+        preferences[KEY_CHECK_CLIPBOARD_FOR_LINKS]
+            ?: (preferences[KEY_AUTO_CLEAN_CLIPBOARD_ON_LAUNCH] == true)
     }
 
-    val autoCloseOnShare: Flow<Boolean> = dataStore.data.map { preferences ->
+    val clipboardCalloutDismissed: Flow<Boolean> = dataStore.data.map { preferences ->
+        preferences[KEY_CLIPBOARD_CALLOUT_DISMISSED] ?: false
+    }
+
+    val clipboardCleanTier: Flow<ClipboardCleanTier> = dataStore.data.map { preferences ->
+        val stored = preferences[KEY_CLIPBOARD_CLEAN_TIER]
+        when {
+            stored != null -> ClipboardCleanTier.fromKey(stored)
+            // Pre-tiered "auto-clean clipboard on launch" users keep hands-off cleaning.
+            preferences[KEY_AUTO_CLEAN_CLIPBOARD_ON_LAUNCH] == true -> ClipboardCleanTier.AUTO_CLEAN
+            else -> ClipboardCleanTier.SUGGEST
+        }
+    }
+
+    val shareCleanTier: Flow<ShareCleanTier> = dataStore.data.map { preferences ->
+        val stored = preferences[KEY_SHARE_CLEAN_TIER]
+        when {
+            stored != null -> ShareCleanTier.fromKey(stored)
+            // Pre-tiered "Share automation" users: copy+close maps to the top tier with the
+            // close toggle already on (same key), copy-only maps to the middle tier.
+            preferences[KEY_AUTO_COPY_ON_SHARE] == true &&
+                    preferences[KEY_AUTO_CLOSE_ON_SHARE] == true -> ShareCleanTier.CLEAN_COPY_AND_SHARE
+
+            preferences[KEY_AUTO_COPY_ON_SHARE] == true -> ShareCleanTier.CLEAN_AND_COPY
+            else -> ShareCleanTier.CLEAN
+        }
+    }
+
+    val closeInsteadOfSharing: Flow<Boolean> = dataStore.data.map { preferences ->
         preferences[KEY_AUTO_CLOSE_ON_SHARE] ?: false
     }
 
@@ -87,10 +107,6 @@ class SettingsRepository(private val dataStore: DataStore<Preferences>) {
 
     val autoRemoveMobileSubdomains: Flow<Boolean> = dataStore.data.map { preferences ->
         preferences[KEY_AUTO_REMOVE_MOBILE_SUBDOMAINS] ?: true
-    }
-
-    val autoCleanClipboardOnLaunch: Flow<Boolean> = dataStore.data.map { preferences ->
-        preferences[KEY_AUTO_CLEAN_CLIPBOARD_ON_LAUNCH] ?: false
     }
 
     val autoCleanOnInput: Flow<Boolean> = dataStore.data.map { preferences ->
@@ -119,13 +135,31 @@ class SettingsRepository(private val dataStore: DataStore<Preferences>) {
         preferences[KEY_TOTAL_TRACKERS_BLOCKED] ?: 0
     }
 
-    suspend fun setAutoCopyOnShare(enabled: Boolean) {
+    suspend fun setCheckClipboardForLinks(enabled: Boolean) {
         dataStore.edit { preferences ->
-            preferences[KEY_AUTO_COPY_ON_SHARE] = enabled
+            preferences[KEY_CHECK_CLIPBOARD_FOR_LINKS] = enabled
         }
     }
 
-    suspend fun setAutoCloseOnShare(enabled: Boolean) {
+    suspend fun setClipboardCalloutDismissed(dismissed: Boolean) {
+        dataStore.edit { preferences ->
+            preferences[KEY_CLIPBOARD_CALLOUT_DISMISSED] = dismissed
+        }
+    }
+
+    suspend fun setClipboardCleanTier(tier: ClipboardCleanTier) {
+        dataStore.edit { preferences ->
+            preferences[KEY_CLIPBOARD_CLEAN_TIER] = tier.key
+        }
+    }
+
+    suspend fun setShareCleanTier(tier: ShareCleanTier) {
+        dataStore.edit { preferences ->
+            preferences[KEY_SHARE_CLEAN_TIER] = tier.key
+        }
+    }
+
+    suspend fun setCloseInsteadOfSharing(enabled: Boolean) {
         dataStore.edit { preferences ->
             preferences[KEY_AUTO_CLOSE_ON_SHARE] = enabled
         }
@@ -197,12 +231,6 @@ class SettingsRepository(private val dataStore: DataStore<Preferences>) {
         }
     }
 
-    suspend fun setAutoCleanClipboardOnLaunch(enabled: Boolean) {
-        dataStore.edit { preferences ->
-            preferences[KEY_AUTO_CLEAN_CLIPBOARD_ON_LAUNCH] = enabled
-        }
-    }
-
     suspend fun setAutoCleanOnInput(enabled: Boolean) {
         dataStore.edit { preferences ->
             preferences[KEY_AUTO_CLEAN_ON_INPUT] = enabled
@@ -232,6 +260,27 @@ class SettingsRepository(private val dataStore: DataStore<Preferences>) {
         dataStore.edit { preferences ->
             val current = preferences[KEY_DOMAIN_WHITELISTED_PARAMS] ?: emptySet()
             preferences[KEY_DOMAIN_WHITELISTED_PARAMS] = current - "$cleanDomain:$cleanParam"
+        }
+    }
+
+    suspend fun mergeWhitelistedDomains(domains: Set<String>) {
+        dataStore.edit { preferences ->
+            val current = preferences[KEY_WHITELISTED_DOMAINS] ?: emptySet()
+            preferences[KEY_WHITELISTED_DOMAINS] = current + domains
+        }
+    }
+
+    suspend fun mergeBlacklistedParams(params: Set<String>) {
+        dataStore.edit { preferences ->
+            val current = preferences[KEY_BLACKLISTED_PARAMS] ?: emptySet()
+            preferences[KEY_BLACKLISTED_PARAMS] = current + params
+        }
+    }
+
+    suspend fun mergeDomainWhitelistedParams(pairs: Set<String>) {
+        dataStore.edit { preferences ->
+            val current = preferences[KEY_DOMAIN_WHITELISTED_PARAMS] ?: emptySet()
+            preferences[KEY_DOMAIN_WHITELISTED_PARAMS] = current + pairs
         }
     }
 

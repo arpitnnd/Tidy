@@ -18,36 +18,24 @@ class TidyTileService : TileService() {
         if (clipboard.hasPrimaryClip()) {
             val item = clipboard.primaryClip?.getItemAt(0)
             val text = item?.text?.toString()?.trim()
-            if (text != null && (text.startsWith(
-                    "http://",
-                    ignoreCase = true
-                ) || text.startsWith(
-                    "https://",
-                    ignoreCase = true
-                ) || (text.contains(".") && !text.contains(" ")))
-            ) {
-                val formattedText = if (!text.startsWith(
-                        "http://",
-                        ignoreCase = true
-                    ) && !text.startsWith("https://", ignoreCase = true)
-                ) {
-                    "https://$text"
-                } else {
-                    text
-                }
+            if (text != null && UrlDetection.looksLikeUrl(text)) {
+                val formattedText = UrlDetection.normalize(text)
 
                 val settings = TidyApp.instance.settingsRepository
                 val whitelist = runBlocking { settings.whitelistedDomains.first() }
                 val customBlacklist = runBlocking { settings.blacklistedParams.first() }
                 val domainParams = runBlocking { settings.domainWhitelistedParams.first() }
                 val removeMobile = runBlocking { settings.autoRemoveMobileSubdomains.first() }
+                val trackerNames =
+                    runBlocking { settings.trackers.first().map { it.name }.toSet() }
 
                 val cleanResult = UrlCleaner().clean(
                     urlStr = formattedText,
                     whitelistedDomains = whitelist,
                     customBlacklistParams = customBlacklist,
                     domainWhitelistedParams = domainParams,
-                    removeMobileSubdomains = removeMobile
+                    removeMobileSubdomains = removeMobile,
+                    trackingParams = trackerNames
                 )
                 if (cleanResult.removedParams.isNotEmpty()) {
                     runBlocking {

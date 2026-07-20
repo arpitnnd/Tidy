@@ -27,6 +27,7 @@ read and taken seriously.
 ## Scope
 
 **In scope:**
+
 - The Android app itself, either flavor
 - Local data handling: whitelist rules, history, backups, DataStore
   preferences
@@ -35,6 +36,7 @@ read and taken seriously.
 - Anything in the Tidy+ entitlement/purchase flow
 
 **Out of scope:**
+
 - Behavior of third-party sites or short-link services that URLs
   happen to resolve to — Tidy doesn't control what's on the other end
   of a link

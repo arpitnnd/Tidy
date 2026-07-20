@@ -1,4 +1,8 @@
-# Tidy 🧹
+<img src="app/src/main/res/mipmap-xxxhdpi/ic_launcher.webp" width="96" height="96" alt="Tidy app icon">
+
+# Tidy
+
+Control what a link shares with strangers when you're just sharing it with a friend.
 
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
 [![Platform](https://img.shields.io/badge/Platform-Android-green.svg)](https://developer.android.com)
@@ -18,6 +22,14 @@ you attached to it.
 It's a small, free app. No account, no setup, no ads.
 Everything happens right on your phone, nothing about your links is
 ever sent anywhere else.
+
+<table>
+<tr>
+<td><img src="docs/screenshots/hero.jpg" width="240" alt="Tidy's home screen"></td>
+<td><img src="docs/screenshots/cleaned-url.jpg" width="240" alt="A cleaned URL with the removed tracking parameters listed"></td>
+<td><img src="docs/screenshots/privacy-dashboard.jpg" width="240" alt="The Privacy Dashboard showing cleaning history and stats"></td>
+</tr>
+</table>
 
 ---
 
@@ -47,10 +59,10 @@ You stay in charge of the rules, not just the outcome:
 
 - **Quick Settings tile.** Clean whatever's on your clipboard from the
   notification shade, no app launch required.
-- **Launch auto-clean.** Open Tidy and your clipboard link is cleaned,
-  copied back, and the app is gone before it's had time to matter.
-- **Share automation** (Tidy+). A shared link gets cleaned, copied, and
-  Tidy closes itself, dropping you right back where you were.
+- **Clipboard checking.** Off by default. Turn it on and choose how
+  far it goes, from a quick review prompt up to fully automatic.
+- **Share to Tidy.** Same choice for shared links: see the cleaned
+  result, or let Tidy copy and even re-share it for you.
 - **Clean from anywhere** (Tidy+). Select a URL in any app, tap *Clean
   with Tidy* in the selection toolbar. No switching apps to do it.
 
@@ -103,26 +115,29 @@ that gives you control, the cleaning engine, custom rules, whitelist
 profiles, unlimited history, your own backups, stays free, for good.
 
 **Tidy+** is a one-time unlock on Google Play for people who already
-trust how Tidy behaves and want a few less taps: auto-copy and
-auto-close on share, cleaning from any text field, extra themes. It's
-also how this stays a real, maintained project instead of an app that
-quietly stops getting updates. No ads, no subscription, no data
-collected to sell instead.
+trust how Tidy behaves and want a few less taps: the upper tiers of
+clipboard and share automation, cleaning from any text field, extra
+themes. It's also how this stays a real, maintained project instead of
+an app that quietly stops getting updates. No ads, no subscription, no
+data collected to sell instead.
 
 > Tidy+ isn't live yet. The GitHub build above works fully today. Tidy+
 > is finishing testing before it lands on Google Play, and this README
 > will update the moment it does. Think of the table below as a preview
 > of what's coming.
 
-| | **Tidy** | **Tidy+** |
-|---|---|---|
-| Cleaning engine, short-link expansion | ✅ | ✅ |
-| Custom rules, whitelist profiles | ✅ | ✅ |
-| Unlimited history, dashboard, backup/restore | ✅ | ✅ |
-| Quick Settings tile, launch auto-clean | ✅ | ✅ |
-| Auto-copy & auto-close on share | — | ✅ |
-| Inline text-selection cleaning | — | ✅ |
-| Extra themes | — | ✅ |
+|                                              | **Tidy** | **Tidy+** |
+|----------------------------------------------|----------|-----------|
+| Cleaning engine, short-link expansion        | ✅        | ✅         |
+| Custom rules, whitelist profiles             | ✅        | ✅         |
+| Unlimited history, dashboard, backup/restore | ✅        | ✅         |
+| Quick Settings tile                          | ✅        | ✅         |
+| Clipboard checking, review before copying    | ✅        | ✅         |
+| Clipboard checking, auto-copy or auto-clean  | —        | ✅         |
+| Share to Tidy, view the cleaned link         | ✅        | ✅         |
+| Share to Tidy, auto-copy or auto-share       | —        | ✅         |
+| Inline text-selection cleaning               | —        | ✅         |
+| Extra themes                                 | —        | ✅         |
 
 ## Installing
 
@@ -155,8 +170,9 @@ Kotlin Multiplatform, split cleanly between core logic and the Android
 client:
 
 - **`:shared`**: `UrlCleaner` (the parameter-stripping and whitelisting
-  engine), `SettingsRepository` (DataStore-backed rules, stats, and
-  automation settings).
+  engine), `UrlDetection` (the single loose "looks like a URL" check
+  used everywhere a link needs spotting), `SettingsRepository`
+  (DataStore-backed rules, stats, and tiered automation settings).
 - **`:app`**: Compose UI (Navigation3), share-intent handling, the
   Quick Settings `TileService`, and `UrlExpander` for redirect
   resolution.
@@ -193,8 +209,13 @@ the same either way. The build commands below are for the `foss` flavor.
 ## Contributing
 
 Bug fixes, blocklist corrections, and improvements to the `foss`
-flavour are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) for setup,
+flavor are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) for setup,
 code style, and how to submit changes.
+
+There's no iOS app, and I likely won't be the one to build it. I'm on
+Windows, I'd rather not take on another platform to context-switch
+into, and this project already uses up what spare time I have. If
+you'd like to bring Tidy to iOS, I'd genuinely welcome the help.
 
 ---
 

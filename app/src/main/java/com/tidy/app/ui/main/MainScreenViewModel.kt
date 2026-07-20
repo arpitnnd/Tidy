@@ -10,7 +10,9 @@ import com.tidy.app.TidyApp
 import com.tidy.app.data.HistoryEntry
 import com.tidy.app.data.HistoryRepository
 import com.tidy.app.data.SettingsRepository
+import com.tidy.app.data.ShareAutomationOutcome
 import com.tidy.app.data.UrlCleaner
+import com.tidy.app.data.UrlDetection
 import com.tidy.app.data.UrlExpander
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -20,9 +22,9 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
-import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlin.time.Duration.Companion.seconds
 
 class MainScreenViewModel(
     private val settingsRepository: SettingsRepository = TidyApp.instance.settingsRepository,
@@ -31,7 +33,9 @@ class MainScreenViewModel(
 ) : ViewModel() {
 
     sealed interface AutomationAction {
-        data class CopyAndClose(val cleanedUrl: String, val close: Boolean) : AutomationAction
+        data class Copy(val cleanedUrl: String) : AutomationAction
+        data class CopyAndShare(val cleanedUrl: String) : AutomationAction
+        data class CopyAndClose(val cleanedUrl: String) : AutomationAction
     }
 
     private val _automationEvents = MutableSharedFlow<AutomationAction>(extraBufferCapacity = 1)
@@ -122,17 +126,11 @@ class MainScreenViewModel(
         url: String,
         isShared: Boolean = false,
         originalShortUrl: String? = null,
-        addToHistory: Boolean = true
+        addToHistory: Boolean = true,
+        copyResultToClipboard: Boolean = false
     ) {
-        var trimmed = url.trim()
-        if (trimmed.isEmpty()) return
-        if (!trimmed.startsWith("http://", ignoreCase = true) && !trimmed.startsWith(
-                "https://",
-                ignoreCase = true
-            )
-        ) {
-            trimmed = "https://$trimmed"
-        }
+        if (url.isBlank()) return
+        val trimmed = UrlDetection.normalize(url)
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
             try {
@@ -150,12 +148,14 @@ class MainScreenViewModel(
                 val customBlacklist = settingsRepository.blacklistedParams.first()
                 val domainParams = settingsRepository.domainWhitelistedParams.first()
                 val autoRemoveMobile = settingsRepository.autoRemoveMobileSubdomains.first()
+                val trackerNames = settingsRepository.trackers.first().map { it.name }.toSet()
                 val result = urlCleaner.clean(
                     urlStr = resolvedUrl,
                     whitelistedDomains = whitelist,
                     customBlacklistParams = customBlacklist,
                     domainWhitelistedParams = domainParams,
-                    removeMobileSubdomains = autoRemoveMobile
+                    removeMobileSubdomains = autoRemoveMobile,
+                    trackingParams = trackerNames
                 )
 
                 val initialOriginal = originalShortUrl ?: trimmed
@@ -190,16 +190,27 @@ class MainScreenViewModel(
                     )
                 }
 
+                if (copyResultToClipboard) {
+                    _automationEvents.tryEmit(AutomationAction.Copy(result.cleanedUrl))
+                }
+
                 if (isShared) {
+                    // The plus module decides the tiered outcome; the free baseline
+                    // (just show the result in-app) emits nothing.
                     com.tidy.app.FlavorConfig.handleShareAutomation(
-                        result.cleanedUrl,
                         settingsRepository
-                    ) { autoClose ->
+                    ) { outcome ->
                         _automationEvents.tryEmit(
-                            AutomationAction.CopyAndClose(
-                                result.cleanedUrl,
-                                autoClose
-                            )
+                            when (outcome) {
+                                ShareAutomationOutcome.COPY ->
+                                    AutomationAction.Copy(result.cleanedUrl)
+
+                                ShareAutomationOutcome.COPY_AND_SHARE ->
+                                    AutomationAction.CopyAndShare(result.cleanedUrl)
+
+                                ShareAutomationOutcome.COPY_AND_CLOSE ->
+                                    AutomationAction.CopyAndClose(result.cleanedUrl)
+                            }
                         )
                     }
                 }
@@ -209,6 +220,52 @@ class MainScreenViewModel(
                 _uiState.update { it.copy(isLoading = false) }
             }
         }
+    }
+
+    /**
+     * The shared skip rule for clipboard suggestions, applied once for every tier:
+     * returns the detected link when a suggestion (or auto-clean) should happen, or
+     * null when nothing should happen at all — the clipboard doesn't look like a URL,
+     * cleaning it wouldn't change what's already on the clipboard, or the link is
+     * already on display.
+     */
+    suspend fun evaluateClipboardCandidate(clipText: String): String? {
+        val trimmedClip = clipText.trim()
+        val detected = UrlDetection.findFirstUrl(trimmedClip) ?: return null
+        val normalized = UrlDetection.normalize(detected)
+
+        val state = _uiState.value
+        if (state.inputUrl.isNotBlank() && normalized == UrlDetection.normalize(state.inputUrl)) {
+            return null
+        }
+        if (normalized == state.originalUrl || normalized == state.cleanedUrl ||
+            normalized == state.expandedUrl
+        ) {
+            return null
+        }
+
+        val whitelist = settingsRepository.whitelistedDomains.first()
+        val customBlacklist = settingsRepository.blacklistedParams.first()
+        val domainParams = settingsRepository.domainWhitelistedParams.first()
+        val removeMobile = settingsRepository.autoRemoveMobileSubdomains.first()
+        val trackerNames = settingsRepository.trackers.first().map { it.name }.toSet()
+        val result = urlCleaner.clean(
+            urlStr = normalized,
+            whitelistedDomains = whitelist,
+            customBlacklistParams = customBlacklist,
+            domainWhitelistedParams = domainParams,
+            removeMobileSubdomains = removeMobile,
+            trackingParams = trackerNames
+        )
+
+        // Cleaning would leave the clipboard exactly as it is: nothing to do — unless
+        // it's a short link that auto-expansion would still unwrap.
+        if (result.cleanedUrl == trimmedClip) {
+            val expandable =
+                UrlExpander.isShortUrl(normalized) && settingsRepository.autoExpandShortUrls.first()
+            if (!expandable) return null
+        }
+        return detected
     }
 
     fun expandShortUrl() {
