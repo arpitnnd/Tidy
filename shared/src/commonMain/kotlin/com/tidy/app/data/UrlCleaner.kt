@@ -15,10 +15,14 @@ data class TrackerEntry(
 
 class UrlCleaner {
     companion object {
+        // ignoreUnknownKeys so a future schema field added to blocklist/trackers.v2.json
+        // doesn't break this compiled-in default the moment an older-built app encounters it.
+        private val json = Json { ignoreUnknownKeys = true }
+
         // Derived from the same build-generated constant as SettingsRepository.DEFAULT_BLOCKLIST_JSON,
-        // which in turn is generated from blocklist/trackers.json — the single authored source of truth.
+        // which in turn is generated from blocklist/trackers.v2.json — the single authored source of truth.
         val DEFAULT_TRACKERS: List<TrackerEntry> by lazy {
-            Json.decodeFromString<List<TrackerEntry>>(GENERATED_DEFAULT_BLOCKLIST_JSON)
+            json.decodeFromString<List<TrackerEntry>>(GENERATED_DEFAULT_BLOCKLIST_JSON)
         }
     }
 

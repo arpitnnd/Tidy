@@ -9,8 +9,13 @@ import java.net.HttpURLConnection
 import java.net.URL
 
 object BlocklistSyncer {
+    // v2, not the bare "trackers.json" path: see shared/build.gradle.kts's
+    // generateTrackerDefaults for why that path is frozen at its 1.1.0-era schema and new
+    // schema versions get their own versioned filename instead of being added to it.
     const val DEFAULT_BLOCKLIST_URL =
-        "https://raw.githubusercontent.com/arpitnnd/Tidy/main/blocklist/trackers.json"
+        "https://raw.githubusercontent.com/arpitnnd/Tidy/main/blocklist/trackers.v2.json"
+
+    private val json = Json { ignoreUnknownKeys = true }
 
     suspend fun sync(
         context: Context,
@@ -57,8 +62,10 @@ object BlocklistSyncer {
                     val etag = connection.getHeaderField("ETag") ?: ""
                     val text = connection.inputStream.bufferedReader().use { it.readText() }
 
-                    // Validate it parses correctly before saving
-                    val trackers = Json.decodeFromString<List<TrackerEntry>>(text)
+                    // Validate it parses correctly before saving. ignoreUnknownKeys so a
+                    // future schema field this app doesn't know about yet doesn't break
+                    // sync entirely -- see DEFAULT_BLOCKLIST_URL's comment above.
+                    val trackers = json.decodeFromString<List<TrackerEntry>>(text)
                     if (trackers.isNotEmpty()) {
                         settingsRepository.setBlocklistJson(text)
                         if (etag.isNotEmpty()) {

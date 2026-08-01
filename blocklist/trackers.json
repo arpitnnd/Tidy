@@ -1,7 +1,35 @@
 [
   {
-    "name": "utm_*",
-    "description": "Google Analytics and open standard campaign parameters, used to track source, medium, campaign, content, term, and identifiers."
+    "name": "utm_source",
+    "description": "Google Analytics campaign source parameter, used to track referrer website/app."
+  },
+  {
+    "name": "utm_medium",
+    "description": "Google Analytics campaign medium parameter, used to identify marketing channel (e.g. email, CPC)."
+  },
+  {
+    "name": "utm_campaign",
+    "description": "Google Analytics campaign name parameter, used to identify a specific marketing campaign."
+  },
+  {
+    "name": "utm_term",
+    "description": "Google Analytics campaign term parameter, used to track keywords for search ads."
+  },
+  {
+    "name": "utm_content",
+    "description": "Google Analytics campaign content parameter, used to distinguish different links in the same ad/email."
+  },
+  {
+    "name": "utm_id",
+    "description": "Google Analytics campaign ID parameter, used to identify a specific ad campaign."
+  },
+  {
+    "name": "utm_source_platform",
+    "description": "Google Analytics campaign source platform parameter, identifying the ad platform."
+  },
+  {
+    "name": "utm_marketing_tactic",
+    "description": "Google Analytics campaign tactic parameter, used to track the marketing approach."
   },
   {
     "name": "fbclid",
@@ -12,26 +40,6 @@
     "description": "Google Click ID, used by Google AdWords to track clicks and attribute conversions."
   },
   {
-    "name": "gclsrc",
-    "description": "Google Click Source parameter, specifying the AdWords platform source for conversion tracking."
-  },
-  {
-    "name": "gbraid",
-    "description": "Google Ads Click ID for web-to-app conversions on iOS under App Tracking Transparency."
-  },
-  {
-    "name": "wbraid",
-    "description": "Google Ads Click ID for app-to-web conversions on iOS under App Tracking Transparency."
-  },
-  {
-    "name": "dclid",
-    "description": "DoubleClick Click ID, used to track display advertisements."
-  },
-  {
-    "name": "srsltid",
-    "description": "Google Merchant and Shopping result Click ID, appended to search and shopping result links."
-  },
-  {
     "name": "msclkid",
     "description": "Microsoft Click ID, used by Bing Ads to track clicks and attribute conversions."
   },
@@ -40,82 +48,24 @@
     "description": "Yandex Click ID, used by Yandex Direct to track clicks and attribute conversions."
   },
   {
-    "name": "twclid",
-    "description": "X (Twitter) Click ID, used by X Ads to track clicks and attribute conversions."
-  },
-  {
-    "name": "ttclid",
-    "description": "TikTok Click ID, used by TikTok Ads to track clicks and attribute conversions."
-  },
-  {
-    "name": "li_fat_id",
-    "description": "LinkedIn Ads first-party ad tracking Click ID."
-  },
-  {
-    "name": "sc_cid",
-    "description": "Snapchat Click ID, used by Snapchat Ads to track clicks and attribute conversions."
+    "name": "dclid",
+    "description": "DoubleClick Click ID, used to track display advertisements."
   },
   {
     "name": "si",
-    "description": "Spotify and YouTube Share ID, containing analytical telemetry to identify the sharing source profile. Scoped to those domains since \"si\" is a generic query key elsewhere.",
-    "domains": ["spotify.com", "open.spotify.com", "youtube.com", "youtu.be", "music.youtube.com"]
+    "description": "Spotify Share ID, containing analytical telemetry to identify the sharing source profile."
   },
   {
     "name": "igsh",
     "description": "Instagram Share ID, containing analytical telemetry to identify the sharing source profile."
   },
   {
-    "name": "rcm",
-    "description": "LinkedIn member referral tracking parameter.",
-    "domains": ["linkedin.com"]
-  },
-  {
-    "name": "_hsenc",
-    "description": "HubSpot email tracking parameter, used to identify the recipient of a marketing email."
-  },
-  {
-    "name": "_hsmi",
-    "description": "HubSpot email tracking parameter, used to identify the specific marketing email send."
-  },
-  {
     "name": "mc_eid",
     "description": "Mailchimp Email ID, used to link an email click back to a subscriber profile."
   },
   {
-    "name": "mc_cid",
-    "description": "Mailchimp Campaign ID, used to identify a specific email campaign."
-  },
-  {
-    "name": "pk_*",
-    "description": "Matomo and Piwik campaign tracking parameters (source, medium, campaign, content, keyword)."
-  },
-  {
-    "name": "mtm_*",
-    "description": "Matomo Tag Manager campaign tracking parameters (source, medium, campaign, placement)."
-  },
-  {
-    "name": "matomo_*",
-    "description": "Matomo analytics campaign and keyword tracking parameters."
-  },
-  {
-    "name": "piwik_*",
-    "description": "Legacy Piwik analytics campaign and keyword tracking parameters."
-  },
-  {
-    "name": "mkt_tok",
-    "description": "Marketo email and campaign tracking token."
-  },
-  {
-    "name": "ck_subscriber_id",
-    "description": "ConvertKit email subscriber tracking identifier."
-  },
-  {
-    "name": "zanpid",
-    "description": "Awin and Zanox affiliate network click tracking ID."
-  },
-  {
-    "name": "irclickid",
-    "description": "Impact Radius affiliate click tracking ID."
+    "name": "gclsrc",
+    "description": "Google Click Source parameter, specifying the AdWords platform source for conversion tracking."
   },
   {
     "name": "rb_clickid",
@@ -126,95 +76,43 @@
     "description": "Affiliate Click ID, used to track affiliate sales conversions."
   },
   {
-    "name": "aff_id",
-    "description": "Affiliate partner identifier parameter."
-  },
-  {
     "name": "campid",
-    "description": "eBay Partner Network campaign identifier.",
-    "domains": ["ebay.com", "ebay.co.uk", "ebay.de", "ebay.com.au", "ebay.ca", "ebay.in"]
+    "description": "Campaign ID, used by various marketing platforms to identify the active campaign."
   },
   {
-    "name": "feature",
-    "description": "YouTube video sharing source parameter. Scoped to YouTube's domains since \"feature\" is a generic query key elsewhere (e.g. feature-flag or deep-link parameters).",
-    "domains": ["youtube.com", "youtu.be", "music.youtube.com"]
+    "name": "gbraid",
+    "description": "Google Ads Click ID for web-to-app conversions on iOS, used alongside gclid under App Tracking Transparency."
   },
   {
-    "name": "ref",
-    "description": "Amazon reference and navigation tracking parameter. Scoped to Amazon's domains since \"ref\" is a generic query key on non-Amazon sites.",
-    "domains": [
-      "amazon.com", "amazon.co.uk", "amazon.de", "amazon.fr", "amazon.it",
-      "amazon.es", "amazon.ca", "amazon.com.au", "amazon.co.jp", "amazon.in",
-      "amazon.com.br", "amazon.com.mx", "amazon.nl", "amazon.se", "amazon.pl",
-      "amazon.sg", "amazon.ae", "amazon.sa", "amazon.eg", "amazon.com.tr",
-      "amazon.cn", "amzn.to", "amzn.in", "a.co", "a.to", "z.cn", "amzn.*"
-    ]
+    "name": "wbraid",
+    "description": "Google Ads Click ID for app-to-web conversions on iOS, used alongside gclid under App Tracking Transparency."
   },
   {
-    "name": "ref_",
-    "description": "Amazon referral tracking parameter.",
-    "domains": [
-      "amazon.com", "amazon.co.uk", "amazon.de", "amazon.fr", "amazon.it",
-      "amazon.es", "amazon.ca", "amazon.com.au", "amazon.co.jp", "amazon.in",
-      "amazon.com.br", "amazon.com.mx", "amazon.nl", "amazon.se", "amazon.pl",
-      "amazon.sg", "amazon.ae", "amazon.sa", "amazon.eg", "amazon.com.tr",
-      "amazon.cn", "amzn.to", "amzn.in", "a.co", "a.to", "z.cn", "amzn.*"
-    ]
+    "name": "twclid",
+    "description": "X (Twitter) Click ID, used by X Ads to track clicks and attribute conversions."
   },
   {
-    "name": "social_share",
-    "description": "Amazon social share tracking parameter.",
-    "domains": [
-      "amazon.com", "amazon.co.uk", "amazon.de", "amazon.fr", "amazon.it",
-      "amazon.es", "amazon.ca", "amazon.com.au", "amazon.co.jp", "amazon.in",
-      "amazon.com.br", "amazon.com.mx", "amazon.nl", "amazon.se", "amazon.pl",
-      "amazon.sg", "amazon.ae", "amazon.sa", "amazon.eg", "amazon.com.tr",
-      "amazon.cn", "amzn.to", "amzn.in", "a.co", "a.to", "z.cn", "amzn.*"
-    ]
+    "name": "ttclid",
+    "description": "TikTok Click ID, used by TikTok Ads to track clicks and attribute conversions."
   },
   {
-    "name": "spm",
-    "description": "AliExpress and Alibaba Super Position Model tracking parameter.",
-    "domains": ["aliexpress.com", "alibaba.com"]
+    "name": "srsltid",
+    "description": "Google Merchant/Shopping Click ID, appended to search and shopping result links for conversion tracking."
   },
   {
-    "name": "scm",
-    "description": "AliExpress Scenario Model tracking parameter.",
-    "domains": ["aliexpress.com", "alibaba.com"]
+    "name": "li_fat_id",
+    "description": "LinkedIn Ads first-party ad tracking Click ID."
   },
   {
-    "name": "aff_trace_key",
-    "description": "AliExpress affiliate tracking key.",
-    "domains": ["aliexpress.com", "alibaba.com"]
+    "name": "sc_cid",
+    "description": "Snapchat Click ID, used by Snapchat Ads to track clicks and attribute conversions."
   },
   {
-    "name": "pvid",
-    "description": "AliExpress page view tracking identifier.",
-    "domains": ["aliexpress.com", "alibaba.com"]
+    "name": "_hsenc",
+    "description": "HubSpot email tracking parameter, used to identify the recipient of a marketing email."
   },
   {
-    "name": "mkevt",
-    "description": "eBay marketing event tracking parameter.",
-    "domains": ["ebay.com", "ebay.co.uk", "ebay.de", "ebay.com.au", "ebay.ca", "ebay.in"]
-  },
-  {
-    "name": "mkcid",
-    "description": "eBay marketing channel identifier.",
-    "domains": ["ebay.com", "ebay.co.uk", "ebay.de", "ebay.com.au", "ebay.ca", "ebay.in"]
-  },
-  {
-    "name": "mkrid",
-    "description": "eBay marketing rotation identifier.",
-    "domains": ["ebay.com", "ebay.co.uk", "ebay.de", "ebay.com.au", "ebay.ca", "ebay.in"]
-  },
-  {
-    "name": "toolid",
-    "description": "eBay partner network tool identifier.",
-    "domains": ["ebay.com", "ebay.co.uk", "ebay.de", "ebay.com.au", "ebay.ca", "ebay.in"]
-  },
-  {
-    "name": "customid",
-    "description": "eBay partner network custom tracking identifier.",
-    "domains": ["ebay.com", "ebay.co.uk", "ebay.de", "ebay.com.au", "ebay.ca", "ebay.in"]
+    "name": "_hsmi",
+    "description": "HubSpot email tracking parameter, used to identify the specific marketing email send."
   }
 ]

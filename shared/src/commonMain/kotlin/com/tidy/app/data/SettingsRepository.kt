@@ -354,11 +354,16 @@ class SettingsRepository(private val dataStore: DataStore<Preferences>) {
         }
     }
 
+    // ignoreUnknownKeys so a stored or synced payload carrying a schema field this build
+    // doesn't know about yet still decodes, instead of falling through to the fallback
+    // below (or, for BlocklistSyncer's remote fetch, breaking sync entirely).
+    private val lenientJson = Json { ignoreUnknownKeys = true }
+
     val trackers: Flow<List<TrackerEntry>> = blocklistJson.map { json ->
         try {
-            Json.decodeFromString<List<TrackerEntry>>(json)
+            lenientJson.decodeFromString<List<TrackerEntry>>(json)
         } catch (e: Exception) {
-            Json.decodeFromString<List<TrackerEntry>>(DEFAULT_BLOCKLIST_JSON)
+            lenientJson.decodeFromString<List<TrackerEntry>>(DEFAULT_BLOCKLIST_JSON)
         }
     }
 

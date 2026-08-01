@@ -149,4 +149,28 @@ class BlocklistSyncerTest {
             settingsRepository.blocklistJson.first()
         )
     }
+
+    @Test
+    fun acceptsAPayloadWithAnUnrecognisedField() = runTest {
+        // Simulates a future schema addition this build doesn't know about yet -- must
+        // still sync successfully (ignoreUnknownKeys) rather than silently stop retrying
+        // forever, the same failure mode that made trackers.json (no "v2") need freezing
+        // in the first place when "domains" was added.
+        val body = """[{"name":"custom_tracker","description":"test","futureField":"x"}]"""
+        val url = startServer { exchange ->
+            val bytes = body.toByteArray()
+            exchange.sendResponseHeaders(200, bytes.size.toLong())
+            exchange.responseBody.use { it.write(bytes) }
+        }
+
+        BlocklistSyncer.sync(context, settingsRepository, url)
+
+        assertEquals(body, settingsRepository.blocklistJson.first())
+        assertTrue(settingsRepository.blocklistLastFetchTime.first() > 0)
+    }
+
+    @Test
+    fun defaultBlocklistUrlTargetsTheVersionedPath() {
+        assertTrue(BlocklistSyncer.DEFAULT_BLOCKLIST_URL.endsWith("/blocklist/trackers.v2.json"))
+    }
 }
