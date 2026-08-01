@@ -140,7 +140,8 @@ class UrlCleanerTest {
 
     @Test
     fun testLinkedInRcmParameter() {
-        val original = "https://www.linkedin.com/posts/warikoo_post-12345/?rcm=ACoAABqI9AYBS6KUpW_MZCyFkMyR_SvzhPYHZiY"
+        val original =
+            "https://www.linkedin.com/posts/warikoo_post-12345/?rcm=ACoAABqI9AYBS6KUpW_MZCyFkMyR_SvzhPYHZiY"
         val result = cleaner.clean(original)
 
         assertEquals("https://www.linkedin.com/posts/warikoo_post-12345/", result.cleanedUrl)
@@ -154,7 +155,8 @@ class UrlCleanerTest {
         // trackers.json) since they're too generic a set of query keys to strip safely
         // everywhere. "psc" (product variant) is preserved -- it's a legitimate
         // product-selection parameter, not a tracker.
-        val original = "https://www.amazon.in/dp/1638778868?psc=1&ref=cm_sw_r_cso_cp_apan_ct_39JZ4QKXDZ6528XFDKDT&ref_=cm_sw_r_cso_cp_apan_ct_39JZ4QKXDZ6528XFDKDT&social_share=cm_sw_r_cso_cp_apan_ct_39JZ4QKXDZ6528XFDKDT"
+        val original =
+            "https://www.amazon.in/dp/1638778868?psc=1&ref=cm_sw_r_cso_cp_apan_ct_39JZ4QKXDZ6528XFDKDT&ref_=cm_sw_r_cso_cp_apan_ct_39JZ4QKXDZ6528XFDKDT&social_share=cm_sw_r_cso_cp_apan_ct_39JZ4QKXDZ6528XFDKDT"
         val result = cleaner.clean(original)
 
         assertEquals("https://www.amazon.in/dp/1638778868?psc=1", result.cleanedUrl)

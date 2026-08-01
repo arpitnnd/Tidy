@@ -71,7 +71,11 @@ class UrlDetectionTest {
 
     @Test
     fun spliceUrlFallsBackToJustTheNewUrlWhenOldUrlNotFound() {
-        val result = UrlDetection.spliceUrl("no url here", "https://example.com", "https://example.com/clean")
+        val result = UrlDetection.spliceUrl(
+            "no url here",
+            "https://example.com",
+            "https://example.com/clean"
+        )
         assertEquals("https://example.com/clean", result)
     }
 }

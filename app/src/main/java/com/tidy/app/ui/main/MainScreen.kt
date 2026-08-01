@@ -210,7 +210,8 @@ fun MainScreen(
     // composition (collectAsStateWithLifecycle's initialValue is false), so a one-shot
     // remember could decide to show the sheet before the stored "don't ask again"
     // preference had actually loaded, and never reconsider that decision afterwards.
-    val showCrashSheet = crashReportText != null && !dontAskAgainCrash && !hasShownCrashSheetThisSession
+    val showCrashSheet =
+        crashReportText != null && !dontAskAgainCrash && !hasShownCrashSheetThisSession
     val onDismissCrashReport = {
         hasShownCrashSheetThisSession = true
     }

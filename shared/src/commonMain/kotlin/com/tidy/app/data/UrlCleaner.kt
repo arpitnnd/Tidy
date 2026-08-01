@@ -116,10 +116,10 @@ class UrlCleaner {
             // still overrides this floor below, same as it overrides the trackers list.
             val isDefaultTracking = keyLower.startsWith("utm_") || trackers.any { entry ->
                 matchParamPattern(keyLower, entry.name) && (
-                    entry.domains.isEmpty() || entry.domains.any { d ->
-                        matchDomainPattern(host, d)
-                    }
-                )
+                        entry.domains.isEmpty() || entry.domains.any { d ->
+                            matchDomainPattern(host, d)
+                        }
+                        )
             }
             val isCustomBlacklisted =
                 customBlacklistParams.any { matchParamPattern(keyLower, it) }
@@ -163,7 +163,10 @@ class UrlCleaner {
         val withoutFragment = if (hashIndex != -1) urlStr.substring(0, hashIndex) else urlStr
 
         val questionIndex = withoutFragment.indexOf('?')
-        val base = if (questionIndex != -1) withoutFragment.substring(0, questionIndex) else withoutFragment
+        val base = if (questionIndex != -1) withoutFragment.substring(
+            0,
+            questionIndex
+        ) else withoutFragment
         val query = if (questionIndex != -1) withoutFragment.substring(questionIndex) else ""
 
         val schemeEnd = base.indexOf("://")

@@ -405,7 +405,11 @@ fun SettingsScreen(
                             stringResource(R.string.settings_no_params_whitelisted)
                         } else {
                             val count = state.domainWhitelistedParams.size
-                            pluralStringResource(R.plurals.settings_params_whitelisted, count, count)
+                            pluralStringResource(
+                                R.plurals.settings_params_whitelisted,
+                                count,
+                                count
+                            )
                         }
                         ExpandableSettingRow(
                             title = stringResource(R.string.settings_param_whitelist_title),

@@ -41,9 +41,14 @@ class MainScreenViewModel(
         // paths that don't originate from the clipboard (a share intent, the bulk-clean
         // card, manual input) or from an explicit user tap, where replacing the clipboard
         // with just the cleaned URL is the expected, requested outcome.
-        data class Copy(val cleanedUrl: String, val sourceClipText: String? = null) : AutomationAction
-        data class CopyAndShare(val cleanedUrl: String, val sourceClipText: String? = null) : AutomationAction
-        data class CopyAndClose(val cleanedUrl: String, val sourceClipText: String? = null) : AutomationAction
+        data class Copy(val cleanedUrl: String, val sourceClipText: String? = null) :
+            AutomationAction
+
+        data class CopyAndShare(val cleanedUrl: String, val sourceClipText: String? = null) :
+            AutomationAction
+
+        data class CopyAndClose(val cleanedUrl: String, val sourceClipText: String? = null) :
+            AutomationAction
     }
 
     private val _automationEvents = MutableSharedFlow<AutomationAction>(extraBufferCapacity = 1)
@@ -218,7 +223,12 @@ class MainScreenViewModel(
                 }
 
                 if (copyResultToClipboard) {
-                    _automationEvents.tryEmit(AutomationAction.Copy(result.cleanedUrl, sourceClipText))
+                    _automationEvents.tryEmit(
+                        AutomationAction.Copy(
+                            result.cleanedUrl,
+                            sourceClipText
+                        )
+                    )
                 }
 
                 if (isShared) {
@@ -263,10 +273,14 @@ class MainScreenViewModel(
         val normalizedCandidate = UrlDetection.normalize(detected)
 
         val state = _uiState.value
-        val normInput = if (state.inputUrl.isNotBlank()) UrlDetection.normalize(state.inputUrl) else null
-        val normOriginal = if (state.originalUrl.isNotBlank()) UrlDetection.normalize(state.originalUrl) else null
-        val normCleaned = if (state.cleanedUrl.isNotBlank()) UrlDetection.normalize(state.cleanedUrl) else null
-        val normExpanded = state.expandedUrl?.let { if (it.isNotBlank()) UrlDetection.normalize(it) else null }
+        val normInput =
+            if (state.inputUrl.isNotBlank()) UrlDetection.normalize(state.inputUrl) else null
+        val normOriginal =
+            if (state.originalUrl.isNotBlank()) UrlDetection.normalize(state.originalUrl) else null
+        val normCleaned =
+            if (state.cleanedUrl.isNotBlank()) UrlDetection.normalize(state.cleanedUrl) else null
+        val normExpanded =
+            state.expandedUrl?.let { if (it.isNotBlank()) UrlDetection.normalize(it) else null }
 
         if (normalizedCandidate == normInput || normalizedCandidate == normOriginal ||
             normalizedCandidate == normCleaned || normalizedCandidate == normExpanded
@@ -298,11 +312,21 @@ class MainScreenViewModel(
             urls.size == 1 -> {
                 val candidate = evaluateClipboardCandidate(text)
                 if (candidate == null) {
-                    _uiState.update { it.copy(clipboardSuggestionUrl = null, bulkClipboardUrls = null) }
+                    _uiState.update {
+                        it.copy(
+                            clipboardSuggestionUrl = null,
+                            bulkClipboardUrls = null
+                        )
+                    }
                 } else {
                     when (FlavorConfig.resolveClipboardTier(settingsRepository)) {
                         ClipboardCleanTier.AUTO_CLEAN -> {
-                            _uiState.update { it.copy(clipboardSuggestionUrl = null, bulkClipboardUrls = null) }
+                            _uiState.update {
+                                it.copy(
+                                    clipboardSuggestionUrl = null,
+                                    bulkClipboardUrls = null
+                                )
+                            }
                             // Fires once per distinct clipboard change, not once per check.
                             // Without this, clearing the displayed result (which wipes the
                             // state evaluateClipboardCandidate compares against, same as
@@ -314,7 +338,11 @@ class MainScreenViewModel(
                             // the display state, is deliberately never reset by clear().
                             if (text != lastAutoCleanedClipText) {
                                 lastAutoCleanedClipText = text
-                                cleanUrl(candidate, copyResultToClipboard = true, sourceClipText = text)
+                                cleanUrl(
+                                    candidate,
+                                    copyResultToClipboard = true,
+                                    sourceClipText = text
+                                )
                             }
                         }
 
@@ -341,7 +369,12 @@ class MainScreenViewModel(
                 }
             }
 
-            else -> _uiState.update { it.copy(clipboardSuggestionUrl = null, bulkClipboardUrls = null) }
+            else -> _uiState.update {
+                it.copy(
+                    clipboardSuggestionUrl = null,
+                    bulkClipboardUrls = null
+                )
+            }
         }
     }
 

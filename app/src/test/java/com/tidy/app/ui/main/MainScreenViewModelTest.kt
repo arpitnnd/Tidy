@@ -203,7 +203,10 @@ class MainScreenViewModelTest {
 
         val state = viewModel.uiState.value
         assertEquals(null, state.clipboardSuggestionUrl)
-        assertEquals(listOf("https://a.example.com", "https://b.example.com"), state.bulkClipboardUrls)
+        assertEquals(
+            listOf("https://a.example.com", "https://b.example.com"),
+            state.bulkClipboardUrls
+        )
     }
 
     @Test
