@@ -66,6 +66,49 @@ class UrlCleanerTest {
     }
 
     @Test
+    fun testWhitelistedDomainSkipsMobileSubdomainRewrite() {
+        // removeMobileSubdomains must not run at all on a whitelisted domain -- "skip
+        // entirely" means the host too, not just the query params.
+        val original = "https://m.example.com/x?utm_source=a"
+        val result = cleaner.clean(
+            urlStr = original,
+            whitelistedDomains = setOf("example.com"),
+            removeMobileSubdomains = true
+        )
+
+        assertEquals(original, result.cleanedUrl)
+        assertEquals(original, result.originalUrl)
+        assertEquals(0, result.removedParams.size)
+    }
+
+    @Test
+    fun testWhitelistingTheMobileHostItselfIsHonoured() {
+        // Whitelisting "m.example.com" specifically (rather than its parent) must also
+        // work, since the whitelist check now runs before any host rewrite.
+        val original = "https://m.example.com/x?utm_source=a"
+        val result = cleaner.clean(
+            urlStr = original,
+            whitelistedDomains = setOf("m.example.com"),
+            removeMobileSubdomains = true
+        )
+
+        assertEquals(original, result.cleanedUrl)
+        assertEquals(0, result.removedParams.size)
+    }
+
+    @Test
+    fun testUtmFloorStripsEvenWithEmptyTrackerList() {
+        // utm_* stripping must not depend on the trackers list containing a utm_* entry
+        // -- it's an unconditional floor, so a remote/user-edited list that omits it can't
+        // silently disable the app's most important rule.
+        val original = "https://example.com/page?utm_source=newsletter&keep=1"
+        val result = cleaner.clean(urlStr = original, trackers = emptyList())
+
+        assertEquals("https://example.com/page?keep=1", result.cleanedUrl)
+        assertEquals(listOf("utm_source"), result.removedParams)
+    }
+
+    @Test
     fun testCustomBlacklistParams() {
         val original = "https://example.com/product?id=99&custom_tracker=xyz&utm_source=facebook"
         val result = cleaner.clean(

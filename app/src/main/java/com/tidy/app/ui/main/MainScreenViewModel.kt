@@ -154,7 +154,13 @@ class MainScreenViewModel(
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
             try {
-                val isShort = UrlExpander.isShortUrl(trimmed)
+                // Read before short-link expansion, not after: a domain whitelisted to
+                // "skip entirely" must never trigger the outbound expansion request at
+                // all, not just have the (already-made) request's result discarded.
+                val whitelist = settingsRepository.whitelistedDomains.first()
+                val isWhitelisted = urlCleaner.isDomainWhitelisted(trimmed, whitelist)
+
+                val isShort = !isWhitelisted && UrlExpander.isShortUrl(trimmed)
                 val autoExpand = settingsRepository.autoExpandShortUrls.first()
 
                 val didAutoExpand = isShort && autoExpand
@@ -164,7 +170,6 @@ class MainScreenViewModel(
                     trimmed
                 }
 
-                val whitelist = settingsRepository.whitelistedDomains.first()
                 val customBlacklist = settingsRepository.blacklistedParams.first()
                 val domainParams = settingsRepository.domainWhitelistedParams.first()
                 val autoRemoveMobile = settingsRepository.autoRemoveMobileSubdomains.first()

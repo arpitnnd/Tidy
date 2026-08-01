@@ -28,6 +28,25 @@ class UrlCleaner {
         val removedParams: List<String>
     )
 
+    /**
+     * True when [urlStr]'s host (or a parent of it) is in [whitelistedDomains] -- the same
+     * check [clean] applies internally before doing anything else to a whitelisted URL.
+     * Exposed so callers can skip whitelisted domains *before* work clean() itself doesn't
+     * do, e.g. an outbound short-link-expansion network request: a "skip entirely" domain
+     * should never trigger that fetch in the first place, not just have its result ignored.
+     */
+    fun isDomainWhitelisted(urlStr: String, whitelistedDomains: Set<String>): Boolean {
+        val host = extractHost(urlStr.trim())
+        return whitelistedDomains.any { domain ->
+            val cleanDomain = domain.trim().lowercase()
+            if (cleanDomain.isEmpty()) false
+            else host.equals(cleanDomain, ignoreCase = true) || host.endsWith(
+                ".$cleanDomain",
+                ignoreCase = true
+            )
+        }
+    }
+
     fun clean(
         urlStr: String,
         whitelistedDomains: Set<String> = emptySet(),
@@ -41,25 +60,18 @@ class UrlCleaner {
             return CleanResult(urlStr, urlStr, emptyList())
         }
 
+        // Checked against the untouched input's host, before removeMobileSubdomains gets a
+        // chance to rewrite it -- a domain the user whitelisted to "skip entirely" must stay
+        // completely untouched, including its host, not just keep its query params.
+        if (isDomainWhitelisted(trimmed, whitelistedDomains)) {
+            return CleanResult(trimmed, trimmed, emptyList())
+        }
+
         if (removeMobileSubdomains) {
             trimmed = removeMobileSubdomain(trimmed)
         }
 
         val host = extractHost(trimmed)
-
-        // Check if the domain (or its parent domain) is whitelisted
-        val isWhitelisted = whitelistedDomains.any { domain ->
-            val cleanDomain = domain.trim().lowercase()
-            if (cleanDomain.isEmpty()) false
-            else host.equals(cleanDomain, ignoreCase = true) || host.endsWith(
-                ".$cleanDomain",
-                ignoreCase = true
-            )
-        }
-
-        if (isWhitelisted) {
-            return CleanResult(trimmed, trimmed, emptyList())
-        }
 
         val hashIndex = trimmed.indexOf('#')
         val fragment = if (hashIndex != -1) trimmed.substring(hashIndex) else ""
@@ -87,7 +99,13 @@ class UrlCleaner {
             val key = parts[0]
             val keyLower = key.lowercase().trim()
 
-            val isDefaultTracking = trackers.any { entry ->
+            // The utm_ prefix is stripped unconditionally, independent of the trackers
+            // list: that list is user-editable and remote-syncable (see BlocklistSyncer),
+            // so the app's single most important rule shouldn't be silently disabled by a
+            // remote payload or a local edit that happens to omit a utm_* entry. A domain-
+            // scoped isParamWhitelisted entry (e.g. "utm_source" kept on one specific site)
+            // still overrides this floor below, same as it overrides the trackers list.
+            val isDefaultTracking = keyLower.startsWith("utm_") || trackers.any { entry ->
                 matchParamPattern(keyLower, entry.name) && (
                     entry.domains.isEmpty() || entry.domains.any { d ->
                         matchDomainPattern(host, d)

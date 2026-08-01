@@ -221,6 +221,23 @@ class MainScreenViewModelTest {
     }
 
     @Test
+    fun cleanUrlSkipsShortLinkExpansionWhenDomainIsWhitelisted() = runTest {
+        settingsRepository.addWhitelistedDomain("bit.ly")
+
+        val original = "https://bit.ly/abc123?utm_source=x"
+        viewModel.cleanUrl(original)
+
+        val state = viewModel.uiState.value
+        // Unchanged entirely (whitelist skips cleaning too), and never even attempted
+        // expansion -- expandedUrl stays null, which only happens when didAutoExpand is
+        // false. If expansion had fired despite the whitelist, expandedUrl would be set
+        // (to the resolved URL, or the same URL again on failure) rather than staying null.
+        assertEquals(original, state.cleanedUrl)
+        assertEquals(null, state.expandedUrl)
+        assertTrue(state.removedParams.isEmpty())
+    }
+
+    @Test
     fun expandShortUrlDoesNotAddASecondHistoryEntry() = runTest {
         // Nothing is listening on this port, so UrlExpander.resolve() fails fast
         // (connection refused) and returns the URL unchanged -- no real network needed.
