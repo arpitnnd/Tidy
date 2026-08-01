@@ -10,7 +10,8 @@ object UrlExpander {
         "bit.ly", "tinyurl.com", "t.co", "rebrand.ly", "shorturl.at",
         "is.gd", "buff.ly", "bit.do", "lnkd.in", "db.tt", "qr.ae",
         "goo.gl", "ow.ly", "tiny.cc", "t.ly", "cutt.ly",
-        "share.google", "amzn.to", "v.gd", "rb.gy", "shrtco.de"
+        "share.google", "amzn.*", "a.co", "a.to", "z.cn",
+        "v.gd", "rb.gy", "shrtco.de"
     )
 
     private const val CACHE_MAX_SIZE = 100
@@ -24,9 +25,24 @@ object UrlExpander {
 
     fun isShortUrl(urlStr: String): Boolean {
         val host = extractHost(urlStr)
-        return SHORT_URL_DOMAINS.contains(host) || SHORT_URL_DOMAINS.any { domain ->
-            host == domain || host.endsWith(".$domain")
+        return SHORT_URL_DOMAINS.any { pattern ->
+            matchDomainPattern(host, pattern)
         }
+    }
+
+    private fun matchDomainPattern(host: String, pattern: String): Boolean {
+        val cleanPattern = pattern.trim().lowercase()
+        if (cleanPattern.isEmpty()) return false
+        if (cleanPattern.contains('*')) {
+            // A single label, not ".*": "amzn.*" must match "amzn.to"/"amzn.in" but not
+            // "amzn.evil.com" -- letting the wildcard span dots would make it match any
+            // host merely starting with the label before it, regardless of registrant.
+            val parts = cleanPattern.split('*').map { Regex.escape(it) }
+            val regex = Regex("^" + parts.joinToString("[^.]+") + "$")
+            val parentRegex = Regex(".*\\." + parts.joinToString("[^.]+") + "$")
+            return host.matches(regex) || host.matches(parentRegex)
+        }
+        return host == cleanPattern || host.endsWith(".$cleanPattern")
     }
 
     suspend fun resolve(urlStr: String): String = withContext(Dispatchers.IO) {

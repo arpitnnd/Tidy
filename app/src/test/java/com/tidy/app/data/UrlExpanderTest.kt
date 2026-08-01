@@ -43,6 +43,9 @@ class UrlExpanderTest {
     fun recognizesNewlyAddedShortenerDomains() {
         assertTrue(UrlExpander.isShortUrl("https://share.google/abc123"))
         assertTrue(UrlExpander.isShortUrl("https://amzn.to/abc123"))
+        assertTrue(UrlExpander.isShortUrl("https://amzn.in/d/abc123"))
+        assertTrue(UrlExpander.isShortUrl("https://amzn.eu/d/abc123"))
+        assertTrue(UrlExpander.isShortUrl("https://a.co/d/abc123"))
         assertTrue(UrlExpander.isShortUrl("https://v.gd/abc123"))
         assertTrue(UrlExpander.isShortUrl("https://rb.gy/abc123"))
         assertTrue(UrlExpander.isShortUrl("https://shrtco.de/abc123"))
@@ -57,6 +60,13 @@ class UrlExpanderTest {
     fun rejectsUnknownDomains() {
         assertFalse(UrlExpander.isShortUrl("https://example.com/page"))
         assertFalse(UrlExpander.isShortUrl("https://notbit.ly.evil.com/abc"))
+    }
+
+    @Test
+    fun wildcardDomainPatternDoesNotSpanDots() {
+        assertFalse(UrlExpander.isShortUrl("https://amzn.evil.com/abc"))
+        assertFalse(UrlExpander.isShortUrl("https://notamzn.to/abc"))
+        assertFalse(UrlExpander.isShortUrl("https://amznxyz.com/abc"))
     }
 
     @Test
