@@ -936,7 +936,7 @@ fun MainScreen(
                                 ) {
                                     Icon(
                                         imageVector = Icons.Outlined.CleaningServices,
-                                        contentDescription = "Tidy",
+                                        contentDescription = stringResource(R.string.app_name),
                                         tint = MaterialTheme.colorScheme.primary,
                                         modifier = Modifier.size(40.dp)
                                     )

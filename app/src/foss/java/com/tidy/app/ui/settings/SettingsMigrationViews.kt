@@ -250,7 +250,7 @@ object SettingsMigrationViews {
                         }) {
                             Icon(
                                 imageVector = Icons.Filled.Close,
-                                contentDescription = "Dismiss",
+                                contentDescription = stringResource(R.string.banner_clipboard_callout_dismiss),
                                 modifier = Modifier.size(18.dp)
                             )
                         }
