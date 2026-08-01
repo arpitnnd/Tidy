@@ -9,8 +9,8 @@ README for how the two are split.
 
 ## Ways to contribute
 
-- **Fix or extend the tracker blocklist.** [`blocklist/trackers.json`](blocklist/trackers.json)
-  is a plain JSON array of `{ "name": "...", "description": "..." }`
+- **Fix or extend the tracker blocklist.** [`blocklist/trackers.v2.json`](blocklist/trackers.v2.json)
+  is a plain JSON array of `{ "name": "...", "description": "...", "domains": [...] }`
   entries. Adding a missing tracker, correcting a wrong description, or
   removing a stale one is one of the most useful contributions and
   doesn't require touching any Kotlin.
