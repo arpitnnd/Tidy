@@ -179,10 +179,6 @@ class UrlCleaner {
         if (slashIndex != -1) {
             temp = temp.substring(0, slashIndex)
         }
-        val portIndex = temp.indexOf(':')
-        if (portIndex != -1) {
-            temp = temp.substring(0, portIndex)
-        }
         val qIndex = temp.indexOf('?')
         if (qIndex != -1) {
             temp = temp.substring(0, qIndex)
@@ -190,6 +186,17 @@ class UrlCleaner {
         val hIndex = temp.indexOf('#')
         if (hIndex != -1) {
             temp = temp.substring(0, hIndex)
+        }
+        // Strip userinfo (user:pass@) before the port split below -- otherwise
+        // "https://user:pass@amazon.in/" would extract "user" as the host, missing
+        // Amazon's domain-scoped tracker rules entirely.
+        val atIndex = temp.lastIndexOf('@')
+        if (atIndex != -1) {
+            temp = temp.substring(atIndex + 1)
+        }
+        val portIndex = temp.indexOf(':')
+        if (portIndex != -1) {
+            temp = temp.substring(0, portIndex)
         }
         return temp.trim().lowercase()
     }

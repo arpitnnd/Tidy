@@ -264,4 +264,19 @@ class UrlCleanerTest {
         assertEquals("https://amzn.in/d/123", amznIn.cleanedUrl)
         assertEquals(listOf("ref"), amznIn.removedParams)
     }
+
+    @Test
+    fun testHostExtractionIgnoresUserinfo() {
+        // Before the userinfo fix, extractHost took "user" as the host here, so Amazon's
+        // domain-scoped "ref" rule silently missed on any URL carrying a user:pass@ prefix.
+        val scopedTrackers = listOf(
+            TrackerEntry(name = "ref", description = "test", domains = listOf("amazon.in"))
+        )
+        val result = cleaner.clean(
+            urlStr = "https://user:pass@amazon.in/dp/1?ref=xyz",
+            trackers = scopedTrackers
+        )
+        assertEquals("https://user:pass@amazon.in/dp/1", result.cleanedUrl)
+        assertEquals(listOf("ref"), result.removedParams)
+    }
 }

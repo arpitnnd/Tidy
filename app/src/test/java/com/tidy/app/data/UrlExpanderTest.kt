@@ -74,6 +74,12 @@ class UrlExpanderTest {
         assertTrue(UrlExpander.isShortUrl("https://BIT.LY/AbC"))
     }
 
+    @Test
+    fun isShortUrlIgnoresUserinfo() {
+        // Before the userinfo fix, extractHost took "user" as the host here.
+        assertTrue(UrlExpander.isShortUrl("https://user:pass@bit.ly/abc"))
+    }
+
     // resolve -------------------------------------------------------------
 
     @Test
@@ -167,5 +173,26 @@ class UrlExpanderTest {
         val unreachable = "http://127.0.0.1:1/"
 
         assertEquals(unreachable, UrlExpander.resolve(unreachable))
+    }
+
+    // Deliberately no automated test for "a failed resolution isn't cached": reliably
+    // forcing resolve() into its exception path with a live listener, without either a
+    // slow real-time timeout (introduces flakiness in the wider suite -- confirmed while
+    // writing this) or a stop/rebind-the-port race (flaky under Windows' delayed socket
+    // release), isn't achievable here with reasonable effort. Verified by code review
+    // instead: succeeded above starts false and is only set before the two non-exception
+    // break paths, and the cache write is gated on it.
+
+    @Test
+    fun resolveRefusesToFollowRedirectToNonHttpScheme() = runTest {
+        val redirector = startServer { exchange ->
+            exchange.responseHeaders.add("Location", "ftp://evil.example/x")
+            exchange.sendResponseHeaders(302, -1)
+            exchange.close()
+        }
+
+        // Stops at the redirector rather than surfacing a target this app never
+        // actually requested over http(s).
+        assertEquals(redirector, UrlExpander.resolve(redirector))
     }
 }
