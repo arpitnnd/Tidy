@@ -10,8 +10,10 @@ class UrlCleanerTest {
 
     @Test
     fun testCleanDefaultParams() {
+        // "si" is deliberately not used here -- it's domain-scoped to Spotify/YouTube (see
+        // testSiParameterScopedToSpotifyAndYouTube), so it wouldn't strip on example.com.
         val original =
-            "https://example.com/page?utm_source=newsletter&utm_medium=email&fbclid=12345&si=abc"
+            "https://example.com/page?utm_source=newsletter&utm_medium=email&fbclid=12345&igsh=abc"
         val result = cleaner.clean(original)
 
         assertEquals("https://example.com/page", result.cleanedUrl)
@@ -19,7 +21,7 @@ class UrlCleanerTest {
         assertTrue(result.removedParams.contains("utm_source"))
         assertTrue(result.removedParams.contains("utm_medium"))
         assertTrue(result.removedParams.contains("fbclid"))
-        assertTrue(result.removedParams.contains("si"))
+        assertTrue(result.removedParams.contains("igsh"))
     }
 
     @Test
@@ -94,6 +96,32 @@ class UrlCleanerTest {
     }
 
     @Test
+    fun testLinkedInRcmParameter() {
+        val original = "https://www.linkedin.com/posts/warikoo_post-12345/?rcm=ACoAABqI9AYBS6KUpW_MZCyFkMyR_SvzhPYHZiY"
+        val result = cleaner.clean(original)
+
+        assertEquals("https://www.linkedin.com/posts/warikoo_post-12345/", result.cleanedUrl)
+        assertEquals(1, result.removedParams.size)
+        assertEquals("rcm", result.removedParams[0])
+    }
+
+    @Test
+    fun testAmazonTrackingParametersPreservingProductVariant() {
+        // "ref"/"ref_"/"social_share" are domain-scoped to Amazon's own domains (see
+        // trackers.json) since they're too generic a set of query keys to strip safely
+        // everywhere. "psc" (product variant) is preserved -- it's a legitimate
+        // product-selection parameter, not a tracker.
+        val original = "https://www.amazon.in/dp/1638778868?psc=1&ref=cm_sw_r_cso_cp_apan_ct_39JZ4QKXDZ6528XFDKDT&ref_=cm_sw_r_cso_cp_apan_ct_39JZ4QKXDZ6528XFDKDT&social_share=cm_sw_r_cso_cp_apan_ct_39JZ4QKXDZ6528XFDKDT"
+        val result = cleaner.clean(original)
+
+        assertEquals("https://www.amazon.in/dp/1638778868?psc=1", result.cleanedUrl)
+        assertEquals(3, result.removedParams.size)
+        assertTrue(result.removedParams.contains("ref"))
+        assertTrue(result.removedParams.contains("ref_"))
+        assertTrue(result.removedParams.contains("social_share"))
+    }
+
+    @Test
     fun testRefParameterIsNotStrippedOffAmazon() {
         // "ref" is a common, generic query key on many non-Amazon sites for legitimate,
         // non-tracking purposes, so it must not be stripped outside Amazon's own domains.
@@ -103,6 +131,42 @@ class UrlCleanerTest {
         assertEquals("https://example.com/page?ref=some-app-state", result.cleanedUrl)
         assertEquals(1, result.removedParams.size)
         assertEquals("utm_source", result.removedParams[0])
+    }
+
+    @Test
+    fun testFeatureParameterScopedToYouTube() {
+        // "feature" is domain-scoped to YouTube -- it's a plain English word used as a
+        // functional query key elsewhere (feature flags, deep links), so it must not be
+        // stripped off other sites.
+        val onYouTube = cleaner.clean("https://youtu.be/dQw4w9WgXcQ?feature=share")
+        assertEquals("https://youtu.be/dQw4w9WgXcQ", onYouTube.cleanedUrl)
+        assertEquals(listOf("feature"), onYouTube.removedParams)
+
+        val elsewhere = cleaner.clean("https://app.example.com/dashboard?feature=beta-editor")
+        assertEquals("https://app.example.com/dashboard?feature=beta-editor", elsewhere.cleanedUrl)
+        assertTrue(elsewhere.removedParams.isEmpty())
+    }
+
+    @Test
+    fun testSiParameterScopedToSpotifyAndYouTube() {
+        val onSpotify = cleaner.clean("https://open.spotify.com/track/123?si=abcd")
+        assertEquals("https://open.spotify.com/track/123", onSpotify.cleanedUrl)
+        assertEquals(listOf("si"), onSpotify.removedParams)
+
+        val elsewhere = cleaner.clean("https://example.com/page?si=1")
+        assertEquals("https://example.com/page?si=1", elsewhere.cleanedUrl)
+        assertTrue(elsewhere.removedParams.isEmpty())
+    }
+
+    @Test
+    fun testCampidParameterScopedToEbay() {
+        val onEbay = cleaner.clean("https://www.ebay.com/itm/123?campid=5338722076")
+        assertEquals("https://www.ebay.com/itm/123", onEbay.cleanedUrl)
+        assertEquals(listOf("campid"), onEbay.removedParams)
+
+        val elsewhere = cleaner.clean("https://example.com/campaign?campid=42")
+        assertEquals("https://example.com/campaign?campid=42", elsewhere.cleanedUrl)
+        assertTrue(elsewhere.removedParams.isEmpty())
     }
 
     @Test

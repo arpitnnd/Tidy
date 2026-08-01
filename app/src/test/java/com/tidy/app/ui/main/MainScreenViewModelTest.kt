@@ -85,7 +85,8 @@ class MainScreenViewModelTest {
 
     @Test
     fun testCleanUrl() = runTest {
-        viewModel.cleanUrl("https://example.com/page?utm_source=newsletter&utm_medium=email&fbclid=12345&si=abc")
+        // "si" is deliberately not used here -- it's domain-scoped to Spotify/YouTube.
+        viewModel.cleanUrl("https://example.com/page?utm_source=newsletter&utm_medium=email&fbclid=12345&igsh=abc")
 
         val state = viewModel.uiState.value
         assertEquals("https://example.com/page", state.cleanedUrl)
