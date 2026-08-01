@@ -44,6 +44,7 @@ class SettingsRepositoryTest {
         assertFalse(repository.closeInsteadOfSharing.first())
         assertTrue(repository.autoExpandShortUrls.first())
         assertTrue(repository.autoRemoveMobileSubdomains.first())
+        assertTrue(repository.dropTrailingSlash.first())
         assertTrue(repository.autoCleanOnInput.first())
         assertFalse(repository.dontAskAgainCrash.first())
         assertFalse(repository.migrationDone.first())
@@ -179,13 +180,13 @@ class SettingsRepositoryTest {
     fun trackersFlowParsesDefaultBlocklistJson() = runTest {
         val trackers = repository.trackers.first()
         assertTrue(trackers.isNotEmpty())
-        assertTrue(trackers.any { it.name == "utm_source" })
+        assertTrue(trackers.any { it.name == "utm_*" })
 
         val descriptions = repository.trackerDescriptions.first()
         assertEquals(trackers.size, descriptions.size)
         assertEquals(
-            trackers.first { it.name == "utm_source" }.description,
-            descriptions["utm_source"]
+            trackers.first { it.name == "utm_*" }.description,
+            descriptions["utm_*"]
         )
     }
 
@@ -195,7 +196,7 @@ class SettingsRepositoryTest {
 
         val trackers = repository.trackers.first()
         assertTrue(trackers.isNotEmpty())
-        assertTrue(trackers.any { it.name == "utm_source" })
+        assertTrue(trackers.any { it.name == "utm_*" })
     }
 
     @Test

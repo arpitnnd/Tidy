@@ -7,10 +7,22 @@ import android.service.quicksettings.TileService
 import android.widget.Toast
 import com.tidy.app.R
 import com.tidy.app.TidyApp
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class TidyTileService : TileService() {
+
+    private val serviceScope = CoroutineScope(Dispatchers.Main + SupervisorJob())
+
+    override fun onDestroy() {
+        super.onDestroy()
+        serviceScope.cancel()
+    }
 
     override fun onClick() {
         super.onClick()
@@ -21,42 +33,48 @@ class TidyTileService : TileService() {
             if (text != null && UrlDetection.looksLikeUrl(text)) {
                 val formattedText = UrlDetection.normalize(text)
 
-                val settings = TidyApp.instance.settingsRepository
-                val whitelist = runBlocking { settings.whitelistedDomains.first() }
-                val customBlacklist = runBlocking { settings.blacklistedParams.first() }
-                val domainParams = runBlocking { settings.domainWhitelistedParams.first() }
-                val removeMobile = runBlocking { settings.autoRemoveMobileSubdomains.first() }
-                val trackerNames =
-                    runBlocking { settings.trackers.first().map { it.name }.toSet() }
+                serviceScope.launch {
+                    val settings = TidyApp.instance.settingsRepository
+                    val cleanResult = withContext(Dispatchers.IO) {
+                        val whitelist = settings.whitelistedDomains.first()
+                        val customBlacklist = settings.blacklistedParams.first()
+                        val domainParams = settings.domainWhitelistedParams.first()
+                        val removeMobile = settings.autoRemoveMobileSubdomains.first()
+                        val dropTrailingSlash = settings.dropTrailingSlash.first()
+                        val trackers = settings.trackers.first()
 
-                val cleanResult = UrlCleaner().clean(
-                    urlStr = formattedText,
-                    whitelistedDomains = whitelist,
-                    customBlacklistParams = customBlacklist,
-                    domainWhitelistedParams = domainParams,
-                    removeMobileSubdomains = removeMobile,
-                    trackingParams = trackerNames
-                )
-                if (cleanResult.removedParams.isNotEmpty()) {
-                    runBlocking {
-                        settings.setLastCleanedUrl(cleanResult.cleanedUrl)
+                        UrlCleaner().clean(
+                            urlStr = formattedText,
+                            whitelistedDomains = whitelist,
+                            customBlacklistParams = customBlacklist,
+                            domainWhitelistedParams = domainParams,
+                            removeMobileSubdomains = removeMobile,
+                            dropTrailingSlash = dropTrailingSlash,
+                            trackers = trackers
+                        )
                     }
-                    val clip = ClipData.newPlainText(
-                        getString(R.string.main_cleaned_url),
-                        cleanResult.cleanedUrl
-                    )
-                    clipboard.setPrimaryClip(clip)
-                    Toast.makeText(
-                        applicationContext,
-                        getString(R.string.toast_cleaned_copied),
-                        Toast.LENGTH_SHORT
-                    ).show()
-                } else {
-                    Toast.makeText(
-                        applicationContext,
-                        getString(R.string.toast_already_clean),
-                        Toast.LENGTH_SHORT
-                    ).show()
+
+                    if (cleanResult.removedParams.isNotEmpty()) {
+                        withContext(Dispatchers.IO) {
+                            settings.setLastCleanedUrl(cleanResult.cleanedUrl)
+                        }
+                        val clip = ClipData.newPlainText(
+                            getString(R.string.main_cleaned_url),
+                            cleanResult.cleanedUrl
+                        )
+                        clipboard.setPrimaryClip(clip)
+                        Toast.makeText(
+                            applicationContext,
+                            getString(R.string.toast_cleaned_copied),
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    } else {
+                        Toast.makeText(
+                            applicationContext,
+                            getString(R.string.toast_already_clean),
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
                 }
             } else {
                 Toast.makeText(

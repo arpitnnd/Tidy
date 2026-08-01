@@ -43,9 +43,13 @@ class UrlExpanderTest {
     fun recognizesNewlyAddedShortenerDomains() {
         assertTrue(UrlExpander.isShortUrl("https://share.google/abc123"))
         assertTrue(UrlExpander.isShortUrl("https://amzn.to/abc123"))
+        assertTrue(UrlExpander.isShortUrl("https://amzn.in/d/abc123"))
+        assertTrue(UrlExpander.isShortUrl("https://amzn.eu/d/abc123"))
+        assertTrue(UrlExpander.isShortUrl("https://a.co/d/abc123"))
         assertTrue(UrlExpander.isShortUrl("https://v.gd/abc123"))
         assertTrue(UrlExpander.isShortUrl("https://rb.gy/abc123"))
         assertTrue(UrlExpander.isShortUrl("https://shrtco.de/abc123"))
+        assertTrue(UrlExpander.isShortUrl("https://we.tl/t-abc123"))
     }
 
     @Test
@@ -60,8 +64,21 @@ class UrlExpanderTest {
     }
 
     @Test
+    fun wildcardDomainPatternDoesNotSpanDots() {
+        assertFalse(UrlExpander.isShortUrl("https://amzn.evil.com/abc"))
+        assertFalse(UrlExpander.isShortUrl("https://notamzn.to/abc"))
+        assertFalse(UrlExpander.isShortUrl("https://amznxyz.com/abc"))
+    }
+
+    @Test
     fun isCaseInsensitiveOnHost() {
         assertTrue(UrlExpander.isShortUrl("https://BIT.LY/AbC"))
+    }
+
+    @Test
+    fun isShortUrlIgnoresUserinfo() {
+        // Before the userinfo fix, extractHost took "user" as the host here.
+        assertTrue(UrlExpander.isShortUrl("https://user:pass@bit.ly/abc"))
     }
 
     // resolve -------------------------------------------------------------
@@ -157,5 +174,26 @@ class UrlExpanderTest {
         val unreachable = "http://127.0.0.1:1/"
 
         assertEquals(unreachable, UrlExpander.resolve(unreachable))
+    }
+
+    // Deliberately no automated test for "a failed resolution isn't cached": reliably
+    // forcing resolve() into its exception path with a live listener, without either a
+    // slow real-time timeout (introduces flakiness in the wider suite -- confirmed while
+    // writing this) or a stop/rebind-the-port race (flaky under Windows' delayed socket
+    // release), isn't achievable here with reasonable effort. Verified by code review
+    // instead: succeeded above starts false and is only set before the two non-exception
+    // break paths, and the cache write is gated on it.
+
+    @Test
+    fun resolveRefusesToFollowRedirectToNonHttpScheme() = runTest {
+        val redirector = startServer { exchange ->
+            exchange.responseHeaders.add("Location", "ftp://evil.example/x")
+            exchange.sendResponseHeaders(302, -1)
+            exchange.close()
+        }
+
+        // Stops at the redirector rather than surfacing a target this app never
+        // actually requested over http(s).
+        assertEquals(redirector, UrlExpander.resolve(redirector))
     }
 }

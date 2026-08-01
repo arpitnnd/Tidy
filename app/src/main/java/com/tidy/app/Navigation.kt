@@ -3,6 +3,10 @@ package com.tidy.app
 import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberNavBackStack
@@ -21,9 +25,16 @@ fun MainNavigation(
 ) {
     val backStack = rememberNavBackStack(Main(initialUrl))
 
+    // Strictly increasing for the composition's lifetime (rememberSaveable survives
+    // rotation and process-death restore alongside backStack itself), so it can never
+    // repeat a value already used by an entry still on the back stack -- see Main's
+    // shareSequence KDoc.
+    var nextShareSequence by rememberSaveable { mutableIntStateOf(1) }
+
     LaunchedEffect(sharedUrls) {
         sharedUrls.collect { url ->
-            backStack.add(Main(url))
+            backStack.add(Main(url, nextShareSequence))
+            nextShareSequence++
         }
     }
 

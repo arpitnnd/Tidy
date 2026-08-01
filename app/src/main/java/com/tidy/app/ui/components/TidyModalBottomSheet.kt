@@ -13,9 +13,9 @@ import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.unit.dp
 
 /**
- * A standardized ModalBottomSheet for the Tidy application.
+ * A standardised ModalBottomSheet for the Tidy application.
  *
- * It configures standard Material 3 specs (surface color, tonal elevation, drag handle,
+ * It configures standard Material 3 specs (surface colour, tonal elevation, drag handle,
  * and skipping partial expansion by default) and exposes a [NestedScrollConnection]
  * (via rememberSheetNestedScrollFix) to the content scope to prevent sheet vibration/jitter
  * during internal scrolling.

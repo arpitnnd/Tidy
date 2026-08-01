@@ -29,6 +29,7 @@ class SettingsRepository(private val dataStore: DataStore<Preferences>) {
         val KEY_AUTO_EXPAND_SHORT_URLS = booleanPreferencesKey("auto_expand_short_urls")
         val KEY_AUTO_REMOVE_MOBILE_SUBDOMAINS =
             booleanPreferencesKey("auto_remove_mobile_subdomains")
+        val KEY_DROP_TRAILING_SLASH = booleanPreferencesKey("drop_trailing_slash")
         val KEY_FIRST_LAUNCH_DONE = booleanPreferencesKey("first_launch_done")
         val KEY_TOTAL_CLEANED_COUNT = intPreferencesKey("total_cleaned_count")
         val KEY_TOTAL_TRACKERS_BLOCKED = intPreferencesKey("total_trackers_blocked")
@@ -107,6 +108,10 @@ class SettingsRepository(private val dataStore: DataStore<Preferences>) {
 
     val autoRemoveMobileSubdomains: Flow<Boolean> = dataStore.data.map { preferences ->
         preferences[KEY_AUTO_REMOVE_MOBILE_SUBDOMAINS] ?: true
+    }
+
+    val dropTrailingSlash: Flow<Boolean> = dataStore.data.map { preferences ->
+        preferences[KEY_DROP_TRAILING_SLASH] ?: true
     }
 
     val autoCleanOnInput: Flow<Boolean> = dataStore.data.map { preferences ->
@@ -228,6 +233,12 @@ class SettingsRepository(private val dataStore: DataStore<Preferences>) {
     suspend fun setAutoRemoveMobileSubdomains(enabled: Boolean) {
         dataStore.edit { preferences ->
             preferences[KEY_AUTO_REMOVE_MOBILE_SUBDOMAINS] = enabled
+        }
+    }
+
+    suspend fun setDropTrailingSlash(enabled: Boolean) {
+        dataStore.edit { preferences ->
+            preferences[KEY_DROP_TRAILING_SLASH] = enabled
         }
     }
 
@@ -354,11 +365,16 @@ class SettingsRepository(private val dataStore: DataStore<Preferences>) {
         }
     }
 
+    // ignoreUnknownKeys so a stored or synced payload carrying a schema field this build
+    // doesn't know about yet still decodes, instead of falling through to the fallback
+    // below (or, for BlocklistSyncer's remote fetch, breaking sync entirely).
+    private val lenientJson = Json { ignoreUnknownKeys = true }
+
     val trackers: Flow<List<TrackerEntry>> = blocklistJson.map { json ->
         try {
-            Json.decodeFromString<List<TrackerEntry>>(json)
+            lenientJson.decodeFromString<List<TrackerEntry>>(json)
         } catch (e: Exception) {
-            Json.decodeFromString<List<TrackerEntry>>(DEFAULT_BLOCKLIST_JSON)
+            lenientJson.decodeFromString<List<TrackerEntry>>(DEFAULT_BLOCKLIST_JSON)
         }
     }
 

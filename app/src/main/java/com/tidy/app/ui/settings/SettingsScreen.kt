@@ -67,6 +67,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -277,11 +278,7 @@ fun SettingsScreen(
                             stringResource(R.string.settings_no_domains_bypassed)
                         } else {
                             val count = state.whitelistedDomains.size
-                            val unit = when (count) {
-                                1 -> stringResource(R.string.settings_domain_bypassed_single)
-                                else -> stringResource(R.string.settings_domains_bypassed_plural)
-                            }
-                            "$count $unit"
+                            pluralStringResource(R.plurals.settings_domains_bypassed, count, count)
                         }
                         ExpandableSettingRow(
                             title = stringResource(R.string.settings_bypass_list),
@@ -408,11 +405,11 @@ fun SettingsScreen(
                             stringResource(R.string.settings_no_params_whitelisted)
                         } else {
                             val count = state.domainWhitelistedParams.size
-                            val unit = when (count) {
-                                1 -> stringResource(R.string.settings_param_whitelisted_single)
-                                else -> stringResource(R.string.settings_params_whitelisted_plural)
-                            }
-                            "$count $unit"
+                            pluralStringResource(
+                                R.plurals.settings_params_whitelisted,
+                                count,
+                                count
+                            )
                         }
                         ExpandableSettingRow(
                             title = stringResource(R.string.settings_param_whitelist_title),
@@ -570,11 +567,7 @@ fun SettingsScreen(
                             stringResource(R.string.settings_no_custom_params_text)
                         } else {
                             val count = state.blacklistedParams.size
-                            val unit = when (count) {
-                                1 -> stringResource(R.string.settings_param_blacklisted_single)
-                                else -> stringResource(R.string.settings_param_blacklisted_plural)
-                            }
-                            "$count $unit"
+                            pluralStringResource(R.plurals.settings_param_blacklisted, count, count)
                         }
                         ExpandableSettingRow(
                             title = stringResource(R.string.settings_custom_params_title),
@@ -974,6 +967,19 @@ fun SettingsScreen(
                             description = stringResource(R.string.settings_remove_mobile_subdomains_desc),
                             checked = state.autoRemoveMobileSubdomains,
                             onToggle = { viewModel.setAutoRemoveMobileSubdomains(!state.autoRemoveMobileSubdomains) }
+                        )
+
+                        HorizontalDivider(
+                            color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f),
+                            thickness = 1.dp,
+                            modifier = Modifier.padding(horizontal = 8.dp)
+                        )
+
+                        SettingToggleRow(
+                            title = stringResource(R.string.settings_drop_trailing_slash_title),
+                            description = stringResource(R.string.settings_drop_trailing_slash_desc),
+                            checked = state.dropTrailingSlash,
+                            onToggle = { viewModel.setDropTrailingSlash(!state.dropTrailingSlash) }
                         )
 
                         HorizontalDivider(

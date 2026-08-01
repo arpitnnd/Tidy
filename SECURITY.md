@@ -28,7 +28,7 @@ read and taken seriously.
 
 **In scope:**
 
-- The Android app itself, either flavor
+- The Android app itself, either flavour
 - Local data handling: whitelist rules, history, backups, DataStore
   preferences
 - The remote blocklist sync mechanism
@@ -37,7 +37,7 @@ read and taken seriously.
 
 **Out of scope:**
 
-- Behavior of third-party sites or short-link services that URLs
+- Behaviour of third-party sites or short-link services that URLs
   happen to resolve to — Tidy doesn't control what's on the other end
   of a link
 - Attacks that require a rooted or otherwise compromised device to

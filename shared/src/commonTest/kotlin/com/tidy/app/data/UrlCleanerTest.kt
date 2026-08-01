@@ -10,8 +10,10 @@ class UrlCleanerTest {
 
     @Test
     fun testCleanDefaultParams() {
+        // "si" is deliberately not used here -- it's domain-scoped to Spotify/YouTube (see
+        // testSiParameterScopedToSpotifyAndYouTube), so it wouldn't strip on example.com.
         val original =
-            "https://example.com/page?utm_source=newsletter&utm_medium=email&fbclid=12345&si=abc"
+            "https://example.com/page?utm_source=newsletter&utm_medium=email&fbclid=12345&igsh=abc"
         val result = cleaner.clean(original)
 
         assertEquals("https://example.com/page", result.cleanedUrl)
@@ -19,7 +21,7 @@ class UrlCleanerTest {
         assertTrue(result.removedParams.contains("utm_source"))
         assertTrue(result.removedParams.contains("utm_medium"))
         assertTrue(result.removedParams.contains("fbclid"))
-        assertTrue(result.removedParams.contains("si"))
+        assertTrue(result.removedParams.contains("igsh"))
     }
 
     @Test
@@ -64,6 +66,49 @@ class UrlCleanerTest {
     }
 
     @Test
+    fun testWhitelistedDomainSkipsMobileSubdomainRewrite() {
+        // removeMobileSubdomains must not run at all on a whitelisted domain -- "skip
+        // entirely" means the host too, not just the query params.
+        val original = "https://m.example.com/x?utm_source=a"
+        val result = cleaner.clean(
+            urlStr = original,
+            whitelistedDomains = setOf("example.com"),
+            removeMobileSubdomains = true
+        )
+
+        assertEquals(original, result.cleanedUrl)
+        assertEquals(original, result.originalUrl)
+        assertEquals(0, result.removedParams.size)
+    }
+
+    @Test
+    fun testWhitelistingTheMobileHostItselfIsHonoured() {
+        // Whitelisting "m.example.com" specifically (rather than its parent) must also
+        // work, since the whitelist check now runs before any host rewrite.
+        val original = "https://m.example.com/x?utm_source=a"
+        val result = cleaner.clean(
+            urlStr = original,
+            whitelistedDomains = setOf("m.example.com"),
+            removeMobileSubdomains = true
+        )
+
+        assertEquals(original, result.cleanedUrl)
+        assertEquals(0, result.removedParams.size)
+    }
+
+    @Test
+    fun testUtmFloorStripsEvenWithEmptyTrackerList() {
+        // utm_* stripping must not depend on the trackers list containing a utm_* entry
+        // -- it's an unconditional floor, so a remote/user-edited list that omits it can't
+        // silently disable the app's most important rule.
+        val original = "https://example.com/page?utm_source=newsletter&keep=1"
+        val result = cleaner.clean(urlStr = original, trackers = emptyList())
+
+        assertEquals("https://example.com/page?keep=1", result.cleanedUrl)
+        assertEquals(listOf("utm_source"), result.removedParams)
+    }
+
+    @Test
     fun testCustomBlacklistParams() {
         val original = "https://example.com/product?id=99&custom_tracker=xyz&utm_source=facebook"
         val result = cleaner.clean(
@@ -91,5 +136,224 @@ class UrlCleanerTest {
         val urlMe = "https://m.me/username?utm_source=share"
         val resultMe = cleaner.clean(urlStr = urlMe, removeMobileSubdomains = true)
         assertEquals("https://m.me/username", resultMe.cleanedUrl)
+    }
+
+    @Test
+    fun testLinkedInRcmParameter() {
+        val original =
+            "https://www.linkedin.com/posts/warikoo_post-12345/?rcm=ACoAABqI9AYBS6KUpW_MZCyFkMyR_SvzhPYHZiY"
+        val result = cleaner.clean(original)
+
+        assertEquals("https://www.linkedin.com/posts/warikoo_post-12345/", result.cleanedUrl)
+        assertEquals(1, result.removedParams.size)
+        assertEquals("rcm", result.removedParams[0])
+    }
+
+    @Test
+    fun testAmazonTrackingParametersPreservingProductVariant() {
+        // "ref"/"ref_"/"social_share" are domain-scoped to Amazon's own domains (see
+        // trackers.json) since they're too generic a set of query keys to strip safely
+        // everywhere. "psc" (product variant) is preserved -- it's a legitimate
+        // product-selection parameter, not a tracker.
+        val original =
+            "https://www.amazon.in/dp/1638778868?psc=1&ref=cm_sw_r_cso_cp_apan_ct_39JZ4QKXDZ6528XFDKDT&ref_=cm_sw_r_cso_cp_apan_ct_39JZ4QKXDZ6528XFDKDT&social_share=cm_sw_r_cso_cp_apan_ct_39JZ4QKXDZ6528XFDKDT"
+        val result = cleaner.clean(original)
+
+        assertEquals("https://www.amazon.in/dp/1638778868?psc=1", result.cleanedUrl)
+        assertEquals(3, result.removedParams.size)
+        assertTrue(result.removedParams.contains("ref"))
+        assertTrue(result.removedParams.contains("ref_"))
+        assertTrue(result.removedParams.contains("social_share"))
+    }
+
+    @Test
+    fun testRefParameterIsNotStrippedOffAmazon() {
+        // "ref" is a common, generic query key on many non-Amazon sites for legitimate,
+        // non-tracking purposes, so it must not be stripped outside Amazon's own domains.
+        val original = "https://example.com/page?ref=some-app-state&utm_source=newsletter"
+        val result = cleaner.clean(original)
+
+        assertEquals("https://example.com/page?ref=some-app-state", result.cleanedUrl)
+        assertEquals(1, result.removedParams.size)
+        assertEquals("utm_source", result.removedParams[0])
+    }
+
+    @Test
+    fun testFeatureParameterScopedToYouTube() {
+        // "feature" is domain-scoped to YouTube -- it's a plain English word used as a
+        // functional query key elsewhere (feature flags, deep links), so it must not be
+        // stripped off other sites.
+        val onYouTube = cleaner.clean("https://youtu.be/dQw4w9WgXcQ?feature=share")
+        assertEquals("https://youtu.be/dQw4w9WgXcQ", onYouTube.cleanedUrl)
+        assertEquals(listOf("feature"), onYouTube.removedParams)
+
+        val elsewhere = cleaner.clean("https://app.example.com/dashboard?feature=beta-editor")
+        assertEquals("https://app.example.com/dashboard?feature=beta-editor", elsewhere.cleanedUrl)
+        assertTrue(elsewhere.removedParams.isEmpty())
+    }
+
+    @Test
+    fun testSiParameterScopedToSpotifyAndYouTube() {
+        val onSpotify = cleaner.clean("https://open.spotify.com/track/123?si=abcd")
+        assertEquals("https://open.spotify.com/track/123", onSpotify.cleanedUrl)
+        assertEquals(listOf("si"), onSpotify.removedParams)
+
+        val elsewhere = cleaner.clean("https://example.com/page?si=1")
+        assertEquals("https://example.com/page?si=1", elsewhere.cleanedUrl)
+        assertTrue(elsewhere.removedParams.isEmpty())
+    }
+
+    @Test
+    fun testCampidParameterScopedToEbay() {
+        val onEbay = cleaner.clean("https://www.ebay.com/itm/123?campid=5338722076")
+        assertEquals("https://www.ebay.com/itm/123", onEbay.cleanedUrl)
+        assertEquals(listOf("campid"), onEbay.removedParams)
+
+        val elsewhere = cleaner.clean("https://example.com/campaign?campid=42")
+        assertEquals("https://example.com/campaign?campid=42", elsewhere.cleanedUrl)
+        assertTrue(elsewhere.removedParams.isEmpty())
+    }
+
+    @Test
+    fun testDomainScopedTrackerEntry() {
+        val scopedTrackers = listOf(
+            TrackerEntry(name = "ref", description = "test", domains = listOf("amazon.com"))
+        )
+
+        val onDomain = cleaner.clean(
+            urlStr = "https://www.amazon.com/dp/1?ref=abc",
+            trackers = scopedTrackers
+        )
+        assertEquals("https://www.amazon.com/dp/1", onDomain.cleanedUrl)
+        assertEquals(listOf("ref"), onDomain.removedParams)
+
+        val offDomain = cleaner.clean(
+            urlStr = "https://example.com/page?ref=abc",
+            trackers = scopedTrackers
+        )
+        assertEquals("https://example.com/page?ref=abc", offDomain.cleanedUrl)
+        assertEquals(emptyList<String>(), offDomain.removedParams)
+
+        // A subdomain of the scoped domain is also covered, same as whitelistedDomains matching.
+        val subdomain = cleaner.clean(
+            urlStr = "https://smile.amazon.com/dp/1?ref=abc",
+            trackers = scopedTrackers
+        )
+        assertEquals("https://smile.amazon.com/dp/1", subdomain.cleanedUrl)
+        assertEquals(listOf("ref"), subdomain.removedParams)
+    }
+
+    @Test
+    fun testParamPatternWildcardsAndDomainWildcards() {
+        val trackers = listOf(
+            TrackerEntry(name = "utm_*", description = "test"),
+            TrackerEntry(name = "ref", description = "test", domains = listOf("amzn.*"))
+        )
+
+        // Wildcard parameter name utm_* matching utm_custom
+        val utmCustom = cleaner.clean(
+            urlStr = "https://example.com/page?utm_custom_id=99",
+            trackers = trackers
+        )
+        assertEquals("https://example.com/page", utmCustom.cleanedUrl)
+        assertEquals(listOf("utm_custom_id"), utmCustom.removedParams)
+
+        // Wildcard domain amzn.* matching amzn.in
+        val amznIn = cleaner.clean(
+            urlStr = "https://amzn.in/d/123?ref=share",
+            trackers = trackers
+        )
+        assertEquals("https://amzn.in/d/123", amznIn.cleanedUrl)
+        assertEquals(listOf("ref"), amznIn.removedParams)
+    }
+
+    @Test
+    fun testHostExtractionIgnoresUserinfo() {
+        // Before the userinfo fix, extractHost took "user" as the host here, so Amazon's
+        // domain-scoped "ref" rule silently missed on any URL carrying a user:pass@ prefix.
+        val scopedTrackers = listOf(
+            TrackerEntry(name = "ref", description = "test", domains = listOf("amazon.in"))
+        )
+        val result = cleaner.clean(
+            urlStr = "https://user:pass@amazon.in/dp/1?ref=xyz",
+            trackers = scopedTrackers
+        )
+        assertEquals("https://user:pass@amazon.in/dp/1", result.cleanedUrl)
+        assertEquals(listOf("ref"), result.removedParams)
+    }
+
+    @Test
+    fun testDropTrailingSlashIsOffByDefault() {
+        val original = "https://example.com/path/"
+        assertEquals(original, cleaner.clean(original).cleanedUrl)
+    }
+
+    @Test
+    fun testDropTrailingSlashOnPath() {
+        val result = cleaner.clean(
+            urlStr = "https://example.com/path/",
+            dropTrailingSlash = true
+        )
+        assertEquals("https://example.com/path", result.cleanedUrl)
+    }
+
+    @Test
+    fun testDropTrailingSlashOnBareRoot() {
+        // No bare-root exception: https://example.com/ and https://example.com are the
+        // same resource, so there's no good reason to special-case it.
+        val result = cleaner.clean(
+            urlStr = "https://example.com/",
+            dropTrailingSlash = true
+        )
+        assertEquals("https://example.com", result.cleanedUrl)
+    }
+
+    @Test
+    fun testDropTrailingSlashWithSurvivingQuery() {
+        val result = cleaner.clean(
+            urlStr = "https://example.com/path/?q=kept&utm_source=x",
+            dropTrailingSlash = true
+        )
+        assertEquals("https://example.com/path?q=kept", result.cleanedUrl)
+        assertEquals(listOf("utm_source"), result.removedParams)
+    }
+
+    @Test
+    fun testDropTrailingSlashWithFragment() {
+        val result = cleaner.clean(
+            urlStr = "https://example.com/path/#section",
+            dropTrailingSlash = true
+        )
+        assertEquals("https://example.com/path#section", result.cleanedUrl)
+    }
+
+    @Test
+    fun testDropTrailingSlashLeavesNonTrailingSlashesAlone() {
+        val original = "https://example.com/a/b/c"
+        val result = cleaner.clean(urlStr = original, dropTrailingSlash = true)
+        assertEquals(original, result.cleanedUrl)
+    }
+
+    @Test
+    fun testDropTrailingSlashSkipsWhitelistedDomains() {
+        val original = "https://example.com/path/"
+        val result = cleaner.clean(
+            urlStr = original,
+            whitelistedDomains = setOf("example.com"),
+            dropTrailingSlash = true
+        )
+        assertEquals(original, result.cleanedUrl)
+    }
+
+    @Test
+    fun testRegionalDomainCoverage() {
+        val amazonIe = cleaner.clean("https://www.amazon.ie/dp/123?ref=xyz")
+        assertEquals("https://www.amazon.ie/dp/123", amazonIe.cleanedUrl)
+
+        val ebayDe = cleaner.clean("https://www.ebay.de/itm/123?campid=5338722076")
+        assertEquals("https://www.ebay.de/itm/123", ebayDe.cleanedUrl)
+
+        val aliexpressUs = cleaner.clean("https://www.aliexpress.us/item/123.html?spm=abc")
+        assertEquals("https://www.aliexpress.us/item/123.html", aliexpressUs.cleanedUrl)
     }
 }

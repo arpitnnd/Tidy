@@ -57,4 +57,25 @@ class UrlDetectionTest {
         assertEquals("http://example.com", UrlDetection.normalize("http://example.com"))
         assertEquals("https://example.com", UrlDetection.normalize("https://example.com"))
     }
+
+    @Test
+    fun spliceUrlReplacesOnlyTheUrlKeepingSurroundingText() {
+        val text = "here's the file https://wetransfer.com/x?utm_source=y enjoy"
+        val result = UrlDetection.spliceUrl(
+            text,
+            "https://wetransfer.com/x?utm_source=y",
+            "https://wetransfer.com/x"
+        )
+        assertEquals("here's the file https://wetransfer.com/x enjoy", result)
+    }
+
+    @Test
+    fun spliceUrlFallsBackToJustTheNewUrlWhenOldUrlNotFound() {
+        val result = UrlDetection.spliceUrl(
+            "no url here",
+            "https://example.com",
+            "https://example.com/clean"
+        )
+        assertEquals("https://example.com/clean", result)
+    }
 }

@@ -58,8 +58,10 @@
     <string name="settings_back_desc">Back</string>
     <string name="settings_bypass_list">Domains to skip entirely</string>
     <string name="settings_no_domains_bypassed">No domains skipped</string>
-    <string name="settings_domain_bypassed_single">domain skipped</string>
-    <string name="settings_domains_bypassed_plural">domains skipped</string>
+    <plurals name="settings_domains_bypassed">
+        <item quantity="one">%1$d domain skipped</item>
+        <item quantity="other">%1$d domains skipped</item>
+    </plurals>
     <string name="settings_collapse">Collapse</string>
     <string name="settings_expand">Expand</string>
     <string name="settings_bypass_desc">URLs from these domains will skip cleaning, preserving all parameters</string>
@@ -80,6 +82,8 @@
     <string name="settings_auto_clean_input_desc">Clean URLs automatically as you type or paste without clicking clean</string>
     <string name="settings_remove_mobile_subdomains_title">Remove \"m.\" from links</string>
     <string name="settings_remove_mobile_subdomains_desc">Some links use an old mobile-only address. The regular version opens the same page everywhere, so Tidy uses that instead.</string>
+    <string name="settings_drop_trailing_slash_title">Drop trailing slash from URLs</string>
+    <string name="settings_drop_trailing_slash_desc">Removes a trailing / from the cleaned URL (e.g. example.com/page/ becomes example.com/page).</string>
 
     <string name="settings_check_clipboard_title">Check clipboard on launch</string>
     <string name="settings_check_clipboard_desc">Looks for a link on your clipboard when you open Tidy.</string>
@@ -104,12 +108,14 @@
 
     <string name="settings_data_backup_title">Data &amp; backup</string>
     <string name="settings_allow_system_backup_title">Back up app data</string>
-    <string name="settings_allow_system_backup_desc">Off by default. When on, your Tidy data — history, rules, and other settings — can be included in Android\'s system backup (e.g. Google account or ADB backup) so it survives a reinstall.</string>
+    <string name="settings_allow_system_backup_desc">Off by default. When on, your Tidy data (history, rules, and other settings) can be included in Android\'s system backup (e.g. Google account or ADB backup) so it survives a reinstall.</string>
 
     <string name="settings_param_whitelist_title">Domain parameter whitelist</string>
     <string name="settings_no_params_whitelisted">No parameters whitelisted</string>
-    <string name="settings_param_whitelisted_single">parameter whitelisted</string>
-    <string name="settings_params_whitelisted_plural">parameters whitelisted</string>
+    <plurals name="settings_params_whitelisted">
+        <item quantity="one">%1$d parameter whitelisted</item>
+        <item quantity="other">%1$d parameters whitelisted</item>
+    </plurals>
     <string name="settings_param_whitelist_desc">Allow specific tracking parameters for particular domains (e.g. keeping \'v\' on youtube.com)</string>
     <string name="settings_placeholder_whitelist_param">v</string>
     <string name="settings_add_param_whitelist_desc">Add parameter whitelist</string>
@@ -120,7 +126,7 @@
     <string name="history_import_desc">Import history</string>
     <string name="history_export_desc">Export history</string>
     <string name="history_clear_desc">Clear history</string>
-    <string name="history_dashboard">Privacy Dashboard</string>
+    <string name="history_dashboard">Privacy dashboard</string>
     <string name="history_urls_cleaned">URLs cleaned</string>
     <string name="history_trackers_blocked">Trackers blocked</string>
     <string name="history_clean_history">Clean history</string>
@@ -237,7 +243,7 @@
     <string name="migration_included_heading">Included with Tidy+</string>
     <string name="migration_backup_continue_button">Back up &amp; continue</string>
     <string name="migration_backup_saved_title">Backup saved</string>
-    <string name="migration_backup_saved_desc">Your data has been backed up locally. Share this backup to keep a copy somewhere safe, then install Tidy+ from Google Play — you can restore it right from the welcome screen the first time you open it.</string>
+    <string name="migration_backup_saved_desc">Your data has been backed up locally. Share this backup to keep a copy somewhere safe, then install Tidy+ from Google Play (you can restore it right from the welcome screen the first time you open it).</string>
     <string name="migration_backup_location_format">Backup location:\n%1$s</string>
     <string name="migration_share_backup_button">Share backup file</string>
     <string name="migration_share_backup_chooser_title">Share Tidy backup</string>
@@ -265,8 +271,10 @@
 
     <!-- UI Refactoring & Settings -->
     <string name="settings_theme_title">App theme</string>
-    <string name="settings_param_blacklisted_single">parameter blacklisted</string>
-    <string name="settings_param_blacklisted_plural">parameters blacklisted</string>
+    <plurals name="settings_param_blacklisted">
+        <item quantity="one">%1$d parameter blacklisted</item>
+        <item quantity="other">%1$d parameters blacklisted</item>
+    </plurals>
     <string name="settings_about_title">About</string>
     <string name="about_version_format">Version %1$s (%2$d) · %3$s</string>
     <string name="dialog_share_crash_title">Share crash report</string>

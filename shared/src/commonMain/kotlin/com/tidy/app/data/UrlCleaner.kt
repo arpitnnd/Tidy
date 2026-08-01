@@ -6,17 +6,23 @@ import kotlinx.serialization.json.Json
 @Serializable
 data class TrackerEntry(
     val name: String,
-    val description: String
+    val description: String,
+    // Empty means global (stripped from every domain, the default for most entries). Non-empty
+    // scopes this entry to only the listed domains (and their subdomains) -- for a param name
+    // that's too generic to strip safely everywhere, e.g. "ref" on Amazon's own domains.
+    val domains: List<String> = emptyList()
 )
 
 class UrlCleaner {
     companion object {
+        // ignoreUnknownKeys so a future schema field added to blocklist/trackers.v2.json
+        // doesn't break this compiled-in default the moment an older-built app encounters it.
+        private val json = Json { ignoreUnknownKeys = true }
+
         // Derived from the same build-generated constant as SettingsRepository.DEFAULT_BLOCKLIST_JSON,
-        // which in turn is generated from blocklist/trackers.json — the single authored source of truth.
-        val DEFAULT_TRACKING_PARAMS: Set<String> by lazy {
-            Json.decodeFromString<List<TrackerEntry>>(GENERATED_DEFAULT_BLOCKLIST_JSON)
-                .map { it.name }
-                .toSet()
+        // which in turn is generated from blocklist/trackers.v2.json — the single authored source of truth.
+        val DEFAULT_TRACKERS: List<TrackerEntry> by lazy {
+            json.decodeFromString<List<TrackerEntry>>(GENERATED_DEFAULT_BLOCKLIST_JSON)
         }
     }
 
@@ -26,27 +32,16 @@ class UrlCleaner {
         val removedParams: List<String>
     )
 
-    fun clean(
-        urlStr: String,
-        whitelistedDomains: Set<String> = emptySet(),
-        customBlacklistParams: Set<String> = emptySet(),
-        domainWhitelistedParams: Set<String> = emptySet(),
-        removeMobileSubdomains: Boolean = false,
-        trackingParams: Set<String> = DEFAULT_TRACKING_PARAMS
-    ): CleanResult {
-        var trimmed = urlStr.trim()
-        if (trimmed.isEmpty()) {
-            return CleanResult(urlStr, urlStr, emptyList())
-        }
-
-        if (removeMobileSubdomains) {
-            trimmed = removeMobileSubdomain(trimmed)
-        }
-
-        val host = extractHost(trimmed)
-
-        // Check if the domain (or its parent domain) is whitelisted
-        val isWhitelisted = whitelistedDomains.any { domain ->
+    /**
+     * True when [urlStr]'s host (or a parent of it) is in [whitelistedDomains] -- the same
+     * check [clean] applies internally before doing anything else to a whitelisted URL.
+     * Exposed so callers can skip whitelisted domains *before* work clean() itself doesn't
+     * do, e.g. an outbound short-link-expansion network request: a "skip entirely" domain
+     * should never trigger that fetch in the first place, not just have its result ignored.
+     */
+    fun isDomainWhitelisted(urlStr: String, whitelistedDomains: Set<String>): Boolean {
+        val host = extractHost(urlStr.trim())
+        return whitelistedDomains.any { domain ->
             val cleanDomain = domain.trim().lowercase()
             if (cleanDomain.isEmpty()) false
             else host.equals(cleanDomain, ignoreCase = true) || host.endsWith(
@@ -54,10 +49,38 @@ class UrlCleaner {
                 ignoreCase = true
             )
         }
+    }
 
-        if (isWhitelisted) {
+    fun clean(
+        urlStr: String,
+        whitelistedDomains: Set<String> = emptySet(),
+        customBlacklistParams: Set<String> = emptySet(),
+        domainWhitelistedParams: Set<String> = emptySet(),
+        removeMobileSubdomains: Boolean = false,
+        dropTrailingSlash: Boolean = false,
+        trackers: List<TrackerEntry> = DEFAULT_TRACKERS
+    ): CleanResult {
+        var trimmed = urlStr.trim()
+        if (trimmed.isEmpty()) {
+            return CleanResult(urlStr, urlStr, emptyList())
+        }
+
+        // Checked against the untouched input's host, before removeMobileSubdomains or
+        // stripTrailingSlash get a chance to rewrite it -- a domain the user whitelisted
+        // to "skip entirely" must stay completely untouched, not just keep its query params.
+        if (isDomainWhitelisted(trimmed, whitelistedDomains)) {
             return CleanResult(trimmed, trimmed, emptyList())
         }
+
+        if (dropTrailingSlash) {
+            trimmed = stripTrailingSlash(trimmed)
+        }
+
+        if (removeMobileSubdomains) {
+            trimmed = removeMobileSubdomain(trimmed)
+        }
+
+        val host = extractHost(trimmed)
 
         val hashIndex = trimmed.indexOf('#')
         val fragment = if (hashIndex != -1) trimmed.substring(hashIndex) else ""
@@ -85,16 +108,28 @@ class UrlCleaner {
             val key = parts[0]
             val keyLower = key.lowercase().trim()
 
-            val isDefaultTracking = trackingParams.contains(keyLower) || keyLower.startsWith("utm_")
+            // The utm_ prefix is stripped unconditionally, independent of the trackers
+            // list: that list is user-editable and remote-syncable (see BlocklistSyncer),
+            // so the app's single most important rule shouldn't be silently disabled by a
+            // remote payload or a local edit that happens to omit a utm_* entry. A domain-
+            // scoped isParamWhitelisted entry (e.g. "utm_source" kept on one specific site)
+            // still overrides this floor below, same as it overrides the trackers list.
+            val isDefaultTracking = keyLower.startsWith("utm_") || trackers.any { entry ->
+                matchParamPattern(keyLower, entry.name) && (
+                        entry.domains.isEmpty() || entry.domains.any { d ->
+                            matchDomainPattern(host, d)
+                        }
+                        )
+            }
             val isCustomBlacklisted =
-                customBlacklistParams.any { it.trim().lowercase() == keyLower }
+                customBlacklistParams.any { matchParamPattern(keyLower, it) }
 
             val isParamWhitelisted = domainWhitelistedParams.any { entry ->
                 val entryParts = entry.split(':', limit = 2)
                 if (entryParts.size == 2) {
                     val cleanDomain = entryParts[0].trim().lowercase()
                     val cleanParam = entryParts[1].trim().lowercase()
-                    cleanParam == keyLower && (host == cleanDomain || host.endsWith(".$cleanDomain"))
+                    matchParamPattern(keyLower, cleanParam) && matchDomainPattern(host, cleanDomain)
                 } else false
             }
 
@@ -113,6 +148,35 @@ class UrlCleaner {
 
         val cleanedUrl = baseUrl + newQueryString + fragment
         return CleanResult(trimmed, cleanedUrl, removedParams)
+    }
+
+    // Operates on the path component specifically (everything before "?"/"#"), not the
+    // final assembled URL -- a naive whole-string trailing-slash strip would miss
+    // "https://example.com/path/?utm_source=x" entirely, since the "/" there isn't at
+    // the end of the string once a query string follows it. No bare-root exception:
+    // "https://example.com/" and "https://example.com" are the same resource, so there's
+    // no good reason to special-case it. The one real guard is structural, not semantic --
+    // never strip the "/" that's part of "scheme://" itself.
+    private fun stripTrailingSlash(urlStr: String): String {
+        val hashIndex = urlStr.indexOf('#')
+        val fragment = if (hashIndex != -1) urlStr.substring(hashIndex) else ""
+        val withoutFragment = if (hashIndex != -1) urlStr.substring(0, hashIndex) else urlStr
+
+        val questionIndex = withoutFragment.indexOf('?')
+        val base = if (questionIndex != -1) withoutFragment.substring(
+            0,
+            questionIndex
+        ) else withoutFragment
+        val query = if (questionIndex != -1) withoutFragment.substring(questionIndex) else ""
+
+        val schemeEnd = base.indexOf("://")
+        val newBase = if (base.endsWith("/") && (schemeEnd == -1 || base.length > schemeEnd + 3)) {
+            base.dropLast(1)
+        } else {
+            base
+        }
+
+        return newBase + query + fragment
     }
 
     private fun removeMobileSubdomain(urlStr: String): String {
@@ -153,10 +217,6 @@ class UrlCleaner {
         if (slashIndex != -1) {
             temp = temp.substring(0, slashIndex)
         }
-        val portIndex = temp.indexOf(':')
-        if (portIndex != -1) {
-            temp = temp.substring(0, portIndex)
-        }
         val qIndex = temp.indexOf('?')
         if (qIndex != -1) {
             temp = temp.substring(0, qIndex)
@@ -165,6 +225,40 @@ class UrlCleaner {
         if (hIndex != -1) {
             temp = temp.substring(0, hIndex)
         }
+        // Strip userinfo (user:pass@) before the port split below -- otherwise
+        // "https://user:pass@amazon.in/" would extract "user" as the host, missing
+        // Amazon's domain-scoped tracker rules entirely.
+        val atIndex = temp.lastIndexOf('@')
+        if (atIndex != -1) {
+            temp = temp.substring(atIndex + 1)
+        }
+        val portIndex = temp.indexOf(':')
+        if (portIndex != -1) {
+            temp = temp.substring(0, portIndex)
+        }
         return temp.trim().lowercase()
+    }
+
+    private fun matchParamPattern(key: String, pattern: String): Boolean {
+        val cleanPattern = pattern.trim().lowercase()
+        if (cleanPattern.isEmpty()) return false
+        if (cleanPattern.contains('*')) {
+            val parts = cleanPattern.split('*').map { Regex.escape(it) }
+            val regex = Regex("^" + parts.joinToString(".*") + "$")
+            return key.matches(regex)
+        }
+        return key.equals(cleanPattern, ignoreCase = true)
+    }
+
+    private fun matchDomainPattern(host: String, domainPattern: String): Boolean {
+        val cleanDomain = domainPattern.trim().lowercase()
+        if (cleanDomain.isEmpty()) return false
+        if (cleanDomain.contains('*')) {
+            val parts = cleanDomain.split('*').map { Regex.escape(it) }
+            val regex = Regex("^" + parts.joinToString("[^.]+") + "$")
+            val parentRegex = Regex(".*\\." + parts.joinToString("[^.]+") + "$")
+            return host.matches(regex) || host.matches(parentRegex)
+        }
+        return host == cleanDomain || host.endsWith(".$cleanDomain")
     }
 }
