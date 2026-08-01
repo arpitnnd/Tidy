@@ -11,7 +11,7 @@ object UrlExpander {
         "is.gd", "buff.ly", "bit.do", "lnkd.in", "db.tt", "qr.ae",
         "goo.gl", "ow.ly", "tiny.cc", "t.ly", "cutt.ly",
         "share.google", "amzn.*", "a.co", "a.to", "z.cn",
-        "v.gd", "rb.gy", "shrtco.de"
+        "v.gd", "rb.gy", "shrtco.de", "we.tl"
     )
 
     private const val CACHE_MAX_SIZE = 100

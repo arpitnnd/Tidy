@@ -49,6 +49,7 @@ class UrlExpanderTest {
         assertTrue(UrlExpander.isShortUrl("https://v.gd/abc123"))
         assertTrue(UrlExpander.isShortUrl("https://rb.gy/abc123"))
         assertTrue(UrlExpander.isShortUrl("https://shrtco.de/abc123"))
+        assertTrue(UrlExpander.isShortUrl("https://we.tl/t-abc123"))
     }
 
     @Test
