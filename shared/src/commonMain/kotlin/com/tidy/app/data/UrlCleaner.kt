@@ -6,17 +6,19 @@ import kotlinx.serialization.json.Json
 @Serializable
 data class TrackerEntry(
     val name: String,
-    val description: String
+    val description: String,
+    // Empty means global (stripped from every domain, the default for most entries). Non-empty
+    // scopes this entry to only the listed domains (and their subdomains) -- for a param name
+    // that's too generic to strip safely everywhere, e.g. "ref" on Amazon's own domains.
+    val domains: List<String> = emptyList()
 )
 
 class UrlCleaner {
     companion object {
         // Derived from the same build-generated constant as SettingsRepository.DEFAULT_BLOCKLIST_JSON,
         // which in turn is generated from blocklist/trackers.json — the single authored source of truth.
-        val DEFAULT_TRACKING_PARAMS: Set<String> by lazy {
+        val DEFAULT_TRACKERS: List<TrackerEntry> by lazy {
             Json.decodeFromString<List<TrackerEntry>>(GENERATED_DEFAULT_BLOCKLIST_JSON)
-                .map { it.name }
-                .toSet()
         }
     }
 
@@ -32,7 +34,7 @@ class UrlCleaner {
         customBlacklistParams: Set<String> = emptySet(),
         domainWhitelistedParams: Set<String> = emptySet(),
         removeMobileSubdomains: Boolean = false,
-        trackingParams: Set<String> = DEFAULT_TRACKING_PARAMS
+        trackers: List<TrackerEntry> = DEFAULT_TRACKERS
     ): CleanResult {
         var trimmed = urlStr.trim()
         if (trimmed.isEmpty()) {
@@ -85,16 +87,22 @@ class UrlCleaner {
             val key = parts[0]
             val keyLower = key.lowercase().trim()
 
-            val isDefaultTracking = trackingParams.contains(keyLower) || keyLower.startsWith("utm_")
+            val isDefaultTracking = trackers.any { entry ->
+                matchParamPattern(keyLower, entry.name) && (
+                    entry.domains.isEmpty() || entry.domains.any { d ->
+                        matchDomainPattern(host, d)
+                    }
+                )
+            }
             val isCustomBlacklisted =
-                customBlacklistParams.any { it.trim().lowercase() == keyLower }
+                customBlacklistParams.any { matchParamPattern(keyLower, it) }
 
             val isParamWhitelisted = domainWhitelistedParams.any { entry ->
                 val entryParts = entry.split(':', limit = 2)
                 if (entryParts.size == 2) {
                     val cleanDomain = entryParts[0].trim().lowercase()
                     val cleanParam = entryParts[1].trim().lowercase()
-                    cleanParam == keyLower && (host == cleanDomain || host.endsWith(".$cleanDomain"))
+                    matchParamPattern(keyLower, cleanParam) && matchDomainPattern(host, cleanDomain)
                 } else false
             }
 
@@ -166,5 +174,28 @@ class UrlCleaner {
             temp = temp.substring(0, hIndex)
         }
         return temp.trim().lowercase()
+    }
+
+    private fun matchParamPattern(key: String, pattern: String): Boolean {
+        val cleanPattern = pattern.trim().lowercase()
+        if (cleanPattern.isEmpty()) return false
+        if (cleanPattern.contains('*')) {
+            val parts = cleanPattern.split('*').map { Regex.escape(it) }
+            val regex = Regex("^" + parts.joinToString(".*") + "$")
+            return key.matches(regex)
+        }
+        return key.equals(cleanPattern, ignoreCase = true)
+    }
+
+    private fun matchDomainPattern(host: String, domainPattern: String): Boolean {
+        val cleanDomain = domainPattern.trim().lowercase()
+        if (cleanDomain.isEmpty()) return false
+        if (cleanDomain.contains('*')) {
+            val parts = cleanDomain.split('*').map { Regex.escape(it) }
+            val regex = Regex("^" + parts.joinToString("[^.]+") + "$")
+            val parentRegex = Regex(".*\\." + parts.joinToString("[^.]+") + "$")
+            return host.matches(regex) || host.matches(parentRegex)
+        }
+        return host == cleanDomain || host.endsWith(".$cleanDomain")
     }
 }

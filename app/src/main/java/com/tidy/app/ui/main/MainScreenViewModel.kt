@@ -148,14 +148,14 @@ class MainScreenViewModel(
                 val customBlacklist = settingsRepository.blacklistedParams.first()
                 val domainParams = settingsRepository.domainWhitelistedParams.first()
                 val autoRemoveMobile = settingsRepository.autoRemoveMobileSubdomains.first()
-                val trackerNames = settingsRepository.trackers.first().map { it.name }.toSet()
+                val trackers = settingsRepository.trackers.first()
                 val result = urlCleaner.clean(
                     urlStr = resolvedUrl,
                     whitelistedDomains = whitelist,
                     customBlacklistParams = customBlacklist,
                     domainWhitelistedParams = domainParams,
                     removeMobileSubdomains = autoRemoveMobile,
-                    trackingParams = trackerNames
+                    trackers = trackers
                 )
 
                 val initialOriginal = originalShortUrl ?: trimmed
@@ -248,14 +248,14 @@ class MainScreenViewModel(
         val customBlacklist = settingsRepository.blacklistedParams.first()
         val domainParams = settingsRepository.domainWhitelistedParams.first()
         val removeMobile = settingsRepository.autoRemoveMobileSubdomains.first()
-        val trackerNames = settingsRepository.trackers.first().map { it.name }.toSet()
+        val trackers = settingsRepository.trackers.first()
         val result = urlCleaner.clean(
             urlStr = normalized,
             whitelistedDomains = whitelist,
             customBlacklistParams = customBlacklist,
             domainWhitelistedParams = domainParams,
             removeMobileSubdomains = removeMobile,
-            trackingParams = trackerNames
+            trackers = trackers
         )
 
         // Cleaning would leave the clipboard exactly as it is: nothing to do — unless

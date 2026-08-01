@@ -120,7 +120,7 @@ class MainScreenViewModelTest {
         // The synced param is stripped...
         assertTrue(state.removedParams.contains("zzz_custom_tracker"))
         // ...but fbclid (a compiled default absent from the synced list) is kept, proving
-        // the live synced list is honored instead of UrlCleaner.DEFAULT_TRACKING_PARAMS.
+        // the live synced list is honoured instead of UrlCleaner.DEFAULT_TRACKERS.
         assertEquals("https://example.com/page?fbclid=2", state.cleanedUrl)
     }
 

@@ -92,4 +92,69 @@ class UrlCleanerTest {
         val resultMe = cleaner.clean(urlStr = urlMe, removeMobileSubdomains = true)
         assertEquals("https://m.me/username", resultMe.cleanedUrl)
     }
+
+    @Test
+    fun testRefParameterIsNotStrippedOffAmazon() {
+        // "ref" is a common, generic query key on many non-Amazon sites for legitimate,
+        // non-tracking purposes, so it must not be stripped outside Amazon's own domains.
+        val original = "https://example.com/page?ref=some-app-state&utm_source=newsletter"
+        val result = cleaner.clean(original)
+
+        assertEquals("https://example.com/page?ref=some-app-state", result.cleanedUrl)
+        assertEquals(1, result.removedParams.size)
+        assertEquals("utm_source", result.removedParams[0])
+    }
+
+    @Test
+    fun testDomainScopedTrackerEntry() {
+        val scopedTrackers = listOf(
+            TrackerEntry(name = "ref", description = "test", domains = listOf("amazon.com"))
+        )
+
+        val onDomain = cleaner.clean(
+            urlStr = "https://www.amazon.com/dp/1?ref=abc",
+            trackers = scopedTrackers
+        )
+        assertEquals("https://www.amazon.com/dp/1", onDomain.cleanedUrl)
+        assertEquals(listOf("ref"), onDomain.removedParams)
+
+        val offDomain = cleaner.clean(
+            urlStr = "https://example.com/page?ref=abc",
+            trackers = scopedTrackers
+        )
+        assertEquals("https://example.com/page?ref=abc", offDomain.cleanedUrl)
+        assertEquals(emptyList<String>(), offDomain.removedParams)
+
+        // A subdomain of the scoped domain is also covered, same as whitelistedDomains matching.
+        val subdomain = cleaner.clean(
+            urlStr = "https://smile.amazon.com/dp/1?ref=abc",
+            trackers = scopedTrackers
+        )
+        assertEquals("https://smile.amazon.com/dp/1", subdomain.cleanedUrl)
+        assertEquals(listOf("ref"), subdomain.removedParams)
+    }
+
+    @Test
+    fun testParamPatternWildcardsAndDomainWildcards() {
+        val trackers = listOf(
+            TrackerEntry(name = "utm_*", description = "test"),
+            TrackerEntry(name = "ref", description = "test", domains = listOf("amzn.*"))
+        )
+
+        // Wildcard parameter name utm_* matching utm_custom
+        val utmCustom = cleaner.clean(
+            urlStr = "https://example.com/page?utm_custom_id=99",
+            trackers = trackers
+        )
+        assertEquals("https://example.com/page", utmCustom.cleanedUrl)
+        assertEquals(listOf("utm_custom_id"), utmCustom.removedParams)
+
+        // Wildcard domain amzn.* matching amzn.in
+        val amznIn = cleaner.clean(
+            urlStr = "https://amzn.in/d/123?ref=share",
+            trackers = trackers
+        )
+        assertEquals("https://amzn.in/d/123", amznIn.cleanedUrl)
+        assertEquals(listOf("ref"), amznIn.removedParams)
+    }
 }
