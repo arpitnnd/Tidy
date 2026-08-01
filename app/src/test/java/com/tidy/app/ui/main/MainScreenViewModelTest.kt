@@ -141,4 +141,82 @@ class MainScreenViewModelTest {
         val firstLaunchDone = settingsRepository.firstLaunchDone.first()
         assertTrue(firstLaunchDone)
     }
+
+    @Test
+    fun evaluateClipboardCandidateSuggestsAnyUrlNotOnDisplay() = runTest {
+        // Cleaning "https://example.com/already-clean" wouldn't change it at all -- it
+        // must still be suggested. The suggestion is meant to reflect the clipboard, not
+        // just clipboard content that happens to need cleaning.
+        val candidate = viewModel.evaluateClipboardCandidate("https://example.com/already-clean")
+        assertEquals("https://example.com/already-clean", candidate)
+    }
+
+    @Test
+    fun evaluateClipboardCandidateReturnsNullWhenAlreadyOnDisplay() = runTest {
+        viewModel.cleanUrl("https://example.com/page?utm_source=x")
+
+        val candidate = viewModel.evaluateClipboardCandidate("https://example.com/page")
+        assertEquals(null, candidate)
+    }
+
+    @Test
+    fun evaluateClipboardCandidateReturnsNullForNonUrlText() = runTest {
+        assertEquals(null, viewModel.evaluateClipboardCandidate("just some plain text"))
+    }
+
+    @Test
+    fun checkClipboardTextSuggestsWhenCheckingIsEnabled() = runTest {
+        settingsRepository.setCheckClipboardForLinks(true)
+
+        viewModel.checkClipboardText("https://example.com/page?utm_source=x")
+
+        val state = viewModel.uiState.value
+        assertEquals("https://example.com/page?utm_source=x", state.clipboardSuggestionUrl)
+        assertEquals(null, state.bulkClipboardUrls)
+    }
+
+    @Test
+    fun checkClipboardTextDoesNothingWhenCheckingIsDisabled() = runTest {
+        settingsRepository.setCheckClipboardForLinks(false)
+
+        viewModel.checkClipboardText("https://example.com/page")
+
+        val state = viewModel.uiState.value
+        assertEquals(null, state.clipboardSuggestionUrl)
+    }
+
+    @Test
+    fun checkClipboardTextClearsSuggestionWhenClipboardHasNoUrl() = runTest {
+        settingsRepository.setCheckClipboardForLinks(true)
+        viewModel.checkClipboardText("https://example.com/page")
+        assertEquals("https://example.com/page", viewModel.uiState.value.clipboardSuggestionUrl)
+
+        viewModel.checkClipboardText("no url here")
+        assertEquals(null, viewModel.uiState.value.clipboardSuggestionUrl)
+    }
+
+    @Test
+    fun checkClipboardTextSurfacesBulkUrlsWhenMultipleArePresent() = runTest {
+        settingsRepository.setCheckClipboardForLinks(true)
+
+        viewModel.checkClipboardText("https://a.example.com and https://b.example.com")
+
+        val state = viewModel.uiState.value
+        assertEquals(null, state.clipboardSuggestionUrl)
+        assertEquals(listOf("https://a.example.com", "https://b.example.com"), state.bulkClipboardUrls)
+    }
+
+    @Test
+    fun checkClipboardTextReSuggestsAfterClearingDisplayedResult() = runTest {
+        settingsRepository.setCheckClipboardForLinks(true)
+        viewModel.cleanUrl("https://example.com/page")
+        assertEquals(null, viewModel.uiState.value.clipboardSuggestionUrl)
+
+        viewModel.clear()
+        viewModel.checkClipboardText("https://example.com/page")
+
+        // Clearing wipes the displayed *result*, not the intent to maybe clean whatever
+        // is on the clipboard -- the same URL is suggested again, predictably.
+        assertEquals("https://example.com/page", viewModel.uiState.value.clipboardSuggestionUrl)
+    }
 }

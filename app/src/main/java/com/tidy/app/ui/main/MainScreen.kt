@@ -112,7 +112,6 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.tidy.app.FlavorConfig
 import com.tidy.app.R
 import com.tidy.app.TidyApp
-import com.tidy.app.data.ClipboardCleanTier
 import com.tidy.app.data.HistoryRepository
 import com.tidy.app.data.UrlCleaner
 import com.tidy.app.data.UrlDetection
@@ -180,27 +179,21 @@ fun MainScreen(
     val entitlementManager = TidyApp.instance.entitlementManager
     val isPlusUnlocked by entitlementManager.isPlusUnlocked.collectAsStateWithLifecycle(initialValue = false)
     var showUpsellSheet by remember { mutableStateOf(showPlusUpsell) }
-    var bulkClipboardUrls by remember { mutableStateOf<List<String>?>(null) }
     val trackerDescriptions by settingsRepository.trackerDescriptions.collectAsStateWithLifecycle(
         initialValue = emptyMap()
     )
 
-    // Clipboard suggestion state, driven from the ON_RESUME observer below. The
-    // suggestion has no auto-hide timeout: it stays until acted on or until the
-    // clipboard content changes.
-    var clipboardUrl by remember { mutableStateOf<String?>(null) }
-    var suggestionCopiesOnClean by remember { mutableStateOf(false) }
     var paramToWhitelist by remember { mutableStateOf<String?>(null) }
     val introSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
     // AnimatedVisibility keeps composing its content lambda while it animates out, so if
-    // that lambda reads clipboardUrl directly it goes blank the instant clipboardUrl is
-    // nulled, leaving the exit animation to collapse an empty box. Caching the last
+    // that lambda reads state.clipboardSuggestionUrl directly it goes blank the instant
+    // that's nulled, leaving the exit animation to collapse an empty box. Caching the last
     // non-null value keeps the banner's content visible for the whole exit transition.
     var lastClipboardBannerUrl by remember { mutableStateOf<String?>(null) }
-    LaunchedEffect(clipboardUrl) {
-        if (clipboardUrl != null) {
-            lastClipboardBannerUrl = clipboardUrl
+    LaunchedEffect(state.clipboardSuggestionUrl) {
+        if (state.clipboardSuggestionUrl != null) {
+            lastClipboardBannerUrl = state.clipboardSuggestionUrl
         }
     }
 
@@ -214,12 +207,14 @@ fun MainScreen(
         hasShownCrashSheetThisSession = true
     }
 
-    // Clean URL if shared through Android intent. Guarded against state.originalUrl so
-    // returning to this NavKey (e.g. navigating back from Settings/History disposes and
-    // recomposes MainScreen, re-running this effect) doesn't re-clean the same shared URL
-    // and double-count it in history/analytics.
+    // Clean URL if shared through Android intent. hasHandledThisSharedUrl is rememberSaveable
+    // (keyed on sharedUrl) so it survives Settings/History disposing and recomposing this
+    // NavKey entry -- without re-cleaning the same shared URL every round-trip -- while a
+    // genuinely new share still gets its own fresh Main(url) entry and its own fresh flag.
+    var hasHandledThisSharedUrl by rememberSaveable(sharedUrl) { mutableStateOf(false) }
     LaunchedEffect(sharedUrl) {
-        if (sharedUrl != null && sharedUrl != state.originalUrl) {
+        if (sharedUrl != null && !hasHandledThisSharedUrl) {
+            hasHandledThisSharedUrl = true
             viewModel.cleanUrl(sharedUrl, isShared = true)
         }
     }
@@ -278,69 +273,32 @@ fun MainScreen(
         }
     }
 
-    // The single clipboard-check path. Hooked into ON_RESUME (which also fires right
-    // after cold start), so launching and resuming Tidy behave identically. This can
-    // suggest, clean, or copy — it can never close the app.
+    // Reads the clipboard and hands it to the ViewModel, which owns the suggest/auto-clean
+    // decision (see MainScreenViewModel.checkClipboardText's KDoc). Reading the clipboard
+    // itself stays here because it needs a Context.
+    val checkClipboard: suspend () -> Unit = {
+        val text = try {
+            val clipboard =
+                context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+            clipboard.primaryClip?.getItemAt(0)?.text?.toString()
+        } catch (_: Exception) {
+            null
+        }
+        viewModel.checkClipboardText(text)
+    }
+
+    // Hooked into ON_RESUME, which fires right after cold start and again every time this
+    // screen is recomposed after a Settings/History round trip -- NavDisplay gives each
+    // back-stack entry its own child LifecycleOwner that starts INITIALIZED and is driven
+    // to RESUMED fresh on every such round trip, so there is no reliable signal here that
+    // distinguishes "just returned" from "genuinely resumed"; both call this the same way.
+    // That's deliberate: checkClipboardText's own dedup (comparing against what's already
+    // displayed) is what keeps this predictable, not a guess at the lifecycle event.
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_RESUME) {
                 scope.launch {
-                    val clearSuggestions = {
-                        clipboardUrl = null
-                        bulkClipboardUrls = null
-                    }
-                    if (!settingsRepository.checkClipboardForLinks.first()) {
-                        clearSuggestions()
-                        return@launch
-                    }
-                    val text = try {
-                        val clipboard =
-                            context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-                        clipboard.primaryClip?.getItemAt(0)?.text?.toString()
-                    } catch (e: Exception) {
-                        null
-                    }
-                    if (text == null) {
-                        clearSuggestions()
-                        return@launch
-                    }
-                    val urls = UrlDetection.findAllUrls(text)
-                    when {
-                        urls.size > 1 -> {
-                            bulkClipboardUrls = urls
-                            clipboardUrl = null
-                        }
-
-                        urls.size == 1 -> {
-                            bulkClipboardUrls = null
-                            val candidate = viewModel.evaluateClipboardCandidate(text)
-                            if (candidate == null) {
-                                clipboardUrl = null
-                            } else {
-                                when (FlavorConfig.resolveClipboardTier(settingsRepository)) {
-                                    ClipboardCleanTier.AUTO_CLEAN -> {
-                                        clipboardUrl = null
-                                        viewModel.cleanUrl(
-                                            candidate,
-                                            copyResultToClipboard = true
-                                        )
-                                    }
-
-                                    ClipboardCleanTier.SUGGEST_AND_COPY -> {
-                                        suggestionCopiesOnClean = true
-                                        clipboardUrl = candidate
-                                    }
-
-                                    ClipboardCleanTier.SUGGEST -> {
-                                        suggestionCopiesOnClean = false
-                                        clipboardUrl = candidate
-                                    }
-                                }
-                            }
-                        }
-
-                        else -> clearSuggestions()
-                    }
+                    checkClipboard()
                 }
             }
         }
@@ -432,7 +390,7 @@ fun MainScreen(
                         // would reserve that gap even when every banner below is fully collapsed,
                         // leaving permanent phantom whitespace above the manual entry row.
                         AnimatedVisibility(
-                            visible = clipboardUrl != null,
+                            visible = state.clipboardSuggestionUrl != null,
                             enter = BannerEnterTransition,
                             exit = BannerExitTransition
                         ) {
@@ -441,10 +399,10 @@ fun MainScreen(
                                     ClipboardActionBanner(
                                         url = url,
                                         onActionClick = {
-                                            clipboardUrl = null
+                                            viewModel.clearClipboardSuggestion()
                                             viewModel.cleanUrl(
                                                 url,
-                                                copyResultToClipboard = suggestionCopiesOnClean
+                                                copyResultToClipboard = state.suggestionCopiesOnClean
                                             )
                                         },
                                         modifier = Modifier.fillMaxWidth()
@@ -462,7 +420,12 @@ fun MainScreen(
                             ) {
                                 TooltipWrapper(tooltipText = stringResource(R.string.tooltip_clean_new)) {
                                     FilledIconButton(
-                                        onClick = { viewModel.clear() },
+                                        onClick = {
+                                            viewModel.clear()
+                                            scope.launch {
+                                                checkClipboard()
+                                            }
+                                        },
                                         modifier = Modifier.size(48.dp),
                                         shape = RoundedCornerShape(16.dp),
                                         colors = IconButtonDefaults.filledIconButtonColors(
@@ -595,7 +558,13 @@ fun MainScreen(
                             }
                             ManualEntryRow(
                                 state = state,
-                                viewModel = viewModel
+                                viewModel = viewModel,
+                                onClear = {
+                                    viewModel.clear()
+                                    scope.launch {
+                                        checkClipboard()
+                                    }
+                                }
                             )
                         }
                     }
@@ -1040,12 +1009,12 @@ fun MainScreen(
 
                         // Bulk Clipboard Clean card (gated behind Tidy+)
                         com.tidy.app.FlavorConfig.BulkClipboardCleanCard(
-                            bulkClipboardUrls = bulkClipboardUrls,
-                            onDismiss = { bulkClipboardUrls = null },
+                            bulkClipboardUrls = state.bulkClipboardUrls,
+                            onDismiss = { viewModel.clearClipboardSuggestion() },
                             isPlusUnlocked = isPlusUnlocked,
                             onShowUpsell = { showUpsellSheet = true },
                             onCleanExecute = {
-                                bulkClipboardUrls?.let { urls ->
+                                state.bulkClipboardUrls?.let { urls ->
                                     scope.launch {
                                         val settings = TidyApp.instance.settingsRepository
                                         val whitelist = settings.whitelistedDomains.first()
@@ -1084,7 +1053,7 @@ fun MainScreen(
                                                 )
                                             )
                                         }
-                                        bulkClipboardUrls = null
+                                        viewModel.clearClipboardSuggestion()
                                     }
                                 }
                             }
@@ -1244,7 +1213,8 @@ fun MainScreen(
 @Composable
 private fun ManualEntryRow(
     state: MainScreenViewModel.UiState,
-    viewModel: MainScreenViewModel
+    viewModel: MainScreenViewModel,
+    onClear: () -> Unit
 ) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
@@ -1266,7 +1236,7 @@ private fun ManualEntryRow(
             trailingIcon = {
                 if (state.inputUrl.isNotEmpty()) {
                     TooltipWrapper(tooltipText = stringResource(R.string.tooltip_clear_input)) {
-                        IconButton(onClick = { viewModel.clear() }) {
+                        IconButton(onClick = onClear) {
                             Icon(
                                 Icons.Filled.Clear,
                                 contentDescription = stringResource(R.string.tooltip_clear_input)

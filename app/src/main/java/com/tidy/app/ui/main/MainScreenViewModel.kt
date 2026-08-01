@@ -6,7 +6,9 @@ import android.content.Context
 import android.content.Intent
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.tidy.app.FlavorConfig
 import com.tidy.app.TidyApp
+import com.tidy.app.data.ClipboardCleanTier
 import com.tidy.app.data.HistoryEntry
 import com.tidy.app.data.HistoryRepository
 import com.tidy.app.data.SettingsRepository
@@ -59,7 +61,13 @@ class MainScreenViewModel(
         val autoExpandShortUrls: Boolean = false,
         val autoRemoveMobileSubdomains: Boolean = true,
         val domainWhitelistedParams: Set<String> = emptySet(),
-        val autoCleanOnInput: Boolean = true
+        val autoCleanOnInput: Boolean = true,
+        // Clipboard suggestion state, driven by checkClipboardText(). Living here (rather
+        // than as remember/rememberSaveable in MainScreen) means it survives Settings/
+        // History disposing and recomposing the screen -- see checkClipboardText's KDoc.
+        val clipboardSuggestionUrl: String? = null,
+        val bulkClipboardUrls: List<String>? = null,
+        val suggestionCopiesOnClean: Boolean = false
     )
 
     private val _uiState = MutableStateFlow(UiState())
@@ -224,48 +232,90 @@ class MainScreenViewModel(
 
     /**
      * The shared skip rule for clipboard suggestions, applied once for every tier:
-     * returns the detected link when a suggestion (or auto-clean) should happen, or
-     * null when nothing should happen at all — the clipboard doesn't look like a URL,
-     * cleaning it wouldn't change what's already on the clipboard, or the link is
-     * already on display.
+     * returns the detected URL when it isn't already on display, or null when it is
+     * (matching the current input, original, cleaned, or expanded URL) or the clipboard
+     * doesn't look like a URL at all. Any URL on the clipboard that isn't currently on
+     * display is suggested -- including one cleaning wouldn't change -- so the suggestion
+     * is predictable: it always reflects what's actually on the clipboard right now.
      */
     suspend fun evaluateClipboardCandidate(clipText: String): String? {
         val trimmedClip = clipText.trim()
         val detected = UrlDetection.findFirstUrl(trimmedClip) ?: return null
-        val normalized = UrlDetection.normalize(detected)
+        val normalizedCandidate = UrlDetection.normalize(detected)
 
         val state = _uiState.value
-        if (state.inputUrl.isNotBlank() && normalized == UrlDetection.normalize(state.inputUrl)) {
-            return null
-        }
-        if (normalized == state.originalUrl || normalized == state.cleanedUrl ||
-            normalized == state.expandedUrl
+        val normInput = if (state.inputUrl.isNotBlank()) UrlDetection.normalize(state.inputUrl) else null
+        val normOriginal = if (state.originalUrl.isNotBlank()) UrlDetection.normalize(state.originalUrl) else null
+        val normCleaned = if (state.cleanedUrl.isNotBlank()) UrlDetection.normalize(state.cleanedUrl) else null
+        val normExpanded = state.expandedUrl?.let { if (it.isNotBlank()) UrlDetection.normalize(it) else null }
+
+        if (normalizedCandidate == normInput || normalizedCandidate == normOriginal ||
+            normalizedCandidate == normCleaned || normalizedCandidate == normExpanded
         ) {
             return null
         }
-
-        val whitelist = settingsRepository.whitelistedDomains.first()
-        val customBlacklist = settingsRepository.blacklistedParams.first()
-        val domainParams = settingsRepository.domainWhitelistedParams.first()
-        val removeMobile = settingsRepository.autoRemoveMobileSubdomains.first()
-        val trackers = settingsRepository.trackers.first()
-        val result = urlCleaner.clean(
-            urlStr = normalized,
-            whitelistedDomains = whitelist,
-            customBlacklistParams = customBlacklist,
-            domainWhitelistedParams = domainParams,
-            removeMobileSubdomains = removeMobile,
-            trackers = trackers
-        )
-
-        // Cleaning would leave the clipboard exactly as it is: nothing to do — unless
-        // it's a short link that auto-expansion would still unwrap.
-        if (result.cleanedUrl == trimmedClip) {
-            val expandable =
-                UrlExpander.isShortUrl(normalized) && settingsRepository.autoExpandShortUrls.first()
-            if (!expandable) return null
-        }
         return detected
+    }
+
+    /**
+     * The single clipboard-check entry point, called on every ON_RESUME (cold start, and
+     * every return from Settings/History -- see MainScreen.kt's DisposableEffect). Owning
+     * this state here rather than in MainScreen's own remember blocks means it survives
+     * that screen being disposed and recomposed on every such round trip, instead of
+     * resetting to nothing and needing a lifecycle-level guess about whether the resume
+     * was "real" -- see this function's own history for why that guess doesn't work.
+     */
+    suspend fun checkClipboardText(text: String?) {
+        if (!settingsRepository.checkClipboardForLinks.first() || text == null) {
+            _uiState.update { it.copy(clipboardSuggestionUrl = null, bulkClipboardUrls = null) }
+            return
+        }
+        val urls = UrlDetection.findAllUrls(text)
+        when {
+            urls.size > 1 -> {
+                _uiState.update { it.copy(bulkClipboardUrls = urls, clipboardSuggestionUrl = null) }
+            }
+
+            urls.size == 1 -> {
+                val candidate = evaluateClipboardCandidate(text)
+                if (candidate == null) {
+                    _uiState.update { it.copy(clipboardSuggestionUrl = null, bulkClipboardUrls = null) }
+                } else {
+                    when (FlavorConfig.resolveClipboardTier(settingsRepository)) {
+                        ClipboardCleanTier.AUTO_CLEAN -> {
+                            _uiState.update { it.copy(clipboardSuggestionUrl = null, bulkClipboardUrls = null) }
+                            cleanUrl(candidate, copyResultToClipboard = true)
+                        }
+
+                        ClipboardCleanTier.SUGGEST_AND_COPY -> {
+                            _uiState.update {
+                                it.copy(
+                                    suggestionCopiesOnClean = true,
+                                    clipboardSuggestionUrl = candidate,
+                                    bulkClipboardUrls = null
+                                )
+                            }
+                        }
+
+                        ClipboardCleanTier.SUGGEST -> {
+                            _uiState.update {
+                                it.copy(
+                                    suggestionCopiesOnClean = false,
+                                    clipboardSuggestionUrl = candidate,
+                                    bulkClipboardUrls = null
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+
+            else -> _uiState.update { it.copy(clipboardSuggestionUrl = null, bulkClipboardUrls = null) }
+        }
+    }
+
+    fun clearClipboardSuggestion() {
+        _uiState.update { it.copy(clipboardSuggestionUrl = null, bulkClipboardUrls = null) }
     }
 
     fun expandShortUrl() {
