@@ -242,20 +242,41 @@ fun MainScreen(
                 is MainScreenViewModel.AutomationAction.CopyAndShare -> event.cleanedUrl
                 is MainScreenViewModel.AutomationAction.CopyAndClose -> event.cleanedUrl
             }
+            val sourceClipText = when (event) {
+                is MainScreenViewModel.AutomationAction.Copy -> event.sourceClipText
+                is MainScreenViewModel.AutomationAction.CopyAndShare -> event.sourceClipText
+                is MainScreenViewModel.AutomationAction.CopyAndClose -> event.sourceClipText
+            }
             val currentClip = try {
                 clipboard.primaryClip?.getItemAt(0)?.text?.toString()?.trim()
             } catch (e: Exception) {
                 null
             }
-            if (cleanedUrl == currentClip) return@collect
 
-            val clip = android.content.ClipData.newPlainText("Cleaned URL", cleanedUrl)
-            clipboard.setPrimaryClip(clip)
-            android.widget.Toast.makeText(
-                context,
-                toastCleanedCopied,
-                android.widget.Toast.LENGTH_SHORT
-            ).show()
+            // When this came from an automatic clean of clipboard text that had more than
+            // just the URL (e.g. "here's the file <link> enjoy"), splice the cleaned URL
+            // back into that text instead of overwriting the whole clipboard and losing
+            // the rest of it.
+            val newClipText = sourceClipText?.let { source ->
+                UrlDetection.findFirstUrl(source)?.let { detected ->
+                    UrlDetection.spliceUrl(source, detected, cleanedUrl)
+                }
+            } ?: cleanedUrl
+
+            // Only the clipboard write and its toast are skipped when there's nothing to
+            // change -- CopyAndShare/CopyAndClose must always run their own action below
+            // regardless of what happens to already be on the clipboard, or identical
+            // input would silently produce different outcomes depending on invisible
+            // clipboard state.
+            if (newClipText != currentClip) {
+                val clip = android.content.ClipData.newPlainText("Cleaned URL", newClipText)
+                clipboard.setPrimaryClip(clip)
+                android.widget.Toast.makeText(
+                    context,
+                    toastCleanedCopied,
+                    android.widget.Toast.LENGTH_SHORT
+                ).show()
+            }
             when (event) {
                 is MainScreenViewModel.AutomationAction.Copy -> Unit
                 is MainScreenViewModel.AutomationAction.CopyAndShare -> {

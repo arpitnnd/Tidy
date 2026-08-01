@@ -35,13 +35,24 @@ class MainScreenViewModel(
 ) : ViewModel() {
 
     sealed interface AutomationAction {
-        data class Copy(val cleanedUrl: String) : AutomationAction
-        data class CopyAndShare(val cleanedUrl: String) : AutomationAction
-        data class CopyAndClose(val cleanedUrl: String) : AutomationAction
+        // sourceClipText, when non-null, is the full clipboard text an automatic clean
+        // ran against -- used to splice cleanedUrl back into it rather than overwriting
+        // the whole clipboard and losing any text the user had around the link. Null for
+        // paths that don't originate from the clipboard (a share intent, the bulk-clean
+        // card, manual input) or from an explicit user tap, where replacing the clipboard
+        // with just the cleaned URL is the expected, requested outcome.
+        data class Copy(val cleanedUrl: String, val sourceClipText: String? = null) : AutomationAction
+        data class CopyAndShare(val cleanedUrl: String, val sourceClipText: String? = null) : AutomationAction
+        data class CopyAndClose(val cleanedUrl: String, val sourceClipText: String? = null) : AutomationAction
     }
 
     private val _automationEvents = MutableSharedFlow<AutomationAction>(extraBufferCapacity = 1)
     val automationEvents: SharedFlow<AutomationAction> = _automationEvents.asSharedFlow()
+
+    // The raw clipboard text AUTO_CLEAN last acted on -- see checkClipboardText's
+    // AUTO_CLEAN branch. Deliberately not part of UiState/not reset by clear(): it tracks
+    // what's already been auto-cleaned, independent of what's currently displayed.
+    private var lastAutoCleanedClipText: String? = null
 
     data class UiState(
         val inputUrl: String = "",
@@ -135,7 +146,8 @@ class MainScreenViewModel(
         isShared: Boolean = false,
         originalShortUrl: String? = null,
         addToHistory: Boolean = true,
-        copyResultToClipboard: Boolean = false
+        copyResultToClipboard: Boolean = false,
+        sourceClipText: String? = null
     ) {
         if (url.isBlank()) return
         val trimmed = UrlDetection.normalize(url)
@@ -199,7 +211,7 @@ class MainScreenViewModel(
                 }
 
                 if (copyResultToClipboard) {
-                    _automationEvents.tryEmit(AutomationAction.Copy(result.cleanedUrl))
+                    _automationEvents.tryEmit(AutomationAction.Copy(result.cleanedUrl, sourceClipText))
                 }
 
                 if (isShared) {
@@ -284,7 +296,19 @@ class MainScreenViewModel(
                     when (FlavorConfig.resolveClipboardTier(settingsRepository)) {
                         ClipboardCleanTier.AUTO_CLEAN -> {
                             _uiState.update { it.copy(clipboardSuggestionUrl = null, bulkClipboardUrls = null) }
-                            cleanUrl(candidate, copyResultToClipboard = true)
+                            // Fires once per distinct clipboard change, not once per check.
+                            // Without this, clearing the displayed result (which wipes the
+                            // state evaluateClipboardCandidate compares against, same as
+                            // SUGGEST intentionally re-showing the banner) would make
+                            // automatic cleaning re-fire on the exact content just cleared
+                            // -- silently rewriting the clipboard and adding a duplicate
+                            // history entry every time. lastAutoCleanedClipText is keyed on
+                            // the raw clip text (not just the extracted URL) and, unlike
+                            // the display state, is deliberately never reset by clear().
+                            if (text != lastAutoCleanedClipText) {
+                                lastAutoCleanedClipText = text
+                                cleanUrl(candidate, copyResultToClipboard = true, sourceClipText = text)
+                            }
                         }
 
                         ClipboardCleanTier.SUGGEST_AND_COPY -> {
