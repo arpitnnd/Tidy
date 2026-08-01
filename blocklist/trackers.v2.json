@@ -132,7 +132,7 @@
   {
     "name": "campid",
     "description": "eBay Partner Network campaign identifier.",
-    "domains": ["ebay.com", "ebay.co.uk", "ebay.de", "ebay.com.au", "ebay.ca", "ebay.in"]
+    "domains": ["ebay.com", "ebay.co.uk", "ebay.de", "ebay.com.au", "ebay.ca", "ebay.in", "ebay.fr", "ebay.it", "ebay.es", "ebay.nl", "ebay.at", "ebay.ch", "ebay.ie", "ebay.*"]
   },
   {
     "name": "feature",
@@ -147,7 +147,7 @@
       "amazon.es", "amazon.ca", "amazon.com.au", "amazon.co.jp", "amazon.in",
       "amazon.com.br", "amazon.com.mx", "amazon.nl", "amazon.se", "amazon.pl",
       "amazon.sg", "amazon.ae", "amazon.sa", "amazon.eg", "amazon.com.tr",
-      "amazon.cn", "amzn.to", "amzn.in", "a.co", "a.to", "z.cn", "amzn.*"
+      "amazon.cn", "amazon.ie", "amazon.co.za", "amazon.com.be", "amzn.to", "amzn.in", "a.co", "a.to", "z.cn", "amzn.*"
     ]
   },
   {
@@ -158,7 +158,7 @@
       "amazon.es", "amazon.ca", "amazon.com.au", "amazon.co.jp", "amazon.in",
       "amazon.com.br", "amazon.com.mx", "amazon.nl", "amazon.se", "amazon.pl",
       "amazon.sg", "amazon.ae", "amazon.sa", "amazon.eg", "amazon.com.tr",
-      "amazon.cn", "amzn.to", "amzn.in", "a.co", "a.to", "z.cn", "amzn.*"
+      "amazon.cn", "amazon.ie", "amazon.co.za", "amazon.com.be", "amzn.to", "amzn.in", "a.co", "a.to", "z.cn", "amzn.*"
     ]
   },
   {
@@ -169,52 +169,52 @@
       "amazon.es", "amazon.ca", "amazon.com.au", "amazon.co.jp", "amazon.in",
       "amazon.com.br", "amazon.com.mx", "amazon.nl", "amazon.se", "amazon.pl",
       "amazon.sg", "amazon.ae", "amazon.sa", "amazon.eg", "amazon.com.tr",
-      "amazon.cn", "amzn.to", "amzn.in", "a.co", "a.to", "z.cn", "amzn.*"
+      "amazon.cn", "amazon.ie", "amazon.co.za", "amazon.com.be", "amzn.to", "amzn.in", "a.co", "a.to", "z.cn", "amzn.*"
     ]
   },
   {
     "name": "spm",
     "description": "AliExpress and Alibaba Super Position Model tracking parameter.",
-    "domains": ["aliexpress.com", "alibaba.com"]
+    "domains": ["aliexpress.com", "alibaba.com", "aliexpress.us", "aliexpress.ru", "aliexpress.fr", "aliexpress.*"]
   },
   {
     "name": "scm",
     "description": "AliExpress Scenario Model tracking parameter.",
-    "domains": ["aliexpress.com", "alibaba.com"]
+    "domains": ["aliexpress.com", "alibaba.com", "aliexpress.us", "aliexpress.ru", "aliexpress.fr", "aliexpress.*"]
   },
   {
     "name": "aff_trace_key",
     "description": "AliExpress affiliate tracking key.",
-    "domains": ["aliexpress.com", "alibaba.com"]
+    "domains": ["aliexpress.com", "alibaba.com", "aliexpress.us", "aliexpress.ru", "aliexpress.fr", "aliexpress.*"]
   },
   {
     "name": "pvid",
     "description": "AliExpress page view tracking identifier.",
-    "domains": ["aliexpress.com", "alibaba.com"]
+    "domains": ["aliexpress.com", "alibaba.com", "aliexpress.us", "aliexpress.ru", "aliexpress.fr", "aliexpress.*"]
   },
   {
     "name": "mkevt",
     "description": "eBay marketing event tracking parameter.",
-    "domains": ["ebay.com", "ebay.co.uk", "ebay.de", "ebay.com.au", "ebay.ca", "ebay.in"]
+    "domains": ["ebay.com", "ebay.co.uk", "ebay.de", "ebay.com.au", "ebay.ca", "ebay.in", "ebay.fr", "ebay.it", "ebay.es", "ebay.nl", "ebay.at", "ebay.ch", "ebay.ie", "ebay.*"]
   },
   {
     "name": "mkcid",
     "description": "eBay marketing channel identifier.",
-    "domains": ["ebay.com", "ebay.co.uk", "ebay.de", "ebay.com.au", "ebay.ca", "ebay.in"]
+    "domains": ["ebay.com", "ebay.co.uk", "ebay.de", "ebay.com.au", "ebay.ca", "ebay.in", "ebay.fr", "ebay.it", "ebay.es", "ebay.nl", "ebay.at", "ebay.ch", "ebay.ie", "ebay.*"]
   },
   {
     "name": "mkrid",
     "description": "eBay marketing rotation identifier.",
-    "domains": ["ebay.com", "ebay.co.uk", "ebay.de", "ebay.com.au", "ebay.ca", "ebay.in"]
+    "domains": ["ebay.com", "ebay.co.uk", "ebay.de", "ebay.com.au", "ebay.ca", "ebay.in", "ebay.fr", "ebay.it", "ebay.es", "ebay.nl", "ebay.at", "ebay.ch", "ebay.ie", "ebay.*"]
   },
   {
     "name": "toolid",
     "description": "eBay partner network tool identifier.",
-    "domains": ["ebay.com", "ebay.co.uk", "ebay.de", "ebay.com.au", "ebay.ca", "ebay.in"]
+    "domains": ["ebay.com", "ebay.co.uk", "ebay.de", "ebay.com.au", "ebay.ca", "ebay.in", "ebay.fr", "ebay.it", "ebay.es", "ebay.nl", "ebay.at", "ebay.ch", "ebay.ie", "ebay.*"]
   },
   {
     "name": "customid",
     "description": "eBay partner network custom tracking identifier.",
-    "domains": ["ebay.com", "ebay.co.uk", "ebay.de", "ebay.com.au", "ebay.ca", "ebay.in"]
+    "domains": ["ebay.com", "ebay.co.uk", "ebay.de", "ebay.com.au", "ebay.ca", "ebay.in", "ebay.fr", "ebay.it", "ebay.es", "ebay.nl", "ebay.at", "ebay.ch", "ebay.ie", "ebay.*"]
   }
 ]

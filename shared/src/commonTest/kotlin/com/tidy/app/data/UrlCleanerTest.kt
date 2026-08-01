@@ -342,4 +342,16 @@ class UrlCleanerTest {
         )
         assertEquals(original, result.cleanedUrl)
     }
+
+    @Test
+    fun testRegionalDomainCoverage() {
+        val amazonIe = cleaner.clean("https://www.amazon.ie/dp/123?ref=xyz")
+        assertEquals("https://www.amazon.ie/dp/123", amazonIe.cleanedUrl)
+
+        val ebayDe = cleaner.clean("https://www.ebay.de/itm/123?campid=5338722076")
+        assertEquals("https://www.ebay.de/itm/123", ebayDe.cleanedUrl)
+
+        val aliexpressUs = cleaner.clean("https://www.aliexpress.us/item/123.html?spm=abc")
+        assertEquals("https://www.aliexpress.us/item/123.html", aliexpressUs.cleanedUrl)
+    }
 }
