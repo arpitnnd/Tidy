@@ -44,6 +44,7 @@ class SettingsRepositoryTest {
         assertFalse(repository.closeInsteadOfSharing.first())
         assertTrue(repository.autoExpandShortUrls.first())
         assertTrue(repository.autoRemoveMobileSubdomains.first())
+        assertTrue(repository.dropTrailingSlash.first())
         assertTrue(repository.autoCleanOnInput.first())
         assertFalse(repository.dontAskAgainCrash.first())
         assertFalse(repository.migrationDone.first())

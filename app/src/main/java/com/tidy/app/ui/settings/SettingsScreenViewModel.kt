@@ -35,6 +35,7 @@ class SettingsScreenViewModel(
         val closeInsteadOfSharing: Boolean = false,
         val autoExpandShortUrls: Boolean = true,
         val autoRemoveMobileSubdomains: Boolean = true,
+        val dropTrailingSlash: Boolean = true,
         val autoCleanOnInput: Boolean = true,
         val allowSystemBackup: Boolean = false
     )
@@ -46,6 +47,7 @@ class SettingsScreenViewModel(
         val closeInsteadOfSharing: Boolean,
         val autoExpand: Boolean,
         val autoRemoveMobile: Boolean,
+        val dropTrailingSlash: Boolean,
         val autoCleanInput: Boolean
     )
 
@@ -75,6 +77,7 @@ class SettingsScreenViewModel(
             settingsRepository.closeInsteadOfSharing,
             settingsRepository.autoExpandShortUrls,
             settingsRepository.autoRemoveMobileSubdomains,
+            settingsRepository.dropTrailingSlash,
             settingsRepository.autoCleanOnInput
         ) { array ->
             AutomationSettings(
@@ -84,7 +87,8 @@ class SettingsScreenViewModel(
                 closeInsteadOfSharing = array[3] as Boolean,
                 autoExpand = array[4] as Boolean,
                 autoRemoveMobile = array[5] as Boolean,
-                autoCleanInput = array[6] as Boolean
+                dropTrailingSlash = array[6] as Boolean,
+                autoCleanInput = array[7] as Boolean
             )
         },
         _uiState
@@ -100,6 +104,7 @@ class SettingsScreenViewModel(
             closeInsteadOfSharing = reposFlow2.closeInsteadOfSharing,
             autoExpandShortUrls = reposFlow2.autoExpand,
             autoRemoveMobileSubdomains = reposFlow2.autoRemoveMobile,
+            dropTrailingSlash = reposFlow2.dropTrailingSlash,
             autoCleanOnInput = reposFlow2.autoCleanInput
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), UiState())
@@ -180,6 +185,12 @@ class SettingsScreenViewModel(
     fun setAutoRemoveMobileSubdomains(enabled: Boolean) {
         viewModelScope.launch {
             settingsRepository.setAutoRemoveMobileSubdomains(enabled)
+        }
+    }
+
+    fun setDropTrailingSlash(enabled: Boolean) {
+        viewModelScope.launch {
+            settingsRepository.setDropTrailingSlash(enabled)
         }
     }
 

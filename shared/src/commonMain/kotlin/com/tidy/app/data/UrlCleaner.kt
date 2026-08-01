@@ -57,6 +57,7 @@ class UrlCleaner {
         customBlacklistParams: Set<String> = emptySet(),
         domainWhitelistedParams: Set<String> = emptySet(),
         removeMobileSubdomains: Boolean = false,
+        dropTrailingSlash: Boolean = false,
         trackers: List<TrackerEntry> = DEFAULT_TRACKERS
     ): CleanResult {
         var trimmed = urlStr.trim()
@@ -64,11 +65,15 @@ class UrlCleaner {
             return CleanResult(urlStr, urlStr, emptyList())
         }
 
-        // Checked against the untouched input's host, before removeMobileSubdomains gets a
-        // chance to rewrite it -- a domain the user whitelisted to "skip entirely" must stay
-        // completely untouched, including its host, not just keep its query params.
+        // Checked against the untouched input's host, before removeMobileSubdomains or
+        // stripTrailingSlash get a chance to rewrite it -- a domain the user whitelisted
+        // to "skip entirely" must stay completely untouched, not just keep its query params.
         if (isDomainWhitelisted(trimmed, whitelistedDomains)) {
             return CleanResult(trimmed, trimmed, emptyList())
+        }
+
+        if (dropTrailingSlash) {
+            trimmed = stripTrailingSlash(trimmed)
         }
 
         if (removeMobileSubdomains) {
@@ -143,6 +148,32 @@ class UrlCleaner {
 
         val cleanedUrl = baseUrl + newQueryString + fragment
         return CleanResult(trimmed, cleanedUrl, removedParams)
+    }
+
+    // Operates on the path component specifically (everything before "?"/"#"), not the
+    // final assembled URL -- a naive whole-string trailing-slash strip would miss
+    // "https://example.com/path/?utm_source=x" entirely, since the "/" there isn't at
+    // the end of the string once a query string follows it. No bare-root exception:
+    // "https://example.com/" and "https://example.com" are the same resource, so there's
+    // no good reason to special-case it. The one real guard is structural, not semantic --
+    // never strip the "/" that's part of "scheme://" itself.
+    private fun stripTrailingSlash(urlStr: String): String {
+        val hashIndex = urlStr.indexOf('#')
+        val fragment = if (hashIndex != -1) urlStr.substring(hashIndex) else ""
+        val withoutFragment = if (hashIndex != -1) urlStr.substring(0, hashIndex) else urlStr
+
+        val questionIndex = withoutFragment.indexOf('?')
+        val base = if (questionIndex != -1) withoutFragment.substring(0, questionIndex) else withoutFragment
+        val query = if (questionIndex != -1) withoutFragment.substring(questionIndex) else ""
+
+        val schemeEnd = base.indexOf("://")
+        val newBase = if (base.endsWith("/") && (schemeEnd == -1 || base.length > schemeEnd + 3)) {
+            base.dropLast(1)
+        } else {
+            base
+        }
+
+        return newBase + query + fragment
     }
 
     private fun removeMobileSubdomain(urlStr: String): String {

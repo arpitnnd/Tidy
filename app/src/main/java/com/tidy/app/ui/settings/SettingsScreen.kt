@@ -983,6 +983,19 @@ fun SettingsScreen(
                         )
 
                         SettingToggleRow(
+                            title = stringResource(R.string.settings_drop_trailing_slash_title),
+                            description = stringResource(R.string.settings_drop_trailing_slash_desc),
+                            checked = state.dropTrailingSlash,
+                            onToggle = { viewModel.setDropTrailingSlash(!state.dropTrailingSlash) }
+                        )
+
+                        HorizontalDivider(
+                            color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f),
+                            thickness = 1.dp,
+                            modifier = Modifier.padding(horizontal = 8.dp)
+                        )
+
+                        SettingToggleRow(
                             title = stringResource(R.string.settings_auto_clean_input_title),
                             description = stringResource(R.string.settings_auto_clean_input_desc),
                             checked = state.autoCleanOnInput,

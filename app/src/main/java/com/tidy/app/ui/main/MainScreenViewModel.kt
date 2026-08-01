@@ -173,6 +173,7 @@ class MainScreenViewModel(
                 val customBlacklist = settingsRepository.blacklistedParams.first()
                 val domainParams = settingsRepository.domainWhitelistedParams.first()
                 val autoRemoveMobile = settingsRepository.autoRemoveMobileSubdomains.first()
+                val dropTrailingSlash = settingsRepository.dropTrailingSlash.first()
                 val trackers = settingsRepository.trackers.first()
                 val result = urlCleaner.clean(
                     urlStr = resolvedUrl,
@@ -180,6 +181,7 @@ class MainScreenViewModel(
                     customBlacklistParams = customBlacklist,
                     domainWhitelistedParams = domainParams,
                     removeMobileSubdomains = autoRemoveMobile,
+                    dropTrailingSlash = dropTrailingSlash,
                     trackers = trackers
                 )
 

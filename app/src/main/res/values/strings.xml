@@ -80,6 +80,8 @@
     <string name="settings_auto_clean_input_desc">Clean URLs automatically as you type or paste without clicking clean</string>
     <string name="settings_remove_mobile_subdomains_title">Remove \"m.\" from links</string>
     <string name="settings_remove_mobile_subdomains_desc">Some links use an old mobile-only address. The regular version opens the same page everywhere, so Tidy uses that instead.</string>
+    <string name="settings_drop_trailing_slash_title">Drop trailing slash from URLs</string>
+    <string name="settings_drop_trailing_slash_desc">Removes a trailing / from the cleaned URL (e.g. example.com/page/ becomes example.com/page).</string>
 
     <string name="settings_check_clipboard_title">Check clipboard on launch</string>
     <string name="settings_check_clipboard_desc">Looks for a link on your clipboard when you open Tidy.</string>

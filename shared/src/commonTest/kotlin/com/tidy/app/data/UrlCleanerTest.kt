@@ -279,4 +279,67 @@ class UrlCleanerTest {
         assertEquals("https://user:pass@amazon.in/dp/1", result.cleanedUrl)
         assertEquals(listOf("ref"), result.removedParams)
     }
+
+    @Test
+    fun testDropTrailingSlashIsOffByDefault() {
+        val original = "https://example.com/path/"
+        assertEquals(original, cleaner.clean(original).cleanedUrl)
+    }
+
+    @Test
+    fun testDropTrailingSlashOnPath() {
+        val result = cleaner.clean(
+            urlStr = "https://example.com/path/",
+            dropTrailingSlash = true
+        )
+        assertEquals("https://example.com/path", result.cleanedUrl)
+    }
+
+    @Test
+    fun testDropTrailingSlashOnBareRoot() {
+        // No bare-root exception: https://example.com/ and https://example.com are the
+        // same resource, so there's no good reason to special-case it.
+        val result = cleaner.clean(
+            urlStr = "https://example.com/",
+            dropTrailingSlash = true
+        )
+        assertEquals("https://example.com", result.cleanedUrl)
+    }
+
+    @Test
+    fun testDropTrailingSlashWithSurvivingQuery() {
+        val result = cleaner.clean(
+            urlStr = "https://example.com/path/?q=kept&utm_source=x",
+            dropTrailingSlash = true
+        )
+        assertEquals("https://example.com/path?q=kept", result.cleanedUrl)
+        assertEquals(listOf("utm_source"), result.removedParams)
+    }
+
+    @Test
+    fun testDropTrailingSlashWithFragment() {
+        val result = cleaner.clean(
+            urlStr = "https://example.com/path/#section",
+            dropTrailingSlash = true
+        )
+        assertEquals("https://example.com/path#section", result.cleanedUrl)
+    }
+
+    @Test
+    fun testDropTrailingSlashLeavesNonTrailingSlashesAlone() {
+        val original = "https://example.com/a/b/c"
+        val result = cleaner.clean(urlStr = original, dropTrailingSlash = true)
+        assertEquals(original, result.cleanedUrl)
+    }
+
+    @Test
+    fun testDropTrailingSlashSkipsWhitelistedDomains() {
+        val original = "https://example.com/path/"
+        val result = cleaner.clean(
+            urlStr = original,
+            whitelistedDomains = setOf("example.com"),
+            dropTrailingSlash = true
+        )
+        assertEquals(original, result.cleanedUrl)
+    }
 }

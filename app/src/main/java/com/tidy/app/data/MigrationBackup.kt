@@ -18,6 +18,7 @@ data class MigrationBackup(
     val closeInsteadOfSharing: Boolean? = null,
     val autoExpandShortUrls: Boolean? = null,
     val autoRemoveMobileSubdomains: Boolean? = null,
+    val dropTrailingSlash: Boolean? = null,
     val autoCleanOnInput: Boolean? = null,
     val selectedTheme: String? = null,
     val dontAskAgainCrash: Boolean? = null,
@@ -60,6 +61,7 @@ suspend fun buildMigrationBackup(
         closeInsteadOfSharing = settingsRepository.closeInsteadOfSharing.first(),
         autoExpandShortUrls = settingsRepository.autoExpandShortUrls.first(),
         autoRemoveMobileSubdomains = settingsRepository.autoRemoveMobileSubdomains.first(),
+        dropTrailingSlash = settingsRepository.dropTrailingSlash.first(),
         autoCleanOnInput = settingsRepository.autoCleanOnInput.first(),
         selectedTheme = settingsRepository.selectedTheme.first(),
         dontAskAgainCrash = settingsRepository.dontAskAgainCrash.first(),
@@ -102,6 +104,7 @@ suspend fun restoreMigrationBackup(
     backup.closeInsteadOfSharing?.let { settingsRepository.setCloseInsteadOfSharing(it) }
     backup.autoExpandShortUrls?.let { settingsRepository.setAutoExpandShortUrls(it) }
     backup.autoRemoveMobileSubdomains?.let { settingsRepository.setAutoRemoveMobileSubdomains(it) }
+    backup.dropTrailingSlash?.let { settingsRepository.setDropTrailingSlash(it) }
     backup.autoCleanOnInput?.let { settingsRepository.setAutoCleanOnInput(it) }
     backup.selectedTheme?.let { settingsRepository.setSelectedTheme(it) }
     backup.dontAskAgainCrash?.let { settingsRepository.setDontAskAgainCrash(it) }
