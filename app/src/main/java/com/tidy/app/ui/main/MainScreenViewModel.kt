@@ -349,7 +349,10 @@ class MainScreenViewModel(
             _uiState.update { it.copy(isExpanding = true) }
             try {
                 val resolvedUrl = UrlExpander.resolve(original)
-                cleanUrl(resolvedUrl, originalShortUrl = original)
+                // addToHistory = false: the short link's own clean already added an entry
+                // and incremented analytics when it was first displayed; expanding it
+                // further must update that same result, not add a second row for one link.
+                cleanUrl(resolvedUrl, originalShortUrl = original, addToHistory = false)
             } catch (_: Throwable) {
                 // Swallowed: isExpanding reset below leaves the UI in its pre-expand state.
             } finally {

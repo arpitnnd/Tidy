@@ -219,4 +219,18 @@ class MainScreenViewModelTest {
         // is on the clipboard -- the same URL is suggested again, predictably.
         assertEquals("https://example.com/page", viewModel.uiState.value.clipboardSuggestionUrl)
     }
+
+    @Test
+    fun expandShortUrlDoesNotAddASecondHistoryEntry() = runTest {
+        // Nothing is listening on this port, so UrlExpander.resolve() fails fast
+        // (connection refused) and returns the URL unchanged -- no real network needed.
+        val unreachable = "http://127.0.0.1:1/"
+        viewModel.cleanUrl(unreachable)
+        historyRepository.loadHistory()
+        assertEquals(1, historyRepository.historyFlow.value.size)
+
+        viewModel.expandShortUrl()
+        historyRepository.loadHistory()
+        assertEquals(1, historyRepository.historyFlow.value.size)
+    }
 }

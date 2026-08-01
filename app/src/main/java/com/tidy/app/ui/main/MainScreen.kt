@@ -178,7 +178,11 @@ fun MainScreen(
 
     val entitlementManager = TidyApp.instance.entitlementManager
     val isPlusUnlocked by entitlementManager.isPlusUnlocked.collectAsStateWithLifecycle(initialValue = false)
-    var showUpsellSheet by remember { mutableStateOf(showPlusUpsell) }
+    // rememberSaveable, not remember: showPlusUpsell is a constant prop for the Activity's
+    // whole lifetime (read once from an intent extra), so a plain remember re-initialised
+    // to it on every Settings/History round trip and every rotation, silently reopening a
+    // sheet the user had just dismissed.
+    var showUpsellSheet by rememberSaveable { mutableStateOf(showPlusUpsell) }
     val trackerDescriptions by settingsRepository.trackerDescriptions.collectAsStateWithLifecycle(
         initialValue = emptyMap()
     )
@@ -201,9 +205,13 @@ fun MainScreen(
     var showClipboardEnabledSuccess by remember { mutableStateOf(false) }
 
     var hasShownCrashSheetThisSession by rememberSaveable { mutableStateOf(false) }
-    var showCrashSheet by remember { mutableStateOf(crashReportText != null && !dontAskAgainCrash && !hasShownCrashSheetThisSession) }
+    // Derived fresh every recomposition rather than captured once in a remember block:
+    // dontAskAgainCrash's real DataStore value arrives asynchronously after the first
+    // composition (collectAsStateWithLifecycle's initialValue is false), so a one-shot
+    // remember could decide to show the sheet before the stored "don't ask again"
+    // preference had actually loaded, and never reconsider that decision afterwards.
+    val showCrashSheet = crashReportText != null && !dontAskAgainCrash && !hasShownCrashSheetThisSession
     val onDismissCrashReport = {
-        showCrashSheet = false
         hasShownCrashSheetThisSession = true
     }
 
@@ -1184,7 +1192,7 @@ fun MainScreen(
         }
 
         // Crash Report Sheet
-        if (showCrashSheet && crashReportText != null) {
+        if (showCrashSheet) {
             CrashReportBottomSheet(
                 crashReportText = crashReportText,
                 onDismiss = { onDismissCrashReport() },
