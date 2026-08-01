@@ -30,7 +30,7 @@ fun ScreenSectionHeader(
 
 /**
  * A smaller primary-coloured label used as a heading inside a card group
- * (e.g. "Built by", "License", "Included with Tidy+").
+ * (e.g. "Built by", "Licence", "Included with Tidy+").
  *
  * Style: labelLarge · Bold · primary colour.
  */

@@ -180,20 +180,20 @@ client:
 Written with AI-assisted tooling for code and drafting. Every line is
 reviewed, tested, and shipped by a human before it reaches you.
 
-**Requirements:** JDK 17+, Android SDK 26+, Android Studio Ladybug or
+**Requirements:** JDK 21+, Android SDK 26+, Android Studio Ladybug or
 newer.
 
-We have two build flavors, under Gradle's `distribution` dimension.
+We have two build flavours, under Gradle's `distribution` dimension.
 **`foss`** is what's here: no Google Play Services, nothing else needed
 to build or run it, works fine even on a de-Googled phone. **`play`**
 adds the paid Tidy+ features. Some of that code sits in a separate repo,
 purely to protect the one-time purchase. Your data is handled exactly
-the same either way. The build commands below are for the `foss` flavor.
+the same either way. The build commands below are for the `foss` flavour.
 
 ### Building and Testing
 
 ```bash
-# Compile and build the FOSS flavor APK
+# Compile and build the FOSS flavour APK
 ./gradlew :app:assembleFossDebug
 
 # Run unit tests
@@ -209,7 +209,7 @@ the same either way. The build commands below are for the `foss` flavor.
 ## Contributing
 
 Bug fixes, blocklist corrections, and improvements to the `foss`
-flavor are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) for setup,
+flavour are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) for setup,
 code style, and how to submit changes.
 
 There's no iOS app, and I likely won't be the one to build it. I'm on

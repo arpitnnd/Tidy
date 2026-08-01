@@ -2,7 +2,7 @@ package com.tidy.app.theme
 
 import androidx.compose.ui.graphics.Color
 
-// Brand Colors (Tidy - Privacy, Security & Cleanliness)
+// Brand Colours (Tidy - Privacy, Security & Cleanliness)
 // Muted, mature, nature-inspired (obsidian, mist, slate, ash) camouflage AA accessible palette
 
 // Dark Theme Palette (Nocturnal Slate & Obsidian Shadow)
@@ -10,7 +10,7 @@ val TidyDarkPrimary = Color(0xFFCBD5E1)         // Soft Light Slate / Morning Mi
 val TidyDarkOnPrimary = Color(0xFF0F172A)        // Deep Slate for text on primary
 val TidyDarkSecondary = Color(0xFF475569)       // Quiet Dark Slate
 val TidyDarkOnSecondary = Color(0xFFF1F5F9)      // Light silver for text on secondary
-val TidyDarkTertiary = Color(0xFF94A3B8)          // Muted Mist Gray
+val TidyDarkTertiary = Color(0xFF94A3B8)          // Muted Mist Grey
 val TidyDarkOnTertiary = Color(0xFF0F172A)
 val TidyDarkBackground = Color(0xFF0F1012)        // Midnight Obsidian - "Invisible" deep background
 val TidyDarkSurface = Color(0xFF1B1C1E)           // Granite Stone Surface

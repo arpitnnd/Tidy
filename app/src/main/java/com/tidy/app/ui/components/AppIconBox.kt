@@ -16,7 +16,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
 /**
- * A rounded-rectangle box containing a centered icon. Used as the leading visual
+ * A rounded-rectangle box containing a centred icon. Used as the leading visual
  * in sheet headers, feature rows, stats cards, and app logo placements.
  *
  * @param icon      The vector icon to render.
