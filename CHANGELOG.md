@@ -34,13 +34,13 @@ that had regressed or never quite worked as intended.
 ### Improvements
 
 - The clipboard suggestion now reflects any link on the clipboard, not only
-  ones cleaning would actually change -- so it's predictable: what you see is
+  ones cleaning would actually change, so it's predictable: what you see is
   always what's really there, whether or not it needs cleaning.
 
 ### Bug fixes
 
 - The clipboard suggestion no longer stops checking permanently after the
-  first time you return from Settings or History -- it used to work once,
+  first time you return from Settings or History: it used to work once,
   then silently go quiet for the rest of the session (and after rotating the
   screen), even when a genuinely new link was on the clipboard.
 - Clearing a cleaned result under the automatic-clean tier (Tidy+) no longer
