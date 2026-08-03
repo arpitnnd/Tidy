@@ -85,7 +85,7 @@ class MainScreenViewModelTest {
 
     @Test
     fun testCleanUrl() = runTest {
-        // "si" is deliberately not used here -- it's domain-scoped to Spotify/YouTube.
+        // "si" is deliberately not used here: it's domain-scoped to Spotify/YouTube.
         viewModel.cleanUrl("https://example.com/page?utm_source=newsletter&utm_medium=email&fbclid=12345&igsh=abc")
 
         val state = viewModel.uiState.value
@@ -144,7 +144,7 @@ class MainScreenViewModelTest {
 
     @Test
     fun evaluateClipboardCandidateSuggestsAnyUrlNotOnDisplay() = runTest {
-        // Cleaning "https://example.com/already-clean" wouldn't change it at all -- it
+        // Cleaning "https://example.com/already-clean" wouldn't change it at all, but it
         // must still be suggested. The suggestion is meant to reflect the clipboard, not
         // just clipboard content that happens to need cleaning.
         val candidate = viewModel.evaluateClipboardCandidate("https://example.com/already-clean")
@@ -219,7 +219,7 @@ class MainScreenViewModelTest {
         viewModel.checkClipboardText("https://example.com/page")
 
         // Clearing wipes the displayed *result*, not the intent to maybe clean whatever
-        // is on the clipboard -- the same URL is suggested again, predictably.
+        // is on the clipboard: the same URL is suggested again, predictably.
         assertEquals("https://example.com/page", viewModel.uiState.value.clipboardSuggestionUrl)
     }
 
@@ -232,7 +232,7 @@ class MainScreenViewModelTest {
 
         val state = viewModel.uiState.value
         // Unchanged entirely (whitelist skips cleaning too), and never even attempted
-        // expansion -- expandedUrl stays null, which only happens when didAutoExpand is
+        // expansion: expandedUrl stays null, which only happens when didAutoExpand is
         // false. If expansion had fired despite the whitelist, expandedUrl would be set
         // (to the resolved URL, or the same URL again on failure) rather than staying null.
         assertEquals(original, state.cleanedUrl)
@@ -243,7 +243,7 @@ class MainScreenViewModelTest {
     @Test
     fun expandShortUrlDoesNotAddASecondHistoryEntry() = runTest {
         // Nothing is listening on this port, so UrlExpander.resolve() fails fast
-        // (connection refused) and returns the URL unchanged -- no real network needed.
+        // (connection refused) and returns the URL unchanged: no real network needed.
         val unreachable = "http://127.0.0.1:1/"
         viewModel.cleanUrl(unreachable)
         historyRepository.loadHistory()

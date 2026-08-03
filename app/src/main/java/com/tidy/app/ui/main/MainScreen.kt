@@ -218,7 +218,7 @@ fun MainScreen(
 
     // Clean URL if shared through Android intent. hasHandledThisSharedUrl is rememberSaveable
     // (keyed on sharedUrl) so it survives Settings/History disposing and recomposing this
-    // NavKey entry -- without re-cleaning the same shared URL every round-trip -- while a
+    // NavKey entry (without re-cleaning the same shared URL every round-trip) while a
     // genuinely new share still gets its own fresh Main(url) entry and its own fresh flag.
     var hasHandledThisSharedUrl by rememberSaveable(sharedUrl) { mutableStateOf(false) }
     LaunchedEffect(sharedUrl) {
@@ -273,7 +273,7 @@ fun MainScreen(
             } ?: cleanedUrl
 
             // Only the clipboard write and its toast are skipped when there's nothing to
-            // change -- CopyAndShare/CopyAndClose must always run their own action below
+            // change: CopyAndShare/CopyAndClose must always run their own action below
             // regardless of what happens to already be on the clipboard, or identical
             // input would silently produce different outcomes depending on invisible
             // clipboard state.
@@ -318,7 +318,7 @@ fun MainScreen(
     }
 
     // Hooked into ON_RESUME, which fires right after cold start and again every time this
-    // screen is recomposed after a Settings/History round trip -- NavDisplay gives each
+    // screen is recomposed after a Settings/History round trip: NavDisplay gives each
     // back-stack entry its own child LifecycleOwner that starts INITIALIZED and is driven
     // to RESUMED fresh on every such round trip, so there is no reliable signal here that
     // distinguishes "just returned" from "genuinely resumed"; both call this the same way.
@@ -415,8 +415,8 @@ fun MainScreen(
                             .fillMaxWidth()
                     ) {
                         // The 12dp gap after each banner lives inside its own AnimatedVisibility
-                        // rather than on this Column's arrangement, so it only exists -- and only
-                        // animates -- while that banner does. A blanket Arrangement.spacedBy here
+                        // rather than on this Column's arrangement, so it only exists, and only
+                        // animates, while that banner does. A blanket Arrangement.spacedBy here
                         // would reserve that gap even when every banner below is fully collapsed,
                         // leaving permanent phantom whitespace above the manual entry row.
                         AnimatedVisibility(

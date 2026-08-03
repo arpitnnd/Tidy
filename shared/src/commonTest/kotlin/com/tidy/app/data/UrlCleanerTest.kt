@@ -10,7 +10,7 @@ class UrlCleanerTest {
 
     @Test
     fun testCleanDefaultParams() {
-        // "si" is deliberately not used here -- it's domain-scoped to Spotify/YouTube (see
+        // "si" is deliberately not used here: it's domain-scoped to Spotify/YouTube (see
         // testSiParameterScopedToSpotifyAndYouTube), so it wouldn't strip on example.com.
         val original =
             "https://example.com/page?utm_source=newsletter&utm_medium=email&fbclid=12345&igsh=abc"
@@ -67,7 +67,7 @@ class UrlCleanerTest {
 
     @Test
     fun testWhitelistedDomainSkipsMobileSubdomainRewrite() {
-        // removeMobileSubdomains must not run at all on a whitelisted domain -- "skip
+        // removeMobileSubdomains must not run at all on a whitelisted domain: "skip
         // entirely" means the host too, not just the query params.
         val original = "https://m.example.com/x?utm_source=a"
         val result = cleaner.clean(
@@ -98,8 +98,8 @@ class UrlCleanerTest {
 
     @Test
     fun testUtmFloorStripsEvenWithEmptyTrackerList() {
-        // utm_* stripping must not depend on the trackers list containing a utm_* entry
-        // -- it's an unconditional floor, so a remote/user-edited list that omits it can't
+        // utm_* stripping must not depend on the trackers list containing a utm_* entry:
+        // it's an unconditional floor, so a remote/user-edited list that omits it can't
         // silently disable the app's most important rule.
         val original = "https://example.com/page?utm_source=newsletter&keep=1"
         val result = cleaner.clean(urlStr = original, trackers = emptyList())
@@ -153,7 +153,7 @@ class UrlCleanerTest {
     fun testAmazonTrackingParametersPreservingProductVariant() {
         // "ref"/"ref_"/"social_share" are domain-scoped to Amazon's own domains (see
         // trackers.json) since they're too generic a set of query keys to strip safely
-        // everywhere. "psc" (product variant) is preserved -- it's a legitimate
+        // everywhere. "psc" (product variant) is preserved: it's a legitimate
         // product-selection parameter, not a tracker.
         val original =
             "https://www.amazon.in/dp/1638778868?psc=1&ref=cm_sw_r_cso_cp_apan_ct_39JZ4QKXDZ6528XFDKDT&ref_=cm_sw_r_cso_cp_apan_ct_39JZ4QKXDZ6528XFDKDT&social_share=cm_sw_r_cso_cp_apan_ct_39JZ4QKXDZ6528XFDKDT"
@@ -180,7 +180,7 @@ class UrlCleanerTest {
 
     @Test
     fun testFeatureParameterScopedToYouTube() {
-        // "feature" is domain-scoped to YouTube -- it's a plain English word used as a
+        // "feature" is domain-scoped to YouTube: it's a plain English word used as a
         // functional query key elsewhere (feature flags, deep links), so it must not be
         // stripped off other sites.
         val onYouTube = cleaner.clean("https://youtu.be/dQw4w9WgXcQ?feature=share")

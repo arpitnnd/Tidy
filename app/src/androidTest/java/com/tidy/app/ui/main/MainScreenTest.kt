@@ -22,7 +22,7 @@ class MainScreenTest {
     @Before
     fun setup() {
         // Clear the system clipboard so the clipboard-suggestion sheet can't pop over the
-        // welcome hero, and mark first-launch done so the intro bottom sheet can't either --
+        // welcome hero, and mark first-launch done so the intro bottom sheet can't either:
         // this test must exercise the welcome hero regardless of ambient device/app state.
         val targetContext = InstrumentationRegistry.getInstrumentation().targetContext
         val clipboard =

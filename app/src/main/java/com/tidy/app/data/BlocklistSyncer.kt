@@ -64,7 +64,7 @@ object BlocklistSyncer {
 
                     // Validate it parses correctly before saving. ignoreUnknownKeys so a
                     // future schema field this app doesn't know about yet doesn't break
-                    // sync entirely -- see DEFAULT_BLOCKLIST_URL's comment above.
+                    // sync entirely (see DEFAULT_BLOCKLIST_URL's comment above).
                     val trackers = json.decodeFromString<List<TrackerEntry>>(text)
                     if (trackers.isNotEmpty()) {
                         settingsRepository.setBlocklistJson(text)

@@ -283,7 +283,7 @@ object SettingsMigrationViews {
     /**
      * The "Tidy+ (Coming soon)" prompt shown from the upgrade row above. Also the prompt
      * every other locked/Plus-gated control in the FOSS build surfaces on tap, via
-     * FlavorConfig.ShowUpsellBottomSheet -- there's no in-app purchase flow to offer here,
+     * FlavorConfig.ShowUpsellBottomSheet, since there's no in-app purchase flow to offer here,
      * so this is the FOSS equivalent of the Play flavor's upsell sheet.
      */
     @OptIn(ExperimentalMaterial3Api::class)

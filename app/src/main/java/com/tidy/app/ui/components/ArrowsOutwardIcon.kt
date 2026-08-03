@@ -11,7 +11,7 @@ import androidx.compose.ui.graphics.vector.path
 import androidx.compose.ui.unit.dp
 
 /**
- * Material Symbols "arrows_outward" -- not part of the classic Material Icons set that
+ * Material Symbols "arrows_outward", not part of the classic Material Icons set that
  * ships in material-icons-extended, so it's vendored directly from Google Fonts:
  * https://fonts.gstatic.com/render/v1/Material+Symbols+Outlined/24dp/arrows_outward.kt
  */

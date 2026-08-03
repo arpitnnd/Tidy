@@ -27,8 +27,8 @@ fun MainNavigation(
 
     // Strictly increasing for the composition's lifetime (rememberSaveable survives
     // rotation and process-death restore alongside backStack itself), so it can never
-    // repeat a value already used by an entry still on the back stack -- see Main's
-    // shareSequence KDoc.
+    // repeat a value already used by an entry still on the back stack (see Main's
+    // shareSequence KDoc).
     var nextShareSequence by rememberSaveable { mutableIntStateOf(1) }
 
     LaunchedEffect(sharedUrls) {

@@ -42,7 +42,7 @@ private val migrationJson = Json {
  * (firstLaunchDone, migrationDone, migrationFollowupDismissed), the clipboard
  * callout dismissal, lifetime stat counters, the last-cleaned-url cache, and the
  * synced tracker blocklist cache. These are per-install or derived state, not
- * portable preferences -- copying firstLaunchDone in particular would skip the
+ * portable preferences: copying firstLaunchDone in particular would skip the
  * Play app's own first-launch screen, which is where this restore flow lives.
  */
 suspend fun buildMigrationBackup(

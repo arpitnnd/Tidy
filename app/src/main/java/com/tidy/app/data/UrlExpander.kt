@@ -35,7 +35,7 @@ object UrlExpander {
         if (cleanPattern.isEmpty()) return false
         if (cleanPattern.contains('*')) {
             // A single label, not ".*": "amzn.*" must match "amzn.to"/"amzn.in" but not
-            // "amzn.evil.com" -- letting the wildcard span dots would make it match any
+            // "amzn.evil.com": letting the wildcard span dots would make it match any
             // host merely starting with the label before it, regardless of registrant.
             val parts = cleanPattern.split('*').map { Regex.escape(it) }
             val regex = Regex("^" + parts.joinToString("[^.]+") + "$")
@@ -62,8 +62,8 @@ object UrlExpander {
         var hop = 0
         val timeoutMs = 3000
         // Only a completed HTTP exchange (a final response, or a redirect this loop
-        // deliberately stops following) is trustworthy enough to cache. An exception --
-        // timeout, no connection, offline -- must not be cached: it isn't "resolved to
+        // deliberately stops following) is trustworthy enough to cache. An exception
+        // (timeout, no connection, offline) must not be cached: it isn't "resolved to
         // itself", it's "not resolved at all yet", and caching it would poison this URL
         // for the rest of the process's lifetime the first time it's tried offline.
         var succeeded = false
@@ -96,7 +96,7 @@ object UrlExpander {
                                 URL(base, location).toString()
                             }
                         // Refuse to follow a redirect to a non-http(s) scheme (e.g.
-                        // ftp:// or file:) -- stop here and keep the last URL that was
+                        // ftp:// or file:). Stop here and keep the last URL that was
                         // actually fetched over http(s), rather than surfacing a target
                         // this app never actually requested.
                         val nextScheme = try {
@@ -120,7 +120,7 @@ object UrlExpander {
                     break
                 }
             } catch (e: Exception) {
-                // Return latest URL on failure, but don't cache it -- see succeeded above.
+                // Return latest URL on failure, but don't cache it (see succeeded above).
                 break
             } finally {
                 connection?.disconnect()
@@ -150,7 +150,7 @@ object UrlExpander {
         if (hIndex != -1) {
             temp = temp.substring(0, hIndex)
         }
-        // Strip userinfo (user:pass@) before the port split below -- otherwise
+        // Strip userinfo (user:pass@) before the port split below, otherwise
         // "https://user:pass@host/" would extract "user" as the host.
         val atIndex = temp.lastIndexOf('@')
         if (atIndex != -1) {

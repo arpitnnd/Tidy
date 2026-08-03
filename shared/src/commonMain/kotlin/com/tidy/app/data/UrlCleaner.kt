@@ -8,7 +8,7 @@ data class TrackerEntry(
     val name: String,
     val description: String,
     // Empty means global (stripped from every domain, the default for most entries). Non-empty
-    // scopes this entry to only the listed domains (and their subdomains) -- for a param name
+    // scopes this entry to only the listed domains (and their subdomains), for a param name
     // that's too generic to strip safely everywhere, e.g. "ref" on Amazon's own domains.
     val domains: List<String> = emptyList()
 )
@@ -33,7 +33,7 @@ class UrlCleaner {
     )
 
     /**
-     * True when [urlStr]'s host (or a parent of it) is in [whitelistedDomains] -- the same
+     * True when [urlStr]'s host (or a parent of it) is in [whitelistedDomains], the same
      * check [clean] applies internally before doing anything else to a whitelisted URL.
      * Exposed so callers can skip whitelisted domains *before* work clean() itself doesn't
      * do, e.g. an outbound short-link-expansion network request: a "skip entirely" domain
@@ -66,7 +66,7 @@ class UrlCleaner {
         }
 
         // Checked against the untouched input's host, before removeMobileSubdomains or
-        // stripTrailingSlash get a chance to rewrite it -- a domain the user whitelisted
+        // stripTrailingSlash get a chance to rewrite it: a domain the user whitelisted
         // to "skip entirely" must stay completely untouched, not just keep its query params.
         if (isDomainWhitelisted(trimmed, whitelistedDomains)) {
             return CleanResult(trimmed, trimmed, emptyList())
@@ -151,11 +151,11 @@ class UrlCleaner {
     }
 
     // Operates on the path component specifically (everything before "?"/"#"), not the
-    // final assembled URL -- a naive whole-string trailing-slash strip would miss
+    // final assembled URL: a naive whole-string trailing-slash strip would miss
     // "https://example.com/path/?utm_source=x" entirely, since the "/" there isn't at
     // the end of the string once a query string follows it. No bare-root exception:
     // "https://example.com/" and "https://example.com" are the same resource, so there's
-    // no good reason to special-case it. The one real guard is structural, not semantic --
+    // no good reason to special-case it. The one real guard is structural, not semantic:
     // never strip the "/" that's part of "scheme://" itself.
     private fun stripTrailingSlash(urlStr: String): String {
         val hashIndex = urlStr.indexOf('#')
@@ -225,7 +225,7 @@ class UrlCleaner {
         if (hIndex != -1) {
             temp = temp.substring(0, hIndex)
         }
-        // Strip userinfo (user:pass@) before the port split below -- otherwise
+        // Strip userinfo (user:pass@) before the port split below, otherwise
         // "https://user:pass@amazon.in/" would extract "user" as the host, missing
         // Amazon's domain-scoped tracker rules entirely.
         val atIndex = temp.lastIndexOf('@')

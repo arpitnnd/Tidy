@@ -56,7 +56,7 @@ object UrlDetection {
 
     /**
      * Replaces the first occurrence of [oldUrl] within [text] with [newUrl], leaving any
-     * surrounding text untouched -- e.g. turning "here's the file <link> enjoy" into
+     * surrounding text untouched, e.g. turning "here's the file <link> enjoy" into
      * "here's the file <cleaned link> enjoy" instead of discarding "here's the file"/
      * "enjoy" entirely. Falls back to returning [newUrl] alone if [oldUrl] can't be found
      * verbatim in [text] (e.g. detection trimmed trailing punctuation around it).

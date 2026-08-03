@@ -152,8 +152,8 @@ class BlocklistSyncerTest {
 
     @Test
     fun acceptsAPayloadWithAnUnrecognisedField() = runTest {
-        // Simulates a future schema addition this build doesn't know about yet -- must
-        // still sync successfully (ignoreUnknownKeys) rather than silently stop retrying
+        // Simulates a future schema addition this build doesn't know about yet: sync
+        // must still succeed (ignoreUnknownKeys) rather than silently stop retrying
         // forever, the same failure mode that made trackers.json (no "v2") need freezing
         // in the first place when "domains" was added.
         val body = """[{"name":"custom_tracker","description":"test","futureField":"x"}]"""

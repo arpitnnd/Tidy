@@ -6,7 +6,7 @@ import kotlinx.serialization.Serializable
 // shareSequence disambiguates repeated shares of the identical URL: NavKey's default content
 // key is this data class's own toString(), so two Main instances with the same sharedUrl
 // would otherwise collide (same back-stack contentKey), and the second share would silently
-// inherit the first entry's saved state -- including hasHandledThisSharedUrl -- and do
+// inherit the first entry's saved state (including hasHandledThisSharedUrl) and do
 // nothing. Irrelevant to entries created any other way, which just take the default 0.
 @Serializable
 data class Main(val sharedUrl: String? = null, val shareSequence: Int = 0) : NavKey
