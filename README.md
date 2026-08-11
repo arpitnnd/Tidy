@@ -1,3 +1,5 @@
+
+
 <img src="app/src/main/res/mipmap-xxxhdpi/ic_launcher.webp" width="96" height="96" alt="Tidy app icon">
 
 # Tidy
@@ -186,8 +188,7 @@ newer.
 We have two build flavours, under Gradle's `distribution` dimension.
 **`foss`** is what's here: no Google Play Services, nothing else needed
 to build or run it, works fine even on a de-Googled phone. **`play`**
-adds the paid Tidy+ features. Some of that code sits in a separate repo,
-purely to protect the one-time purchase. Your data is handled exactly
+adds the paid Tidy+ features. Some of that code sits in the `play` source set within this repository, purely to protect the one-time purchase. Your data is handled exactly
 the same either way. The build commands below are for the `foss` flavour.
 
 ### Building and Testing
