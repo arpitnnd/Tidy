@@ -33,8 +33,8 @@ import androidx.compose.ui.unit.dp
 fun ClickableLinkRow(
     label: String,
     onClick: () -> Unit,
-    trailingIcon: ImageVector = Icons.AutoMirrored.Filled.OpenInNew,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    trailingIcon: ImageVector = Icons.AutoMirrored.Filled.OpenInNew
 ) {
     Row(
         modifier = modifier

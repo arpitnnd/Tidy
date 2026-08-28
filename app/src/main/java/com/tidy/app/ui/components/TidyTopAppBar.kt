@@ -29,9 +29,9 @@ import com.tidy.app.R
 @Composable
 fun TidyTopAppBar(
     title: String,
+    modifier: Modifier = Modifier,
     onBackClick: (() -> Unit)? = null,
-    actions: @Composable () -> Unit = {},
-    modifier: Modifier = Modifier
+    actions: @Composable () -> Unit = {}
 ) {
     TopAppBar(
         title = {

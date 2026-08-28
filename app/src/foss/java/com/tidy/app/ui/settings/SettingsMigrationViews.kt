@@ -46,6 +46,7 @@ import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -60,6 +61,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.core.content.FileProvider
+import androidx.core.net.toUri
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.tidy.app.R
 import com.tidy.app.TidyApp
@@ -236,7 +238,7 @@ object SettingsMigrationViews {
                                 color = MaterialTheme.colorScheme.primary,
                                 modifier = Modifier.clickable {
                                     val uninstallIntent = Intent(Intent.ACTION_DELETE).apply {
-                                        data = Uri.parse("package:com.tidy.app")
+                                        data = "package:com.tidy.app".toUri()
                                     }
                                     context.startActivity(uninstallIntent)
                                 }
@@ -331,7 +333,7 @@ object SettingsMigrationViews {
     ) {
         val context = LocalContext.current
         val scope = rememberCoroutineScope()
-        var currentPage by remember { mutableStateOf(1) }
+        var currentPage by remember { mutableIntStateOf(1) }
         var backupFileState by remember { mutableStateOf<File?>(null) }
         val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
         val backupFailedTemplate = stringResource(R.string.migration_backup_failed_format)
@@ -596,15 +598,14 @@ object SettingsMigrationViews {
                                     onClick = {
                                         val playId = "com.tidy.app.play"
                                         val playIntent = Intent(Intent.ACTION_VIEW).apply {
-                                            data = Uri.parse("market://details?id=$playId")
+                                            data = "market://details?id=$playId".toUri()
                                             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                                         }
                                         try {
                                             context.startActivity(playIntent)
                                         } catch (e: Exception) {
                                             val webIntent = Intent(Intent.ACTION_VIEW).apply {
-                                                data =
-                                                    Uri.parse("https://play.google.com/store/apps/details?id=$playId")
+                                                data = "https://play.google.com/store/apps/details?id=$playId".toUri()
                                                 addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                                             }
                                             context.startActivity(webIntent)
