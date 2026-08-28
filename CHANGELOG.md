@@ -4,6 +4,16 @@ All notable changes to Tidy will be documented in this file.
 
 ## [Unreleased]
 
+### Internal
+
+- Upgrade Gradle wrapper to 9.7.1, Android Gradle Plugin to 9.3.2, Jetpack
+  Compose BOM to 2026.08.00, and Navigation 3 to 1.1.7.
+- Configure explicit domain-scoped backup extraction rules for Android 12+ cloud
+  and device-to-device transfers while excluding local crash reports.
+- Enable parallel Gradle task execution for faster multi-module builds.
+- Optimise internal state allocations and align composable modifier parameters
+  with Compose API guidelines.
+
 ## [1.2.0]
 
 A follow-up release: broader default tracker coverage with safer domain-scoping,
