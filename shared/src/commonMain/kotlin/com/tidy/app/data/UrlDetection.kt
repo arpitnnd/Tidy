@@ -18,7 +18,7 @@ object UrlDetection {
         ) {
             return trimmed.length > 8
         }
-        if (trimmed.contains(' ') || trimmed.contains('\n')) return false
+        if (trimmed.contains(' ') || trimmed.contains('\n') || trimmed.contains('@')) return false
         if (!trimmed.contains('.')) return false
         val firstSlash = trimmed.indexOf('/')
         val hostPart = if (firstSlash != -1) trimmed.substring(0, firstSlash) else trimmed
