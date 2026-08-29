@@ -37,8 +37,8 @@ ever sent anywhere else.
 
 Share a link to Tidy, or paste one in, and it comes back clean: tracking
 parameters gone, short links (`bit.ly`, `t.co`) unwound to where they
-actually lead, `m.`/`mobile.` subdomains dropped. It happens as you
-type. No button to hunt for.
+actually lead, `m.`/`mobile.` subdomains dropped. It cleans automatically
+as you paste or type, with explicit actions whenever you want them.
 
 You stay in charge of the rules, not just the outcome:
 
