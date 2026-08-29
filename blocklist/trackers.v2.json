@@ -421,5 +421,21 @@
       "ebay.ie",
       "ebay.*"
     ]
+  },
+  {
+    "name": "cid",
+    "description": "Samsung campaign ID parameter, used for marketing campaign analytics across Samsung domains.",
+    "domains": [
+      "samsung.com",
+      "samsung.*"
+    ]
+  },
+  {
+    "name": "taid",
+    "description": "XDA Developers tracking and attribution identifier.",
+    "domains": [
+      "xda-developers.com",
+      "xdaforums.com"
+    ]
   }
 ]

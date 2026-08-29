@@ -356,4 +356,28 @@ class UrlCleanerTest {
         val aliexpressUs = cleaner.clean("https://www.aliexpress.us/item/123.html?spm=abc")
         assertEquals("https://www.aliexpress.us/item/123.html", aliexpressUs.cleanedUrl)
     }
+
+    @Test
+    fun testCidParameterScopedToSamsung() {
+        val onSamsung =
+            cleaner.clean("https://www.samsung.com/in/smartphones/galaxy-s24/?cid=in_pd_ppc_google_mobile")
+        assertEquals("https://www.samsung.com/in/smartphones/galaxy-s24/", onSamsung.cleanedUrl)
+        assertEquals(listOf("cid"), onSamsung.removedParams)
+
+        val elsewhere = cleaner.clean("https://example.com/item?cid=content123")
+        assertEquals("https://example.com/item?cid=content123", elsewhere.cleanedUrl)
+        assertTrue(elsewhere.removedParams.isEmpty())
+    }
+
+    @Test
+    fun testTaidParameterScopedToXda() {
+        val onXda = cleaner.clean("https://www.xda-developers.com/best-android-phones/?taid=aff123")
+        assertEquals("https://www.xda-developers.com/best-android-phones/", onXda.cleanedUrl)
+        assertEquals(listOf("taid"), onXda.removedParams)
+
+        val elsewhere = cleaner.clean("https://example.com/page?taid=valid-state")
+        assertEquals("https://example.com/page?taid=valid-state", elsewhere.cleanedUrl)
+        assertTrue(elsewhere.removedParams.isEmpty())
+    }
 }
+
