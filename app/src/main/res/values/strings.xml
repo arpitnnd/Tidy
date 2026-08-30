@@ -12,6 +12,7 @@
     <string name="main_hide_details">Hide details</string>
     <string name="main_show_details">Show details</string>
     <string name="main_cleaned_url">Cleaned URL</string>
+    <string name="main_cleaning_url">Cleaning URL&#8230;</string>
     <string name="main_original_url">Original URL</string>
     <string name="main_expanded_url">Expanded URL</string>
     <string name="main_removed_parameters">Removed parameters</string>

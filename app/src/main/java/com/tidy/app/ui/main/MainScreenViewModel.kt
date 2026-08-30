@@ -156,8 +156,8 @@ class MainScreenViewModel(
     ) {
         if (url.isBlank()) return
         val trimmed = UrlDetection.normalize(url)
+        _uiState.update { it.copy(inputUrl = trimmed, isLoading = true) }
         viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true) }
             try {
                 // Read before short-link expansion, not after: a domain whitelisted to
                 // "skip entirely" must never trigger the outbound expansion request at

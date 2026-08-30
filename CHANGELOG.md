@@ -12,6 +12,10 @@ All notable changes to Tidy will be documented in this file.
 
 - Prevent email addresses without a scheme from being falsely detected as bare web URLs.
 
+### Improvements
+
+- Immediately populate the URL input field and display a dedicated cleaning card during link resolution when receiving shared links.
+
 ### Internal
 
 - Upgrade Gradle wrapper to 9.7.1, Android Gradle Plugin to 9.3.2, Jetpack
