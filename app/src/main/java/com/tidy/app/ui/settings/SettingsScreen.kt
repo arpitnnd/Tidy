@@ -31,17 +31,20 @@ import androidx.compose.material.icons.automirrored.filled.OpenInNew
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.outlined.Bolt
 import androidx.compose.material.icons.outlined.CleaningServices
 import androidx.compose.material.icons.outlined.ContentCopy
 import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material.icons.outlined.Share
 import androidx.compose.material.icons.outlined.Visibility
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import com.tidy.app.data.BlocklistSyncer
 import androidx.compose.material3.InputChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -108,6 +111,9 @@ fun SettingsScreen(
     var showMigrationDialog by remember { mutableStateOf(false) }
     var showUpsellSheet by remember { mutableStateOf(false) }
     val crashToastBrowserError = stringResource(R.string.crash_toast_browser_error)
+    val toastBlocklistUpToDate = stringResource(R.string.settings_blocklist_up_to_date)
+    val toastBlocklistUpdateFailed = stringResource(R.string.settings_blocklist_update_failed)
+    val toastBlocklistUpdated = stringResource(R.string.settings_blocklist_updated)
 
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },
@@ -182,37 +188,91 @@ fun SettingsScreen(
                                 horizontalArrangement = Arrangement.SpaceBetween,
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-                                Text(
-                                    text = stringResource(R.string.dialog_default_blocklist_title),
-                                    style = MaterialTheme.typography.titleLarge,
-                                    fontWeight = FontWeight.Bold,
-                                    color = MaterialTheme.colorScheme.onSurface
-                                )
-                                TooltipWrapper(tooltipText = stringResource(R.string.dialog_default_blocklist_view_github)) {
-                                    IconButton(
-                                        onClick = {
-                                            try {
-                                                val intent = Intent(
-                                                    Intent.ACTION_VIEW,
-                                                    "https://github.com/arpitnnd/Tidy/commits/main/blocklist/trackers.json".toUri()
-                                                ).apply {
-                                                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                                Column(modifier = Modifier.weight(1f, fill = false)) {
+                                    Text(
+                                        text = stringResource(R.string.dialog_default_blocklist_title),
+                                        style = MaterialTheme.typography.titleLarge,
+                                        fontWeight = FontWeight.Bold,
+                                        color = MaterialTheme.colorScheme.onSurface
+                                    )
+                                    Text(
+                                        text = formatBlocklistLastUpdated(state.blocklistLastFetchTime),
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
+                                Row(
+                                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    TooltipWrapper(tooltipText = stringResource(R.string.dialog_default_blocklist_refresh)) {
+                                        IconButton(
+                                            onClick = {
+                                                viewModel.refreshBlocklist(context) { result ->
+                                                    scope.launch {
+                                                        val message = when (result) {
+                                                            is BlocklistSyncer.SyncResult.Updated -> {
+                                                                if (result.newRulesCount > 0) {
+                                                                    context.resources.getQuantityString(
+                                                                        R.plurals.settings_blocklist_rules_updated,
+                                                                        result.newRulesCount,
+                                                                        result.newRulesCount
+                                                                    )
+                                                                } else {
+                                                                    toastBlocklistUpdated
+                                                                }
+                                                            }
+                                                            is BlocklistSyncer.SyncResult.UpToDate,
+                                                            is BlocklistSyncer.SyncResult.Skipped -> toastBlocklistUpToDate
+                                                            is BlocklistSyncer.SyncResult.Error -> toastBlocklistUpdateFailed
+                                                        }
+                                                        snackbarHostState.showSnackbar(message)
+                                                    }
                                                 }
-                                                context.startActivity(intent)
-                                            } catch (e: Exception) {
-                                                scope.launch {
-                                                    snackbarHostState.showSnackbar(
-                                                        crashToastBrowserError
-                                                    )
-                                                }
+                                            },
+                                            enabled = !state.isRefreshingBlocklist
+                                        ) {
+                                            if (state.isRefreshingBlocklist) {
+                                                CircularProgressIndicator(
+                                                    modifier = Modifier.size(18.dp),
+                                                    strokeWidth = 2.dp,
+                                                    color = MaterialTheme.colorScheme.primary
+                                                )
+                                            } else {
+                                                Icon(
+                                                    imageVector = Icons.Filled.Refresh,
+                                                    contentDescription = stringResource(R.string.dialog_default_blocklist_refresh),
+                                                    tint = MaterialTheme.colorScheme.primary
+                                                )
                                             }
                                         }
-                                    ) {
-                                        Icon(
-                                            imageVector = Icons.AutoMirrored.Filled.OpenInNew,
-                                            contentDescription = stringResource(R.string.dialog_default_blocklist_view_github),
-                                            tint = MaterialTheme.colorScheme.primary
-                                        )
+                                    }
+                                    TooltipWrapper(tooltipText = stringResource(R.string.dialog_default_blocklist_view_github)) {
+                                        IconButton(
+                                            onClick = {
+                                                try {
+                                                    val intent = Intent(
+                                                        Intent.ACTION_VIEW,
+                                                        "https://github.com/arpitnnd/Tidy/commits/main/blocklist/trackers.json".toUri()
+                                                    ).apply {
+                                                        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                                                    }
+                                                    context.startActivity(intent)
+                                                } catch (e: Exception) {
+                                                    scope.launch {
+                                                        snackbarHostState.showSnackbar(
+                                                            crashToastBrowserError
+                                                        )
+                                                    }
+                                                }
+                                            }
+                                        ) {
+                                            Icon(
+                                                imageVector = Icons.AutoMirrored.Filled.OpenInNew,
+                                                contentDescription = stringResource(R.string.dialog_default_blocklist_view_github),
+                                                tint = MaterialTheme.colorScheme.primary
+                                            )
+                                        }
                                     }
                                 }
                             }
@@ -1202,3 +1262,22 @@ private fun clearSwitchColors() = SwitchDefaults.colors(
     disabledUncheckedTrackColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.04f),
     disabledUncheckedBorderColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f)
 )
+
+@Composable
+private fun formatBlocklistLastUpdated(lastFetchTime: Long): String {
+    if (lastFetchTime <= 0L) {
+        return stringResource(R.string.settings_blocklist_included)
+    }
+    val now = System.currentTimeMillis()
+    val diff = now - lastFetchTime
+    val days = (diff / (1000 * 60 * 60 * 24)).toInt()
+    return when {
+        days <= 0 -> stringResource(R.string.settings_blocklist_updated_today)
+        days == 1 -> stringResource(R.string.settings_blocklist_updated_yesterday)
+        days < 30 -> pluralStringResource(R.plurals.settings_blocklist_updated_days_ago, days, days)
+        else -> {
+            val date = java.text.SimpleDateFormat("d MMM yyyy", java.util.Locale.getDefault()).format(java.util.Date(lastFetchTime))
+            stringResource(R.string.settings_blocklist_updated_date, date)
+        }
+    }
+}

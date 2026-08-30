@@ -82,9 +82,30 @@ class BlocklistSyncerTest {
         }
         settingsRepository.setBlocklistLastFetchTime(System.currentTimeMillis())
 
-        BlocklistSyncer.sync(context, settingsRepository, url)
+        val result = BlocklistSyncer.sync(context, settingsRepository, url)
 
         assertEquals(0, hits.get())
+        assertEquals(BlocklistSyncer.SyncResult.Skipped, result)
+    }
+
+    @Test
+    fun forcesNetworkCallWhenCacheIsFreshIfForced() = runTest {
+        val hits = AtomicInteger(0)
+        val body = """[{"name":"custom_tracker","description":"test tracker"}]"""
+        val url = startServer { exchange ->
+            hits.incrementAndGet()
+            exchange.responseHeaders.add("ETag", "\"v2\"")
+            val bytes = body.toByteArray()
+            exchange.sendResponseHeaders(200, bytes.size.toLong())
+            exchange.responseBody.use { it.write(bytes) }
+        }
+        settingsRepository.setBlocklistLastFetchTime(System.currentTimeMillis())
+
+        val result = BlocklistSyncer.sync(context, settingsRepository, url, force = true)
+
+        assertEquals(1, hits.get())
+        assertTrue(result is BlocklistSyncer.SyncResult.Updated)
+        assertEquals(body, settingsRepository.blocklistJson.first())
     }
 
     @Test
@@ -130,8 +151,9 @@ class BlocklistSyncerTest {
             exchange.responseBody.use { it.write(bytes) }
         }
 
-        BlocklistSyncer.sync(context, settingsRepository, url)
+        val result = BlocklistSyncer.sync(context, settingsRepository, url)
 
+        assertEquals(BlocklistSyncer.SyncResult.UpToDate, result)
         assertEquals(
             SettingsRepository.DEFAULT_BLOCKLIST_JSON,
             settingsRepository.blocklistJson.first()
