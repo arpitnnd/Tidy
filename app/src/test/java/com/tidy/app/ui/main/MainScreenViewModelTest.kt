@@ -241,6 +241,35 @@ class MainScreenViewModelTest {
     }
 
     @Test
+    fun cleanUrlCompletesNormallyForOrdinaryUrlsWithoutAutoExpand() = runTest {
+        // cleanUrl() previously only populated inputUrl/isLoading inside the
+        // `if (didAutoExpand)` branch, so this path (every ordinary shared/pasted link
+        // that isn't a short URL) is the one that regressed.
+        viewModel.cleanUrl("https://example.com/page?utm_source=x")
+
+        val state = viewModel.uiState.value
+        assertEquals("https://example.com/page?utm_source=x", state.inputUrl)
+        assertEquals(false, state.isLoading)
+        assertTrue(state.isCleaned)
+    }
+
+    @Test
+    fun addDomainWhitelistedParamRefreshesTheDisplayedCleanedUrl() = runTest {
+        // Regression test: a dedup guard added to cleanUrl() for skipping redundant
+        // re-cleans of an unchanged URL also silently no-op'd the refresh call that
+        // addDomainWhitelistedParam() makes after whitelisting a param, so the newly
+        // whitelisted parameter stayed stripped from the displayed result.
+        viewModel.cleanUrl("https://example.com/page?fbclid=123")
+        assertTrue(viewModel.uiState.value.removedParams.contains("fbclid"))
+
+        viewModel.addDomainWhitelistedParam("example.com", "fbclid")
+
+        val state = viewModel.uiState.value
+        assertEquals("https://example.com/page?fbclid=123", state.cleanedUrl)
+        assertTrue(state.removedParams.isEmpty())
+    }
+
+    @Test
     fun expandShortUrlDoesNotAddASecondHistoryEntry() = runTest {
         // Nothing is listening on this port, so UrlExpander.resolve() fails fast
         // (connection refused) and returns the URL unchanged: no real network needed.

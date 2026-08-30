@@ -17,7 +17,7 @@
     <string name="main_expanded_url">Expanded URL</string>
     <string name="main_removed_parameters">Removed parameters</string>
 
-    <string name="welcome_title">Tidy up your URLs</string>
+    <string name="welcome_title">Tidy</string>
     <string name="welcome_subtitle">Strip tracking parameters from URLs before you share</string>
     <string name="welcome_local_title">Device-only</string>
     <string name="welcome_local_subtitle">Cleaned entirely offline on your phone</string>

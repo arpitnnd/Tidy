@@ -16,6 +16,8 @@ import com.tidy.app.data.ShareAutomationOutcome
 import com.tidy.app.data.UrlCleaner
 import com.tidy.app.data.UrlDetection
 import com.tidy.app.data.UrlExpander
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -25,6 +27,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlin.time.Duration.Companion.seconds
 
@@ -58,6 +61,8 @@ class MainScreenViewModel(
     // AUTO_CLEAN branch). Deliberately not part of UiState/not reset by clear(): it tracks
     // what's already been auto-cleaned, independent of what's currently displayed.
     private var lastAutoCleanedClipText: String? = null
+
+    private var cleanJob: Job? = null
 
     data class UiState(
         val inputUrl: String = "",
@@ -143,7 +148,14 @@ class MainScreenViewModel(
     }
 
     fun onUrlInput(url: String) {
-        _uiState.update { it.copy(inputUrl = url) }
+        _uiState.update {
+            val isSame =
+                it.isCleaned && (url.trim() == it.originalUrl || url.trim() == it.cleanedUrl)
+            it.copy(
+                inputUrl = url,
+                isCleaned = if (isSame) it.isCleaned else false
+            )
+        }
     }
 
     fun cleanUrl(
@@ -152,12 +164,28 @@ class MainScreenViewModel(
         originalShortUrl: String? = null,
         addToHistory: Boolean = true,
         copyResultToClipboard: Boolean = false,
-        sourceClipText: String? = null
+        sourceClipText: String? = null,
+        forceRefresh: Boolean = false
     ) {
         if (url.isBlank()) return
         val trimmed = UrlDetection.normalize(url)
-        _uiState.update { it.copy(inputUrl = trimmed, isLoading = true) }
-        viewModelScope.launch {
+        val currentState = _uiState.value
+        if (!forceRefresh && currentState.isCleaned && currentState.cleanedUrl.isNotEmpty() && currentState.originalUrl == trimmed && !isShared && !copyResultToClipboard) return
+
+        cleanJob?.cancel()
+        // Enter loading and dismiss any clipboard banner in one state update. Keeping these
+        // atomic prevents the UI from briefly rendering the manual-input state between a
+        // suggestion tap and the loading state, which otherwise creates an extra height jump.
+        _uiState.update {
+            it.copy(
+                inputUrl = trimmed,
+                isLoading = true,
+                isCleaned = false,
+                clipboardSuggestionUrl = null,
+                bulkClipboardUrls = null
+            )
+        }
+        cleanJob = viewModelScope.launch {
             try {
                 // Read before short-link expansion, not after: a domain whitelisted to
                 // "skip entirely" must never trigger the outbound expansion request at
@@ -202,6 +230,7 @@ class MainScreenViewModel(
                         cleanedUrl = result.cleanedUrl,
                         removedParams = result.removedParams,
                         isCleaned = true,
+                        isLoading = false,
                         canExpand = (originalShortUrl == null) && !didAutoExpand
                     )
                 }
@@ -251,10 +280,17 @@ class MainScreenViewModel(
                         )
                     }
                 }
+            } catch (e: CancellationException) {
+                throw e
             } catch (_: Throwable) {
                 // Swallowed: isLoading reset below leaves the UI in its pre-clean state.
             } finally {
-                _uiState.update { it.copy(isLoading = false) }
+                // isActive is already false once this job has been cancelled (superseded
+                // by a newer cleanUrl call), so a cancelled job's finally doesn't clobber
+                // the newer job's isLoading state.
+                if (isActive) {
+                    _uiState.update { it.copy(isLoading = false) }
+                }
             }
         }
     }
@@ -426,15 +462,21 @@ class MainScreenViewModel(
             val expanded = _uiState.value.expandedUrl
             if (original.isNotEmpty()) {
                 if (expanded != null) {
-                    cleanUrl(expanded, originalShortUrl = original, addToHistory = false)
+                    cleanUrl(
+                        expanded,
+                        originalShortUrl = original,
+                        addToHistory = false,
+                        forceRefresh = true
+                    )
                 } else {
-                    cleanUrl(original, addToHistory = false)
+                    cleanUrl(original, addToHistory = false, forceRefresh = true)
                 }
             }
         }
     }
 
     fun clear() {
+        cleanJob?.cancel()
         _uiState.update {
             it.copy(
                 inputUrl = "",

@@ -42,6 +42,6 @@ class MainScreenTest {
 
     @Test
     fun welcomeTitle_exists() {
-        composeTestRule.onNodeWithText("Tidy up your URLs").assertExists()
+        composeTestRule.onNodeWithText("Tidy").assertExists()
     }
 }
