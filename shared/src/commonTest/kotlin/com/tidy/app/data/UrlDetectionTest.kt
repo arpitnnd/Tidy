@@ -42,6 +42,12 @@ class UrlDetectionTest {
     }
 
     @Test
+    fun acceptsBareDomainsWithAtInThePath() {
+        assertTrue(UrlDetection.looksLikeUrl("medium.com/@someuser"))
+        assertTrue(UrlDetection.looksLikeUrl("npmjs.com/package/@babel/core"))
+    }
+
+    @Test
     fun findsUrlsInsideFreeFormText() {
         assertEquals(
             "https://example.com/a?fbclid=1",

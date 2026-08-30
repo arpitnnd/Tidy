@@ -18,10 +18,14 @@ object UrlDetection {
         ) {
             return trimmed.length > 8
         }
-        if (trimmed.contains(' ') || trimmed.contains('\n') || trimmed.contains('@')) return false
+        if (trimmed.contains(' ') || trimmed.contains('\n')) return false
         if (!trimmed.contains('.')) return false
         val firstSlash = trimmed.indexOf('/')
         val hostPart = if (firstSlash != -1) trimmed.substring(0, firstSlash) else trimmed
+        // '@' only disqualifies a schemeless candidate in the authority position (e.g. an
+        // email address's local@domain) - a path segment like "medium.com/@user" is a
+        // legitimate bare-domain URL and must still be recognised.
+        if (hostPart.contains('@')) return false
         val host = hostPart.substringBefore('?').substringBefore('#')
         val lastDot = host.lastIndexOf('.')
         if (lastDot == -1 || lastDot == host.length - 1) return false
