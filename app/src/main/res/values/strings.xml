@@ -163,7 +163,15 @@
     <string name="dialog_default_blocklist_view_github">View updates on GitHub</string>
     <string name="dialog_default_blocklist_refresh">Check for updates</string>
     <string name="settings_blocklist_included">Using included list</string>
-    <string name="settings_blocklist_checked_today">Last checked today</string>
+    <string name="settings_blocklist_checked_moments_ago">Last checked moments ago</string>
+    <plurals name="settings_blocklist_checked_minutes_ago">
+        <item quantity="one">Last checked %1$d minute ago</item>
+        <item quantity="other">Last checked %1$d minutes ago</item>
+    </plurals>
+    <plurals name="settings_blocklist_checked_hours_ago">
+        <item quantity="one">Last checked %1$d hour ago</item>
+        <item quantity="other">Last checked %1$d hours ago</item>
+    </plurals>
     <string name="settings_blocklist_checked_yesterday">Last checked yesterday</string>
     <plurals name="settings_blocklist_checked_days_ago">
         <item quantity="one">Last checked %1$d day ago</item>

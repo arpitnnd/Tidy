@@ -1259,11 +1259,32 @@ private fun formatBlocklistLastChecked(lastSuccessfulCheckTime: Long): String {
     if (lastSuccessfulCheckTime <= 0L)
         return stringResource(R.string.settings_blocklist_included)
     val now = System.currentTimeMillis()
+    val elapsedMinutes = elapsedMinutesSince(lastSuccessfulCheckTime, now)
     val days = calendarDaysSince(lastSuccessfulCheckTime, now)
     return when {
-        days <= 0 -> stringResource(R.string.settings_blocklist_checked_today)
-        days == 1 -> stringResource(R.string.settings_blocklist_checked_yesterday)
-        days < 30 -> pluralStringResource(R.plurals.settings_blocklist_checked_days_ago, days, days)
+        elapsedMinutes < 1 -> stringResource(R.string.settings_blocklist_checked_moments_ago)
+        elapsedMinutes < 60 -> pluralStringResource(
+            R.plurals.settings_blocklist_checked_minutes_ago,
+            elapsedMinutes,
+            elapsedMinutes
+        )
+
+        elapsedMinutes < 24 * 60 -> {
+            val elapsedHours = elapsedMinutes / 60
+            pluralStringResource(
+                R.plurals.settings_blocklist_checked_hours_ago,
+                elapsedHours,
+                elapsedHours
+            )
+        }
+
+        days <= 1 -> stringResource(R.string.settings_blocklist_checked_yesterday)
+        days < 30 -> pluralStringResource(
+            R.plurals.settings_blocklist_checked_days_ago,
+            days,
+            days
+        )
+
         else -> {
             val locale = LocalConfiguration.current.locales[0]
             val date = remember(lastSuccessfulCheckTime, locale) {
@@ -1274,6 +1295,9 @@ private fun formatBlocklistLastChecked(lastSuccessfulCheckTime: Long): String {
         }
     }
 }
+
+internal fun elapsedMinutesSince(checkedAt: Long, now: Long): Int =
+    ((now - checkedAt).coerceAtLeast(0L) / 60_000L).toInt()
 
 internal fun calendarDaysSince(
     checkedAt: Long,

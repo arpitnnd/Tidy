@@ -15,7 +15,7 @@ All notable changes to Tidy will be documented in this file.
 ### Improvements
 
 - Immediately populate the URL input field and display a dedicated cleaning card during link resolution when receiving shared links.
-- Add manual update check and last updated timestamp to the default blocklist sheet in settings.
+- Add a manual update check and precise last-checked status to the default blocklist sheet in settings.
 - Automatically sync default blocklist updates on app resume and share intent handling.
 - Consolidate home branding and add smooth collapsing transition from hero title to top app bar on scroll.
 

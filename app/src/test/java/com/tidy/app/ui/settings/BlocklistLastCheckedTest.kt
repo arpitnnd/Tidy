@@ -9,6 +9,16 @@ import java.util.TimeZone
 class BlocklistLastCheckedTest {
 
     @Test
+    fun recentChecksResolveToWholeElapsedMinutes() {
+        val now = 2_000_000L
+
+        assertEquals(0, elapsedMinutesSince(now - 59_000L, now))
+        assertEquals(1, elapsedMinutesSince(now - 60_000L, now))
+        assertEquals(20, elapsedMinutesSince(now - 20 * 60_000L, now))
+        assertEquals(0, elapsedMinutesSince(now + 60_000L, now))
+    }
+
+    @Test
     fun crossingMidnightCountsAsThePreviousDay() {
         val timeZone = TimeZone.getTimeZone("UTC")
         val checkedAt = timestamp(2026, Calendar.SEPTEMBER, 3, 23, 55, timeZone)
