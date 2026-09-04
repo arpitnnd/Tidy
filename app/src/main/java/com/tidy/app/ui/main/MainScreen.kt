@@ -122,6 +122,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
@@ -1323,6 +1324,16 @@ fun MainScreen(
                                 }
 
                                 state.totalCleanedCount > 0 -> {
+                                    val cleanedSummary = pluralStringResource(
+                                        R.plurals.main_urls_cleaned,
+                                        state.totalCleanedCount,
+                                        state.totalCleanedCount
+                                    )
+                                    val blockedSummary = pluralStringResource(
+                                        R.plurals.main_trackers_blocked,
+                                        state.totalTrackersBlocked,
+                                        state.totalTrackersBlocked
+                                    )
                                     Surface(
                                         onClick = onHistoryClick,
                                         shape = RoundedCornerShape(12.dp),
@@ -1333,8 +1344,8 @@ fun MainScreen(
                                         Text(
                                             text = stringResource(
                                                 R.string.main_stats_summary,
-                                                state.totalCleanedCount,
-                                                state.totalTrackersBlocked
+                                                cleanedSummary,
+                                                blockedSummary
                                             ),
                                             style = MaterialTheme.typography.labelMedium,
                                             fontWeight = FontWeight.SemiBold,
