@@ -212,7 +212,7 @@ class MainScreenViewModelTest {
     @Test
     fun checkClipboardTextReSuggestsAfterClearingDisplayedResult() = runTest {
         settingsRepository.setCheckClipboardForLinks(true)
-        viewModel.cleanUrl("https://example.com/page")
+        viewModel.cleanUrl("https://example.com/page", addToHistory = false)
         assertEquals(null, viewModel.uiState.value.clipboardSuggestionUrl)
 
         viewModel.clear()
@@ -281,5 +281,38 @@ class MainScreenViewModelTest {
         viewModel.expandShortUrl()
         historyRepository.loadHistory()
         assertEquals(1, historyRepository.historyFlow.value.size)
+    }
+
+    @Test
+    fun onUrlInputDismissesClipboardSuggestionWhenMatchingUrlIsEntered() = runTest {
+        settingsRepository.setCheckClipboardForLinks(true)
+        viewModel.checkClipboardText("https://example.com/test?utm_source=promo")
+        assertEquals("https://example.com/test?utm_source=promo", viewModel.uiState.value.clipboardSuggestionUrl)
+
+        // Typing non-matching input leaves suggestion intact
+        viewModel.onUrlInput("https://other.com")
+        assertEquals("https://example.com/test?utm_source=promo", viewModel.uiState.value.clipboardSuggestionUrl)
+
+        // Typing matching input dismisses suggestion
+        viewModel.onUrlInput("https://example.com/test?utm_source=promo")
+        assertEquals(null, viewModel.uiState.value.clipboardSuggestionUrl)
+    }
+
+    @Test
+    fun cleanUrlDismissesClipboardSuggestionEvenWhenUrlAlreadyCleaned() = runTest {
+        val testUrl = "https://example.com/product?utm_source=newsletter"
+        viewModel.cleanUrl(testUrl)
+        assertTrue(viewModel.uiState.value.isCleaned)
+
+        // Simulate a clipboard suggestion appearing (e.g. from background or external clip)
+        settingsRepository.setCheckClipboardForLinks(true)
+        // Manually set suggestion or check clipboard
+        viewModel.onUrlInput("some-input") // clear display check temporarily or set suggestion
+        viewModel.checkClipboardText(testUrl)
+
+        // Re-clean the same URL (e.g. user pressed clean again with same URL input)
+        viewModel.cleanUrl(testUrl)
+        assertEquals(null, viewModel.uiState.value.clipboardSuggestionUrl)
+        assertEquals(null, viewModel.uiState.value.bulkClipboardUrls)
     }
 }

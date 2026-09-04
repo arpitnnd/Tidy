@@ -151,9 +151,18 @@ class MainScreenViewModel(
         _uiState.update {
             val isSame =
                 it.isCleaned && (url.trim() == it.originalUrl || url.trim() == it.cleanedUrl)
+            val trimmedInput = url.trim()
+            val candidate = it.clipboardSuggestionUrl
+            val matchesCandidate = candidate != null && (
+                    trimmedInput.equals(candidate.trim(), ignoreCase = true) ||
+                            (trimmedInput.isNotBlank() && UrlDetection.normalize(trimmedInput) == UrlDetection.normalize(
+                                candidate
+                            ))
+                    )
             it.copy(
                 inputUrl = url,
-                isCleaned = if (isSame) it.isCleaned else false
+                isCleaned = if (isSame) it.isCleaned else false,
+                clipboardSuggestionUrl = if (matchesCandidate) null else it.clipboardSuggestionUrl
             )
         }
     }
@@ -169,6 +178,17 @@ class MainScreenViewModel(
     ) {
         if (url.isBlank()) return
         val trimmed = UrlDetection.normalize(url)
+
+        // Dismiss any clipboard suggestion immediately when a URL is submitted or cleaned.
+        // Even if this URL was already cleaned and we return early below, user submission
+        // confirms the user has acted on it, so the suggestion banner should not linger.
+        _uiState.update {
+            it.copy(
+                clipboardSuggestionUrl = null,
+                bulkClipboardUrls = null
+            )
+        }
+
         val currentState = _uiState.value
         if (!forceRefresh && currentState.isCleaned && currentState.cleanedUrl.isNotEmpty() && currentState.originalUrl == trimmed && !isShared && !copyResultToClipboard) return
 
