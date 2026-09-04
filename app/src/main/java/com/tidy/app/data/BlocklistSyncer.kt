@@ -21,7 +21,7 @@ object BlocklistSyncer {
 
     // Guards the whole read-check-fetch-write sequence below: sync() is now triggered
     // independently from app startup, activity resume, and a manual Settings refresh, and
-    // without this a second caller can read the stale lastFetchTime before the first
+    // without this a second caller can read the stale last-check time before the first
     // caller's fetch has written a new one, racing into a redundant concurrent fetch.
     private val syncMutex = Mutex()
 
@@ -39,12 +39,12 @@ object BlocklistSyncer {
         force: Boolean = false
     ): SyncResult = syncMutex.withLock {
         withContext(Dispatchers.IO) {
-            val lastFetch = settingsRepository.blocklistLastFetchTime.first()
+            val lastSuccessfulCheck = settingsRepository.blocklistLastSuccessfulCheckTime.first()
             val now = System.currentTimeMillis()
 
             // Fetch every 3 days (3 * 24 * 60 * 60 * 1000 = 259200000 ms)
             val cacheDuration = 259200000L
-            if (!force && now - lastFetch < cacheDuration) {
+            if (!force && now - lastSuccessfulCheck < cacheDuration) {
                 return@withContext SyncResult.Skipped
             }
 
@@ -70,7 +70,7 @@ object BlocklistSyncer {
 
                 val responseCode = connection.responseCode
                 if (responseCode == HttpURLConnection.HTTP_NOT_MODIFIED) {
-                    settingsRepository.setBlocklistLastFetchTime(now)
+                    settingsRepository.setBlocklistLastSuccessfulCheckTime(now)
                     return@withContext SyncResult.UpToDate
                 }
 
@@ -89,12 +89,12 @@ object BlocklistSyncer {
                         if (etag.isNotEmpty()) {
                             settingsRepository.setBlocklistEtag(etag)
                         }
-                        settingsRepository.setBlocklistLastFetchTime(now)
+                        settingsRepository.setBlocklistLastSuccessfulCheckTime(now)
                         return@withContext SyncResult.Updated(newRulesCount = newRulesCount)
                     }
                     // A successful response with no entries is not an error: just nothing
                     // new to apply.
-                    settingsRepository.setBlocklistLastFetchTime(now)
+                    settingsRepository.setBlocklistLastSuccessfulCheckTime(now)
                     return@withContext SyncResult.UpToDate
                 }
                 SyncResult.Error("HTTP $responseCode")

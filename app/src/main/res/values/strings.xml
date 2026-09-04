@@ -150,19 +150,18 @@
     <!-- Remote Blocklist & Issues -->
     <string name="rules_title">Rules</string>
     <string name="settings_default_blocklist_title">Default blocklist</string>
-    <string name="settings_default_blocklist_desc">View default parameters stripped by Tidy and check for updates</string>
+    <string name="settings_default_blocklist_desc">View built-in tracking rules. Updates are checked only while Tidy is open</string>
     <string name="dialog_default_blocklist_title">Default blocklist</string>
-    <string name="dialog_default_blocklist_desc">Tidy automatically strips tracking parameters that are commonly used to track users across websites:</string>
     <string name="dialog_default_blocklist_view_github">View updates on GitHub</string>
     <string name="dialog_default_blocklist_refresh">Check for updates</string>
-    <string name="settings_blocklist_included">Included with app</string>
-    <string name="settings_blocklist_updated_today">Updated today</string>
-    <string name="settings_blocklist_updated_yesterday">Updated yesterday</string>
-    <plurals name="settings_blocklist_updated_days_ago">
-        <item quantity="one">Updated %1$d day ago</item>
-        <item quantity="other">Updated %1$d days ago</item>
+    <string name="settings_blocklist_included">Using included list</string>
+    <string name="settings_blocklist_checked_today">Last checked today</string>
+    <string name="settings_blocklist_checked_yesterday">Last checked yesterday</string>
+    <plurals name="settings_blocklist_checked_days_ago">
+        <item quantity="one">Last checked %1$d day ago</item>
+        <item quantity="other">Last checked %1$d days ago</item>
     </plurals>
-    <string name="settings_blocklist_updated_date">Updated %1$s</string>
+    <string name="settings_blocklist_checked_date">Last checked %1$s</string>
     <string name="settings_blocklist_up_to_date">List is up to date</string>
     <string name="settings_blocklist_update_failed">Couldn\'t update list</string>
     <plurals name="settings_blocklist_rules_updated">

@@ -27,7 +27,7 @@ class SettingsScreenViewModel(
         val blacklistedParams: Set<String> = emptySet(),
         val domainWhitelistedParams: Set<String> = emptySet(),
         val trackers: List<TrackerEntry> = emptyList(),
-        val blocklistLastFetchTime: Long = 0L,
+        val blocklistLastSuccessfulCheckTime: Long = 0L,
         val isRefreshingBlocklist: Boolean = false,
         val domainInput: String = "",
         val paramInput: String = "",
@@ -60,7 +60,7 @@ class SettingsScreenViewModel(
         val blacklist: Set<String>,
         val domainParams: Set<String>,
         val trackers: List<TrackerEntry>,
-        val lastFetchTime: Long
+        val lastSuccessfulCheckTime: Long
     )
 
     private val _uiState = MutableStateFlow(
@@ -72,9 +72,9 @@ class SettingsScreenViewModel(
             settingsRepository.blacklistedParams,
             settingsRepository.domainWhitelistedParams,
             settingsRepository.trackers,
-            settingsRepository.blocklistLastFetchTime
-        ) { whitelist, blacklist, domainParams, trackers, lastFetchTime ->
-            RulesData(whitelist, blacklist, domainParams, trackers, lastFetchTime)
+            settingsRepository.blocklistLastSuccessfulCheckTime
+        ) { whitelist, blacklist, domainParams, trackers, lastSuccessfulCheckTime ->
+            RulesData(whitelist, blacklist, domainParams, trackers, lastSuccessfulCheckTime)
         },
         combine<Any, AutomationSettings>(
             settingsRepository.checkClipboardForLinks,
@@ -104,7 +104,7 @@ class SettingsScreenViewModel(
             blacklistedParams = reposFlow1.blacklist,
             domainWhitelistedParams = reposFlow1.domainParams,
             trackers = reposFlow1.trackers,
-            blocklistLastFetchTime = reposFlow1.lastFetchTime,
+            blocklistLastSuccessfulCheckTime = reposFlow1.lastSuccessfulCheckTime,
             checkClipboardForLinks = reposFlow2.checkClipboard,
             clipboardCleanTier = reposFlow2.clipboardTier,
             shareCleanTier = reposFlow2.shareTier,

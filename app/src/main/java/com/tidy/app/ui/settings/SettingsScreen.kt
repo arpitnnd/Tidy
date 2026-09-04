@@ -2,7 +2,6 @@ package com.tidy.app.ui.settings
 
 import android.content.Intent
 import androidx.compose.animation.animateContentSize
-import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -44,7 +43,6 @@ import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import com.tidy.app.data.BlocklistSyncer
 import androidx.compose.material3.InputChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -58,7 +56,6 @@ import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -69,7 +66,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -78,6 +77,7 @@ import androidx.core.net.toUri
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.tidy.app.R
+import com.tidy.app.data.BlocklistSyncer
 import com.tidy.app.data.ClipboardCleanTier
 import com.tidy.app.data.ShareCleanTier
 import com.tidy.app.ui.components.ExpandableSettingRow
@@ -89,6 +89,10 @@ import com.tidy.app.ui.components.TierCard
 import com.tidy.app.ui.components.TierSelectorRow
 import com.tidy.app.ui.components.TooltipWrapper
 import kotlinx.coroutines.launch
+import java.text.DateFormat
+import java.util.Calendar
+import java.util.Date
+import java.util.TimeZone
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
@@ -100,6 +104,7 @@ fun SettingsScreen(
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
+    val resources = LocalResources.current
 
     val entitlementManager = com.tidy.app.TidyApp.instance.entitlementManager
     val isPlusUnlocked by entitlementManager.isPlusUnlocked.collectAsStateWithLifecycle(initialValue = false)
@@ -160,15 +165,6 @@ fun SettingsScreen(
                 if (showDefaultBlocklistSheet) {
                     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
                     val lazyListState = rememberLazyListState()
-                    val showDivider by remember {
-                        derivedStateOf {
-                            lazyListState.firstVisibleItemIndex > 0 || lazyListState.firstVisibleItemScrollOffset > 0
-                        }
-                    }
-                    val dividerAlpha by animateFloatAsState(
-                        targetValue = if (showDivider) 0.12f else 0f,
-                        label = "BlocklistDividerAlpha"
-                    )
 
                     TidyModalBottomSheet(
                         onDismissRequest = { showDefaultBlocklistSheet = false },
@@ -196,7 +192,9 @@ fun SettingsScreen(
                                         color = MaterialTheme.colorScheme.onSurface
                                     )
                                     Text(
-                                        text = formatBlocklistLastUpdated(state.blocklistLastFetchTime),
+                                        text = formatBlocklistLastChecked(
+                                            state.blocklistLastSuccessfulCheckTime
+                                        ),
                                         style = MaterialTheme.typography.labelSmall,
                                         color = MaterialTheme.colorScheme.onSurfaceVariant
                                     )
@@ -213,7 +211,7 @@ fun SettingsScreen(
                                                         val message = when (result) {
                                                             is BlocklistSyncer.SyncResult.Updated -> {
                                                                 if (result.newRulesCount > 0) {
-                                                                    context.resources.getQuantityString(
+                                                                    resources.getQuantityString(
                                                                         R.plurals.settings_blocklist_rules_updated,
                                                                         result.newRulesCount,
                                                                         result.newRulesCount
@@ -222,8 +220,10 @@ fun SettingsScreen(
                                                                     toastBlocklistUpdated
                                                                 }
                                                             }
+
                                                             is BlocklistSyncer.SyncResult.UpToDate,
                                                             is BlocklistSyncer.SyncResult.Skipped -> toastBlocklistUpToDate
+
                                                             is BlocklistSyncer.SyncResult.Error -> toastBlocklistUpdateFailed
                                                         }
                                                         snackbarHostState.showSnackbar(message)
@@ -277,17 +277,8 @@ fun SettingsScreen(
                                 }
                             }
 
-                            Text(
-                                text = stringResource(R.string.dialog_default_blocklist_desc),
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier
-                                    .align(Alignment.Start)
-                                    .padding(bottom = 8.dp)
-                            )
-
                             HorizontalDivider(
-                                color = MaterialTheme.colorScheme.outline.copy(alpha = dividerAlpha),
+                                color = MaterialTheme.colorScheme.outlineVariant,
                                 modifier = Modifier.fillMaxWidth()
                             )
 
@@ -1264,20 +1255,48 @@ private fun clearSwitchColors() = SwitchDefaults.colors(
 )
 
 @Composable
-private fun formatBlocklistLastUpdated(lastFetchTime: Long): String {
-    if (lastFetchTime <= 0L) {
+private fun formatBlocklistLastChecked(lastSuccessfulCheckTime: Long): String {
+    if (lastSuccessfulCheckTime <= 0L)
         return stringResource(R.string.settings_blocklist_included)
-    }
     val now = System.currentTimeMillis()
-    val diff = now - lastFetchTime
-    val days = (diff / (1000 * 60 * 60 * 24)).toInt()
+    val days = calendarDaysSince(lastSuccessfulCheckTime, now)
     return when {
-        days <= 0 -> stringResource(R.string.settings_blocklist_updated_today)
-        days == 1 -> stringResource(R.string.settings_blocklist_updated_yesterday)
-        days < 30 -> pluralStringResource(R.plurals.settings_blocklist_updated_days_ago, days, days)
+        days <= 0 -> stringResource(R.string.settings_blocklist_checked_today)
+        days == 1 -> stringResource(R.string.settings_blocklist_checked_yesterday)
+        days < 30 -> pluralStringResource(R.plurals.settings_blocklist_checked_days_ago, days, days)
         else -> {
-            val date = java.text.SimpleDateFormat("d MMM yyyy", java.util.Locale.getDefault()).format(java.util.Date(lastFetchTime))
-            stringResource(R.string.settings_blocklist_updated_date, date)
+            val locale = LocalConfiguration.current.locales[0]
+            val date = remember(lastSuccessfulCheckTime, locale) {
+                DateFormat.getDateInstance(DateFormat.MEDIUM, locale)
+                    .format(Date(lastSuccessfulCheckTime))
+            }
+            stringResource(R.string.settings_blocklist_checked_date, date)
         }
     }
 }
+
+internal fun calendarDaysSince(
+    checkedAt: Long,
+    now: Long,
+    timeZone: TimeZone = TimeZone.getDefault()
+): Int {
+    val checkedDay = startOfDay(checkedAt, timeZone)
+    val currentDay = startOfDay(now, timeZone)
+    if (!checkedDay.before(currentDay)) return 0
+
+    var days = 0
+    while (checkedDay.before(currentDay) && days < 30) {
+        checkedDay.add(Calendar.DAY_OF_MONTH, 1)
+        days++
+    }
+    return days
+}
+
+private fun startOfDay(timestamp: Long, timeZone: TimeZone): Calendar =
+    Calendar.getInstance(timeZone).apply {
+        timeInMillis = timestamp
+        set(Calendar.HOUR_OF_DAY, 0)
+        set(Calendar.MINUTE, 0)
+        set(Calendar.SECOND, 0)
+        set(Calendar.MILLISECOND, 0)
+    }

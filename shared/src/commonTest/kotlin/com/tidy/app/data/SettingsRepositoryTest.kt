@@ -212,9 +212,9 @@ class SettingsRepositoryTest {
     @Test
     fun blocklistMetadataRoundTrips() = runTest {
         repository.setBlocklistEtag("abc123")
-        repository.setBlocklistLastFetchTime(42L)
+        repository.setBlocklistLastSuccessfulCheckTime(42L)
 
         assertEquals("abc123", repository.blocklistEtag.first())
-        assertEquals(42L, repository.blocklistLastFetchTime.first())
+        assertEquals(42L, repository.blocklistLastSuccessfulCheckTime.first())
     }
 }

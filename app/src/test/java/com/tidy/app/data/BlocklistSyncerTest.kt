@@ -69,7 +69,7 @@ class BlocklistSyncerTest {
 
         assertEquals(body, settingsRepository.blocklistJson.first())
         assertEquals("\"v1\"", settingsRepository.blocklistEtag.first())
-        assertTrue(settingsRepository.blocklistLastFetchTime.first() > 0)
+        assertTrue(settingsRepository.blocklistLastSuccessfulCheckTime.first() > 0)
     }
 
     @Test
@@ -80,7 +80,7 @@ class BlocklistSyncerTest {
             exchange.sendResponseHeaders(200, -1)
             exchange.close()
         }
-        settingsRepository.setBlocklistLastFetchTime(System.currentTimeMillis())
+        settingsRepository.setBlocklistLastSuccessfulCheckTime(System.currentTimeMillis())
 
         val result = BlocklistSyncer.sync(context, settingsRepository, url)
 
@@ -99,7 +99,7 @@ class BlocklistSyncerTest {
             exchange.sendResponseHeaders(200, bytes.size.toLong())
             exchange.responseBody.use { it.write(bytes) }
         }
-        settingsRepository.setBlocklistLastFetchTime(System.currentTimeMillis())
+        settingsRepository.setBlocklistLastSuccessfulCheckTime(System.currentTimeMillis())
 
         val result = BlocklistSyncer.sync(context, settingsRepository, url, force = true)
 
@@ -122,7 +122,7 @@ class BlocklistSyncerTest {
             SettingsRepository.DEFAULT_BLOCKLIST_JSON,
             settingsRepository.blocklistJson.first()
         )
-        assertTrue(settingsRepository.blocklistLastFetchTime.first() > 0)
+        assertTrue(settingsRepository.blocklistLastSuccessfulCheckTime.first() > 0)
     }
 
     @Test
@@ -165,7 +165,7 @@ class BlocklistSyncerTest {
         // Nothing is listening on this port.
         BlocklistSyncer.sync(context, settingsRepository, "http://127.0.0.1:1/trackers.json")
 
-        assertEquals(0L, settingsRepository.blocklistLastFetchTime.first())
+        assertEquals(0L, settingsRepository.blocklistLastSuccessfulCheckTime.first())
         assertEquals(
             SettingsRepository.DEFAULT_BLOCKLIST_JSON,
             settingsRepository.blocklistJson.first()
@@ -188,7 +188,7 @@ class BlocklistSyncerTest {
         BlocklistSyncer.sync(context, settingsRepository, url)
 
         assertEquals(body, settingsRepository.blocklistJson.first())
-        assertTrue(settingsRepository.blocklistLastFetchTime.first() > 0)
+        assertTrue(settingsRepository.blocklistLastSuccessfulCheckTime.first() > 0)
     }
 
     @Test
