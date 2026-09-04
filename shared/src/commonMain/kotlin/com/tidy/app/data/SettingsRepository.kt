@@ -170,7 +170,7 @@ class SettingsRepository(private val dataStore: DataStore<Preferences>) {
         }
     }
 
-    suspend fun incrementAnalytics(trackersBlockedCount: Int) {
+    suspend fun recordClean(trackersBlockedCount: Int) {
         dataStore.edit { preferences ->
             val currentCleaned = preferences[KEY_TOTAL_CLEANED_COUNT] ?: 0
             val currentBlocked = preferences[KEY_TOTAL_TRACKERS_BLOCKED] ?: 0
@@ -179,12 +179,21 @@ class SettingsRepository(private val dataStore: DataStore<Preferences>) {
         }
     }
 
-    suspend fun addStats(cleanedCount: Int, trackersBlockedCount: Int) {
+    suspend fun addLifetimeStats(cleanedCount: Int, trackersBlockedCount: Int) {
         dataStore.edit { preferences ->
             val currentCleaned = preferences[KEY_TOTAL_CLEANED_COUNT] ?: 0
             val currentBlocked = preferences[KEY_TOTAL_TRACKERS_BLOCKED] ?: 0
             preferences[KEY_TOTAL_CLEANED_COUNT] = currentCleaned + cleanedCount
             preferences[KEY_TOTAL_TRACKERS_BLOCKED] = currentBlocked + trackersBlockedCount
+        }
+    }
+
+    suspend fun mergeLifetimeStats(cleanedCount: Int, trackersBlockedCount: Int) {
+        dataStore.edit { preferences ->
+            val currentCleaned = preferences[KEY_TOTAL_CLEANED_COUNT] ?: 0
+            val currentBlocked = preferences[KEY_TOTAL_TRACKERS_BLOCKED] ?: 0
+            preferences[KEY_TOTAL_CLEANED_COUNT] = maxOf(currentCleaned, cleanedCount)
+            preferences[KEY_TOTAL_TRACKERS_BLOCKED] = maxOf(currentBlocked, trackersBlockedCount)
         }
     }
 

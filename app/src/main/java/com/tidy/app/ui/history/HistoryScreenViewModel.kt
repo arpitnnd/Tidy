@@ -92,8 +92,9 @@ class HistoryScreenViewModel(
 
     fun importHistory(json: String, onResult: (Int) -> Unit) {
         viewModelScope.launch {
-            val count = historyRepository.importFromJson(json)
-            onResult(count)
+            val result = historyRepository.importFromJsonWithResult(json)
+            if (result != null) onResult(result.newEntriesCount)
+            else onResult(-1)
         }
     }
 

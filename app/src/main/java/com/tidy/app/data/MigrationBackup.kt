@@ -1,9 +1,11 @@
 package com.tidy.app.data
 
+import androidx.annotation.Keep
 import kotlinx.coroutines.flow.first
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 
+@Keep
 @Serializable
 data class MigrationBackup(
     val history: List<HistoryEntry> = emptyList(),
@@ -22,9 +24,12 @@ data class MigrationBackup(
     val autoCleanOnInput: Boolean? = null,
     val selectedTheme: String? = null,
     val dontAskAgainCrash: Boolean? = null,
-    val allowSystemBackup: Boolean? = null
+    val allowSystemBackup: Boolean? = null,
+    val totalCleanedCount: Int? = null,
+    val totalTrackersBlocked: Int? = null
 )
 
+@Keep
 data class MigrationRestoreResult(
     val urlsCleaned: Int,
     val trackersBlocked: Int,
@@ -40,10 +45,10 @@ private val migrationJson = Json {
 /**
  * Deliberately excluded from the bundle: first-launch/migration flow flags
  * (firstLaunchDone, migrationDone, migrationFollowupDismissed), the clipboard
- * callout dismissal, lifetime stat counters, the last-cleaned-url cache, and the
- * synced tracker blocklist cache. These are per-install or derived state, not
- * portable preferences: copying firstLaunchDone in particular would skip the
- * Play app's own first-launch screen, which is where this restore flow lives.
+ * callout dismissal, the last-cleaned-url cache, and the synced tracker blocklist
+ * cache. These are per-install or derived state, not portable preferences: copying
+ * firstLaunchDone in particular would skip the Play app's own first-launch screen,
+ * which is where this restore flow lives.
  */
 suspend fun buildMigrationBackup(
     historyRepository: HistoryRepository,
@@ -65,7 +70,9 @@ suspend fun buildMigrationBackup(
         autoCleanOnInput = settingsRepository.autoCleanOnInput.first(),
         selectedTheme = settingsRepository.selectedTheme.first(),
         dontAskAgainCrash = settingsRepository.dontAskAgainCrash.first(),
-        allowSystemBackup = allowSystemBackup
+        allowSystemBackup = allowSystemBackup,
+        totalCleanedCount = settingsRepository.totalCleanedCount.first(),
+        totalTrackersBlocked = settingsRepository.totalTrackersBlocked.first()
     )
     return migrationJson.encodeToString(backup)
 }
@@ -86,9 +93,21 @@ suspend fun restoreMigrationBackup(
         }
     }
 
-    val importedCount =
-        historyRepository.importFromJson(migrationJson.encodeToString(backup.history))
-    if (importedCount < 0) return null
+    val importResult =
+        historyRepository.importFromJsonWithResult(migrationJson.encodeToString(backup.history))
+    if (importResult == null) return null
+
+    if (backup.totalCleanedCount != null || backup.totalTrackersBlocked != null) {
+        settingsRepository.mergeLifetimeStats(
+            cleanedCount = backup.totalCleanedCount ?: 0,
+            trackersBlockedCount = backup.totalTrackersBlocked ?: 0
+        )
+    } else if (importResult.newEntriesCount > 0) {
+        settingsRepository.addLifetimeStats(
+            importResult.newEntriesCount,
+            importResult.newTrackersBlocked
+        )
+    }
 
     settingsRepository.mergeWhitelistedDomains(backup.whitelistedDomains)
     settingsRepository.mergeBlacklistedParams(backup.blacklistedParams)

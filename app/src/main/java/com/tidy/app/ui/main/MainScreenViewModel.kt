@@ -236,8 +236,7 @@ class MainScreenViewModel(
                 }
 
                 if (addToHistory) {
-                    // Increment local analytics counters
-                    settingsRepository.incrementAnalytics(result.removedParams.size)
+                    settingsRepository.recordClean(result.removedParams.size)
 
                     // Add to history
                     val domain = HistoryRepository.extractDomain(resolvedUrl)

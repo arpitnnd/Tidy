@@ -169,11 +169,21 @@ class SettingsRepositoryTest {
 
     @Test
     fun statsAccumulateAcrossCalls() = runTest {
-        repository.addStats(cleanedCount = 2, trackersBlockedCount = 5)
-        repository.incrementAnalytics(trackersBlockedCount = 3)
+        repository.addLifetimeStats(cleanedCount = 2, trackersBlockedCount = 5)
+        repository.recordClean(trackersBlockedCount = 3)
 
         assertEquals(3, repository.totalCleanedCount.first())
         assertEquals(8, repository.totalTrackersBlocked.first())
+    }
+
+    @Test
+    fun lifetimeStatsMergeWithoutInflation() = runTest {
+        repository.addLifetimeStats(cleanedCount = 5, trackersBlockedCount = 10)
+
+        repository.mergeLifetimeStats(cleanedCount = 3, trackersBlockedCount = 12)
+
+        assertEquals(5, repository.totalCleanedCount.first())
+        assertEquals(12, repository.totalTrackersBlocked.first())
     }
 
     @Test
