@@ -179,30 +179,27 @@ class MainScreenViewModel(
         if (url.isBlank()) return
         val trimmed = UrlDetection.normalize(url)
 
-        // Dismiss any clipboard suggestion immediately when a URL is submitted or cleaned.
-        // Even if this URL was already cleaned and we return early below, user submission
-        // confirms the user has acted on it, so the suggestion banner should not linger.
-        _uiState.update {
-            it.copy(
-                clipboardSuggestionUrl = null,
-                bulkClipboardUrls = null
-            )
+        val currentState = _uiState.value
+        if (!forceRefresh && currentState.isCleaned && currentState.cleanedUrl.isNotEmpty() && currentState.originalUrl == trimmed && !isShared && !copyResultToClipboard) {
+            // Dismiss any clipboard suggestion immediately when a URL is submitted even if already cleaned.
+            _uiState.update {
+                it.copy(
+                    clipboardSuggestionUrl = null,
+                    bulkClipboardUrls = null
+                )
+            }
+            return
         }
 
-        val currentState = _uiState.value
-        if (!forceRefresh && currentState.isCleaned && currentState.cleanedUrl.isNotEmpty() && currentState.originalUrl == trimmed && !isShared && !copyResultToClipboard) return
-
         cleanJob?.cancel()
-        // Enter loading and dismiss any clipboard banner in one state update. Keeping these
-        // atomic prevents the UI from briefly rendering the manual-input state between a
-        // suggestion tap and the loading state, which otherwise creates an extra height jump.
+        // Enter loading without stripping the clipboard suggestion banner yet. Keeping the
+        // suggestion intact during transient cleaning prevents an intermediate layout where the
+        // banner collapses before the cleaned actions row enters, avoiding a rapid mid-flight snap.
         _uiState.update {
             it.copy(
                 inputUrl = trimmed,
                 isLoading = true,
-                isCleaned = false,
-                clipboardSuggestionUrl = null,
-                bulkClipboardUrls = null
+                isCleaned = false
             )
         }
         cleanJob = viewModelScope.launch {
@@ -251,7 +248,9 @@ class MainScreenViewModel(
                         removedParams = result.removedParams,
                         isCleaned = true,
                         isLoading = false,
-                        canExpand = (originalShortUrl == null) && !didAutoExpand
+                        canExpand = (originalShortUrl == null) && !didAutoExpand,
+                        clipboardSuggestionUrl = null,
+                        bulkClipboardUrls = null
                     )
                 }
 
@@ -509,6 +508,166 @@ class MainScreenViewModel(
                 canExpand = false,
                 isExpanding = false
             )
+        }
+    }
+
+    /**
+     * Atomically clears the displayed clean result while evaluating the provided clipboard
+     * text for a new suggestion banner in a single state emission. This prevents an intermediate
+     * layout state from interrupting the bottom bar's expansion animation.
+     */
+    suspend fun clearAndCheckClipboard(text: String?) {
+        cleanJob?.cancel()
+        if (!settingsRepository.checkClipboardForLinks.first() || text == null) {
+            _uiState.update {
+                it.copy(
+                    inputUrl = "",
+                    originalUrl = "",
+                    expandedUrl = null,
+                    cleanedUrl = "",
+                    removedParams = emptyList(),
+                    isCleaned = false,
+                    copySuccess = false,
+                    isLoading = false,
+                    canExpand = false,
+                    isExpanding = false,
+                    clipboardSuggestionUrl = null,
+                    bulkClipboardUrls = null
+                )
+            }
+            return
+        }
+
+        val urls = UrlDetection.findAllUrls(text)
+        when {
+            urls.size > 1 -> {
+                _uiState.update {
+                    it.copy(
+                        inputUrl = "",
+                        originalUrl = "",
+                        expandedUrl = null,
+                        cleanedUrl = "",
+                        removedParams = emptyList(),
+                        isCleaned = false,
+                        copySuccess = false,
+                        isLoading = false,
+                        canExpand = false,
+                        isExpanding = false,
+                        bulkClipboardUrls = urls,
+                        clipboardSuggestionUrl = null
+                    )
+                }
+            }
+
+            urls.size == 1 -> {
+                val candidate = UrlDetection.findFirstUrl(text.trim())
+                if (candidate == null) {
+                    _uiState.update {
+                        it.copy(
+                            inputUrl = "",
+                            originalUrl = "",
+                            expandedUrl = null,
+                            cleanedUrl = "",
+                            removedParams = emptyList(),
+                            isCleaned = false,
+                            copySuccess = false,
+                            isLoading = false,
+                            canExpand = false,
+                            isExpanding = false,
+                            clipboardSuggestionUrl = null,
+                            bulkClipboardUrls = null
+                        )
+                    }
+                } else {
+                    when (FlavorConfig.resolveClipboardTier(settingsRepository)) {
+                        ClipboardCleanTier.AUTO_CLEAN -> {
+                            _uiState.update {
+                                it.copy(
+                                    inputUrl = "",
+                                    originalUrl = "",
+                                    expandedUrl = null,
+                                    cleanedUrl = "",
+                                    removedParams = emptyList(),
+                                    isCleaned = false,
+                                    copySuccess = false,
+                                    isLoading = false,
+                                    canExpand = false,
+                                    isExpanding = false,
+                                    clipboardSuggestionUrl = null,
+                                    bulkClipboardUrls = null
+                                )
+                            }
+                            if (text != lastAutoCleanedClipText) {
+                                lastAutoCleanedClipText = text
+                                cleanUrl(
+                                    candidate,
+                                    copyResultToClipboard = true,
+                                    sourceClipText = text
+                                )
+                            }
+                        }
+
+                        ClipboardCleanTier.SUGGEST_AND_COPY -> {
+                            _uiState.update {
+                                it.copy(
+                                    inputUrl = "",
+                                    originalUrl = "",
+                                    expandedUrl = null,
+                                    cleanedUrl = "",
+                                    removedParams = emptyList(),
+                                    isCleaned = false,
+                                    copySuccess = false,
+                                    isLoading = false,
+                                    canExpand = false,
+                                    isExpanding = false,
+                                    suggestionCopiesOnClean = true,
+                                    clipboardSuggestionUrl = candidate,
+                                    bulkClipboardUrls = null
+                                )
+                            }
+                        }
+
+                        ClipboardCleanTier.SUGGEST -> {
+                            _uiState.update {
+                                it.copy(
+                                    inputUrl = "",
+                                    originalUrl = "",
+                                    expandedUrl = null,
+                                    cleanedUrl = "",
+                                    removedParams = emptyList(),
+                                    isCleaned = false,
+                                    copySuccess = false,
+                                    isLoading = false,
+                                    canExpand = false,
+                                    isExpanding = false,
+                                    suggestionCopiesOnClean = false,
+                                    clipboardSuggestionUrl = candidate,
+                                    bulkClipboardUrls = null
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+
+            else -> {
+                _uiState.update {
+                    it.copy(
+                        inputUrl = "",
+                        originalUrl = "",
+                        expandedUrl = null,
+                        cleanedUrl = "",
+                        removedParams = emptyList(),
+                        isCleaned = false,
+                        copySuccess = false,
+                        isLoading = false,
+                        canExpand = false,
+                        isExpanding = false,
+                        clipboardSuggestionUrl = null,
+                        bulkClipboardUrls = null
+                    )
+                }
+            }
         }
     }
 

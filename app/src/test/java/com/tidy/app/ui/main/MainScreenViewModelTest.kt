@@ -8,6 +8,7 @@ import com.tidy.app.data.HistoryRepository
 import com.tidy.app.data.SettingsRepository
 import com.tidy.app.data.UrlCleaner
 import junit.framework.TestCase.assertEquals
+import junit.framework.TestCase.assertFalse
 import junit.framework.TestCase.assertTrue
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -314,5 +315,36 @@ class MainScreenViewModelTest {
         viewModel.cleanUrl(testUrl)
         assertEquals(null, viewModel.uiState.value.clipboardSuggestionUrl)
         assertEquals(null, viewModel.uiState.value.bulkClipboardUrls)
+    }
+
+    @Test
+    fun cleanUrlDismissesClipboardSuggestionAtomicallyOnCompletion() = runTest {
+        val testUrl = "https://example.com/product?utm_source=newsletter"
+        settingsRepository.setCheckClipboardForLinks(true)
+        viewModel.checkClipboardText(testUrl)
+        assertEquals(testUrl, viewModel.uiState.value.clipboardSuggestionUrl)
+
+        viewModel.cleanUrl(testUrl)
+        val finalState = viewModel.uiState.value
+        assertTrue(finalState.isCleaned)
+        assertFalse(finalState.isLoading)
+        assertEquals(null, finalState.clipboardSuggestionUrl)
+        assertEquals("https://example.com/product", finalState.cleanedUrl)
+    }
+
+    @Test
+    fun clearAndCheckClipboardResetsDisplayAndPopulatesSuggestionAtomically() = runTest {
+        val testUrl = "https://example.com/product?utm_source=newsletter"
+        settingsRepository.setCheckClipboardForLinks(true)
+        viewModel.cleanUrl(testUrl)
+        assertTrue(viewModel.uiState.value.isCleaned)
+        assertEquals(null, viewModel.uiState.value.clipboardSuggestionUrl)
+
+        viewModel.clearAndCheckClipboard(testUrl)
+        val state = viewModel.uiState.value
+        assertFalse(state.isCleaned)
+        assertEquals("", state.inputUrl)
+        assertEquals("", state.cleanedUrl)
+        assertEquals(testUrl, state.clipboardSuggestionUrl)
     }
 }

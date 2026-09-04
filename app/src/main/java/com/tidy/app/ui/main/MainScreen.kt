@@ -6,8 +6,8 @@ import android.content.Intent
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.SizeTransform
-import androidx.compose.animation.core.animate
 import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.animate
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandVertically
@@ -226,17 +226,6 @@ fun MainScreen(
     var paramToWhitelist by remember { mutableStateOf<String?>(null) }
     val introSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
-    // AnimatedVisibility keeps composing its content lambda while it animates out, so if
-    // that lambda reads state.clipboardSuggestionUrl directly it goes blank the instant
-    // that's nulled, leaving the exit animation to collapse an empty box. Caching the last
-    // non-null value keeps the banner's content visible for the whole exit transition.
-    var lastClipboardBannerUrl by remember { mutableStateOf<String?>(null) }
-    LaunchedEffect(state.clipboardSuggestionUrl) {
-        if (state.clipboardSuggestionUrl != null) {
-            lastClipboardBannerUrl = state.clipboardSuggestionUrl
-        }
-    }
-
     // Shown after the user taps "Enable" on the clipboard callout, in place of it.
     var showClipboardEnabledSuccess by remember { mutableStateOf(false) }
     var hasCompletedInitialClipboardCheck by remember { mutableStateOf(false) }
@@ -388,6 +377,19 @@ fun MainScreen(
 
     val scrollThresholdPx = with(LocalDensity.current) { 150.dp.toPx() }
     var scrollOffset by rememberSaveable { mutableFloatStateOf(0f) }
+    val clearAndCheckClipboard: () -> Unit = {
+        scrollOffset = 0f
+        val text = try {
+            val clipboard =
+                context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+            clipboard.primaryClip?.getItemAt(0)?.text?.toString()
+        } catch (_: Exception) {
+            null
+        }
+        scope.launch {
+            viewModel.clearAndCheckClipboard(text)
+        }
+    }
     var showUpperLoading by remember { mutableStateOf(false) }
     LaunchedEffect(state.isLoading) {
         if (state.isLoading) {
@@ -464,10 +466,19 @@ fun MainScreen(
         state.isLoading -> HomeBottomStage.Loading
         else -> HomeBottomStage.Input
     }
-    val displayedBottomStage = if (bottomStage == HomeBottomStage.Loading) {
-        HomeBottomStage.Input
+    var lastStableBottomStage by remember { mutableStateOf(HomeBottomStage.Input) }
+    SideEffect {
+        if (!state.isLoading) {
+            lastStableBottomStage =
+                if (state.isCleaned) HomeBottomStage.Actions else HomeBottomStage.Input
+        }
+    }
+    val displayedBottomStage = if (state.isLoading) {
+        lastStableBottomStage
+    } else if (state.isCleaned) {
+        HomeBottomStage.Actions
     } else {
-        bottomStage
+        HomeBottomStage.Input
     }
     var retainedInputState by remember { mutableStateOf(state) }
     SideEffect {
@@ -539,7 +550,7 @@ fun MainScreen(
                                     clip = true,
                                     sizeAnimationSpec = { _, _ ->
                                         tween(
-                                            durationMillis = 400,
+                                            durationMillis = 360,
                                             easing = FastOutSlowInEasing
                                         )
                                     }
@@ -564,6 +575,7 @@ fun MainScreen(
                                                 copyResultToClipboard = state.suggestionCopiesOnClean
                                             )
                                         },
+                                        enabled = !state.isLoading,
                                         modifier = Modifier.fillMaxWidth()
                                     )
                                     Spacer(modifier = Modifier.height(BannerGap))
@@ -578,13 +590,7 @@ fun MainScreen(
                                 ) {
                                     TooltipWrapper(tooltipText = stringResource(R.string.tooltip_clean_new)) {
                                         FilledIconButton(
-                                            onClick = {
-                                                scrollOffset = 0f
-                                                viewModel.clear()
-                                                scope.launch {
-                                                    checkClipboard()
-                                                }
-                                            },
+                                            onClick = clearAndCheckClipboard,
                                             modifier = Modifier.size(48.dp),
                                             shape = RoundedCornerShape(16.dp),
                                             colors = IconButtonDefaults.filledIconButtonColors(
@@ -734,13 +740,7 @@ fun MainScreen(
                                         state
                                     },
                                     viewModel = viewModel,
-                                    onClear = {
-                                        scrollOffset = 0f
-                                        viewModel.clear()
-                                        scope.launch {
-                                            checkClipboard()
-                                        }
-                                    }
+                                    onClear = clearAndCheckClipboard
                                 )
                             }
                         }
@@ -1636,7 +1636,8 @@ private fun ManualEntryRow(
 private fun ClipboardActionBanner(
     url: String,
     onActionClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true
 ) {
     Card(
         shape = RoundedCornerShape(20.dp),
@@ -1687,6 +1688,7 @@ private fun ClipboardActionBanner(
 
             Button(
                 onClick = onActionClick,
+                enabled = enabled,
                 shape = RoundedCornerShape(12.dp),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = MaterialTheme.colorScheme.primary
@@ -1719,7 +1721,7 @@ private fun ClipboardCalloutBanner(
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f)
         ),
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.15f)),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.25f)),
         modifier = modifier
     ) {
         Column(modifier = Modifier.padding(12.dp)) {
