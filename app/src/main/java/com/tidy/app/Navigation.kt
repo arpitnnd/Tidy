@@ -20,10 +20,13 @@ import kotlinx.coroutines.flow.SharedFlow
 fun MainNavigation(
     initialUrl: String?,
     sharedUrls: SharedFlow<String>,
+    plusUpsellRequests: SharedFlow<Unit>,
     crashReportText: String?,
     showPlusUpsell: Boolean = false
 ) {
-    val backStack = rememberNavBackStack(Main(initialUrl))
+    val backStack = rememberNavBackStack(
+        Main(sharedUrl = initialUrl, showPlusUpsell = showPlusUpsell)
+    )
 
     // Strictly increasing for the composition's lifetime (rememberSaveable survives
     // rotation and process-death restore alongside backStack itself), so it can never
@@ -33,7 +36,19 @@ fun MainNavigation(
 
     LaunchedEffect(sharedUrls) {
         sharedUrls.collect { url ->
-            backStack.add(Main(url, nextShareSequence))
+            backStack.add(Main(sharedUrl = url, shareSequence = nextShareSequence))
+            nextShareSequence++
+        }
+    }
+
+    LaunchedEffect(plusUpsellRequests) {
+        plusUpsellRequests.collect {
+            backStack.add(
+                Main(
+                    shareSequence = nextShareSequence,
+                    showPlusUpsell = true
+                )
+            )
             nextShareSequence++
         }
     }
@@ -50,7 +65,7 @@ fun MainNavigation(
                         onSettingsClick = { backStack.add(Settings) },
                         onHistoryClick = { backStack.add(History) },
                         modifier = Modifier.systemBarsPadding(),
-                        showPlusUpsell = showPlusUpsell
+                        showPlusUpsell = key.showPlusUpsell
                     )
                 }
                 entry<Settings> {
