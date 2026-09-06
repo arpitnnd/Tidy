@@ -2,7 +2,6 @@ package com.tidy.app.ui.settings
 
 import android.content.Intent
 import androidx.compose.animation.animateContentSize
-import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -31,12 +30,14 @@ import androidx.compose.material.icons.automirrored.filled.OpenInNew
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.outlined.Bolt
 import androidx.compose.material.icons.outlined.CleaningServices
 import androidx.compose.material.icons.outlined.ContentCopy
 import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material.icons.outlined.Share
 import androidx.compose.material.icons.outlined.Visibility
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.HorizontalDivider
@@ -55,7 +56,6 @@ import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -66,7 +66,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -75,6 +77,7 @@ import androidx.core.net.toUri
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.tidy.app.R
+import com.tidy.app.data.BlocklistSyncer
 import com.tidy.app.data.ClipboardCleanTier
 import com.tidy.app.data.ShareCleanTier
 import com.tidy.app.ui.components.ExpandableSettingRow
@@ -86,6 +89,10 @@ import com.tidy.app.ui.components.TierCard
 import com.tidy.app.ui.components.TierSelectorRow
 import com.tidy.app.ui.components.TooltipWrapper
 import kotlinx.coroutines.launch
+import java.text.DateFormat
+import java.util.Calendar
+import java.util.Date
+import java.util.TimeZone
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
@@ -97,6 +104,7 @@ fun SettingsScreen(
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
+    val resources = LocalResources.current
 
     val entitlementManager = com.tidy.app.TidyApp.instance.entitlementManager
     val isPlusUnlocked by entitlementManager.isPlusUnlocked.collectAsStateWithLifecycle(initialValue = false)
@@ -108,6 +116,9 @@ fun SettingsScreen(
     var showMigrationDialog by remember { mutableStateOf(false) }
     var showUpsellSheet by remember { mutableStateOf(false) }
     val crashToastBrowserError = stringResource(R.string.crash_toast_browser_error)
+    val toastBlocklistUpToDate = stringResource(R.string.settings_blocklist_up_to_date)
+    val toastBlocklistUpdateFailed = stringResource(R.string.settings_blocklist_update_failed)
+    val toastBlocklistUpdated = stringResource(R.string.settings_blocklist_updated)
 
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },
@@ -154,15 +165,6 @@ fun SettingsScreen(
                 if (showDefaultBlocklistSheet) {
                     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
                     val lazyListState = rememberLazyListState()
-                    val showDivider by remember {
-                        derivedStateOf {
-                            lazyListState.firstVisibleItemIndex > 0 || lazyListState.firstVisibleItemScrollOffset > 0
-                        }
-                    }
-                    val dividerAlpha by animateFloatAsState(
-                        targetValue = if (showDivider) 0.12f else 0f,
-                        label = "BlocklistDividerAlpha"
-                    )
 
                     TidyModalBottomSheet(
                         onDismissRequest = { showDefaultBlocklistSheet = false },
@@ -182,52 +184,101 @@ fun SettingsScreen(
                                 horizontalArrangement = Arrangement.SpaceBetween,
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-                                Text(
-                                    text = stringResource(R.string.dialog_default_blocklist_title),
-                                    style = MaterialTheme.typography.titleLarge,
-                                    fontWeight = FontWeight.Bold,
-                                    color = MaterialTheme.colorScheme.onSurface
-                                )
-                                TooltipWrapper(tooltipText = stringResource(R.string.dialog_default_blocklist_view_github)) {
-                                    IconButton(
-                                        onClick = {
-                                            try {
-                                                val intent = Intent(
-                                                    Intent.ACTION_VIEW,
-                                                    "https://github.com/arpitnnd/Tidy/commits/main/blocklist/trackers.json".toUri()
-                                                ).apply {
-                                                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                                Column(modifier = Modifier.weight(1f, fill = false)) {
+                                    Text(
+                                        text = stringResource(R.string.dialog_default_blocklist_title),
+                                        style = MaterialTheme.typography.titleLarge,
+                                        fontWeight = FontWeight.Bold,
+                                        color = MaterialTheme.colorScheme.onSurface
+                                    )
+                                    Text(
+                                        text = formatBlocklistLastChecked(
+                                            state.blocklistLastSuccessfulCheckTime
+                                        ),
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
+                                Row(
+                                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    TooltipWrapper(tooltipText = stringResource(R.string.dialog_default_blocklist_refresh)) {
+                                        IconButton(
+                                            onClick = {
+                                                viewModel.refreshBlocklist(context) { result ->
+                                                    scope.launch {
+                                                        val message = when (result) {
+                                                            is BlocklistSyncer.SyncResult.Updated -> {
+                                                                if (result.newRulesCount > 0) {
+                                                                    resources.getQuantityString(
+                                                                        R.plurals.settings_blocklist_rules_updated,
+                                                                        result.newRulesCount,
+                                                                        result.newRulesCount
+                                                                    )
+                                                                } else {
+                                                                    toastBlocklistUpdated
+                                                                }
+                                                            }
+
+                                                            is BlocklistSyncer.SyncResult.UpToDate,
+                                                            is BlocklistSyncer.SyncResult.Skipped -> toastBlocklistUpToDate
+
+                                                            is BlocklistSyncer.SyncResult.Error -> toastBlocklistUpdateFailed
+                                                        }
+                                                        snackbarHostState.showSnackbar(message)
+                                                    }
                                                 }
-                                                context.startActivity(intent)
-                                            } catch (e: Exception) {
-                                                scope.launch {
-                                                    snackbarHostState.showSnackbar(
-                                                        crashToastBrowserError
-                                                    )
-                                                }
+                                            },
+                                            enabled = !state.isRefreshingBlocklist
+                                        ) {
+                                            if (state.isRefreshingBlocklist) {
+                                                CircularProgressIndicator(
+                                                    modifier = Modifier.size(18.dp),
+                                                    strokeWidth = 2.dp,
+                                                    color = MaterialTheme.colorScheme.primary
+                                                )
+                                            } else {
+                                                Icon(
+                                                    imageVector = Icons.Filled.Refresh,
+                                                    contentDescription = stringResource(R.string.dialog_default_blocklist_refresh),
+                                                    tint = MaterialTheme.colorScheme.primary
+                                                )
                                             }
                                         }
-                                    ) {
-                                        Icon(
-                                            imageVector = Icons.AutoMirrored.Filled.OpenInNew,
-                                            contentDescription = stringResource(R.string.dialog_default_blocklist_view_github),
-                                            tint = MaterialTheme.colorScheme.primary
-                                        )
+                                    }
+                                    TooltipWrapper(tooltipText = stringResource(R.string.dialog_default_blocklist_view_github)) {
+                                        IconButton(
+                                            onClick = {
+                                                try {
+                                                    val intent = Intent(
+                                                        Intent.ACTION_VIEW,
+                                                        "https://github.com/arpitnnd/Tidy/commits/main/blocklist/trackers.json".toUri()
+                                                    ).apply {
+                                                        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                                                    }
+                                                    context.startActivity(intent)
+                                                } catch (e: Exception) {
+                                                    scope.launch {
+                                                        snackbarHostState.showSnackbar(
+                                                            crashToastBrowserError
+                                                        )
+                                                    }
+                                                }
+                                            }
+                                        ) {
+                                            Icon(
+                                                imageVector = Icons.AutoMirrored.Filled.OpenInNew,
+                                                contentDescription = stringResource(R.string.dialog_default_blocklist_view_github),
+                                                tint = MaterialTheme.colorScheme.primary
+                                            )
+                                        }
                                     }
                                 }
                             }
 
-                            Text(
-                                text = stringResource(R.string.dialog_default_blocklist_desc),
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier
-                                    .align(Alignment.Start)
-                                    .padding(bottom = 8.dp)
-                            )
-
                             HorizontalDivider(
-                                color = MaterialTheme.colorScheme.outline.copy(alpha = dividerAlpha),
+                                color = MaterialTheme.colorScheme.outlineVariant,
                                 modifier = Modifier.fillMaxWidth()
                             )
 
@@ -1202,3 +1253,74 @@ private fun clearSwitchColors() = SwitchDefaults.colors(
     disabledUncheckedTrackColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.04f),
     disabledUncheckedBorderColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f)
 )
+
+@Composable
+private fun formatBlocklistLastChecked(lastSuccessfulCheckTime: Long): String {
+    if (lastSuccessfulCheckTime <= 0L)
+        return stringResource(R.string.settings_blocklist_included)
+    val now = System.currentTimeMillis()
+    val elapsedMinutes = elapsedMinutesSince(lastSuccessfulCheckTime, now)
+    val days = calendarDaysSince(lastSuccessfulCheckTime, now)
+    return when {
+        elapsedMinutes < 1 -> stringResource(R.string.settings_blocklist_checked_moments_ago)
+        elapsedMinutes < 60 -> pluralStringResource(
+            R.plurals.settings_blocklist_checked_minutes_ago,
+            elapsedMinutes,
+            elapsedMinutes
+        )
+
+        elapsedMinutes < 24 * 60 -> {
+            val elapsedHours = elapsedMinutes / 60
+            pluralStringResource(
+                R.plurals.settings_blocklist_checked_hours_ago,
+                elapsedHours,
+                elapsedHours
+            )
+        }
+
+        days <= 1 -> stringResource(R.string.settings_blocklist_checked_yesterday)
+        days < 30 -> pluralStringResource(
+            R.plurals.settings_blocklist_checked_days_ago,
+            days,
+            days
+        )
+
+        else -> {
+            val locale = LocalConfiguration.current.locales[0]
+            val date = remember(lastSuccessfulCheckTime, locale) {
+                DateFormat.getDateInstance(DateFormat.MEDIUM, locale)
+                    .format(Date(lastSuccessfulCheckTime))
+            }
+            stringResource(R.string.settings_blocklist_checked_date, date)
+        }
+    }
+}
+
+internal fun elapsedMinutesSince(checkedAt: Long, now: Long): Int =
+    ((now - checkedAt).coerceAtLeast(0L) / 60_000L).toInt()
+
+internal fun calendarDaysSince(
+    checkedAt: Long,
+    now: Long,
+    timeZone: TimeZone = TimeZone.getDefault()
+): Int {
+    val checkedDay = startOfDay(checkedAt, timeZone)
+    val currentDay = startOfDay(now, timeZone)
+    if (!checkedDay.before(currentDay)) return 0
+
+    var days = 0
+    while (checkedDay.before(currentDay) && days < 30) {
+        checkedDay.add(Calendar.DAY_OF_MONTH, 1)
+        days++
+    }
+    return days
+}
+
+private fun startOfDay(timestamp: Long, timeZone: TimeZone): Calendar =
+    Calendar.getInstance(timeZone).apply {
+        timeInMillis = timestamp
+        set(Calendar.HOUR_OF_DAY, 0)
+        set(Calendar.MINUTE, 0)
+        set(Calendar.SECOND, 0)
+        set(Calendar.MILLISECOND, 0)
+    }

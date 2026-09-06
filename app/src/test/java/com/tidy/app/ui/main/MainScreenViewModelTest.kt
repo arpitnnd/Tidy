@@ -8,13 +8,16 @@ import com.tidy.app.data.HistoryRepository
 import com.tidy.app.data.SettingsRepository
 import com.tidy.app.data.UrlCleaner
 import junit.framework.TestCase.assertEquals
+import junit.framework.TestCase.assertFalse
 import junit.framework.TestCase.assertTrue
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.cancel
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
@@ -70,7 +73,8 @@ class MainScreenViewModelTest {
 
     @After
     fun tearDown() {
-        viewModel.viewModelScope.cancel()
+        // cancelAndJoin, not cancel: waits for an in-flight blocking UrlExpander call to unwind before resetMain() runs.
+        runBlocking { viewModel.viewModelScope.coroutineContext[Job]?.cancelAndJoin() }
         Dispatchers.resetMain()
     }
 
@@ -85,7 +89,7 @@ class MainScreenViewModelTest {
 
     @Test
     fun testCleanUrl() = runTest {
-        // "si" is deliberately not used here -- it's domain-scoped to Spotify/YouTube.
+        // "si" is deliberately not used here: it's domain-scoped to Spotify/YouTube.
         viewModel.cleanUrl("https://example.com/page?utm_source=newsletter&utm_medium=email&fbclid=12345&igsh=abc")
 
         val state = viewModel.uiState.value
@@ -144,7 +148,7 @@ class MainScreenViewModelTest {
 
     @Test
     fun evaluateClipboardCandidateSuggestsAnyUrlNotOnDisplay() = runTest {
-        // Cleaning "https://example.com/already-clean" wouldn't change it at all -- it
+        // Cleaning "https://example.com/already-clean" wouldn't change it at all, but it
         // must still be suggested. The suggestion is meant to reflect the clipboard, not
         // just clipboard content that happens to need cleaning.
         val candidate = viewModel.evaluateClipboardCandidate("https://example.com/already-clean")
@@ -212,14 +216,14 @@ class MainScreenViewModelTest {
     @Test
     fun checkClipboardTextReSuggestsAfterClearingDisplayedResult() = runTest {
         settingsRepository.setCheckClipboardForLinks(true)
-        viewModel.cleanUrl("https://example.com/page")
+        viewModel.cleanUrl("https://example.com/page", addToHistory = false)
         assertEquals(null, viewModel.uiState.value.clipboardSuggestionUrl)
 
         viewModel.clear()
         viewModel.checkClipboardText("https://example.com/page")
 
         // Clearing wipes the displayed *result*, not the intent to maybe clean whatever
-        // is on the clipboard -- the same URL is suggested again, predictably.
+        // is on the clipboard: the same URL is suggested again, predictably.
         assertEquals("https://example.com/page", viewModel.uiState.value.clipboardSuggestionUrl)
     }
 
@@ -232,7 +236,7 @@ class MainScreenViewModelTest {
 
         val state = viewModel.uiState.value
         // Unchanged entirely (whitelist skips cleaning too), and never even attempted
-        // expansion -- expandedUrl stays null, which only happens when didAutoExpand is
+        // expansion: expandedUrl stays null, which only happens when didAutoExpand is
         // false. If expansion had fired despite the whitelist, expandedUrl would be set
         // (to the resolved URL, or the same URL again on failure) rather than staying null.
         assertEquals(original, state.cleanedUrl)
@@ -241,9 +245,38 @@ class MainScreenViewModelTest {
     }
 
     @Test
+    fun cleanUrlCompletesNormallyForOrdinaryUrlsWithoutAutoExpand() = runTest {
+        // cleanUrl() previously only populated inputUrl/isLoading inside the
+        // `if (didAutoExpand)` branch, so this path (every ordinary shared/pasted link
+        // that isn't a short URL) is the one that regressed.
+        viewModel.cleanUrl("https://example.com/page?utm_source=x")
+
+        val state = viewModel.uiState.value
+        assertEquals("https://example.com/page?utm_source=x", state.inputUrl)
+        assertEquals(false, state.isLoading)
+        assertTrue(state.isCleaned)
+    }
+
+    @Test
+    fun addDomainWhitelistedParamRefreshesTheDisplayedCleanedUrl() = runTest {
+        // Regression test: a dedup guard added to cleanUrl() for skipping redundant
+        // re-cleans of an unchanged URL also silently no-op'd the refresh call that
+        // addDomainWhitelistedParam() makes after whitelisting a param, so the newly
+        // whitelisted parameter stayed stripped from the displayed result.
+        viewModel.cleanUrl("https://example.com/page?fbclid=123")
+        assertTrue(viewModel.uiState.value.removedParams.contains("fbclid"))
+
+        viewModel.addDomainWhitelistedParam("example.com", "fbclid")
+
+        val state = viewModel.uiState.value
+        assertEquals("https://example.com/page?fbclid=123", state.cleanedUrl)
+        assertTrue(state.removedParams.isEmpty())
+    }
+
+    @Test
     fun expandShortUrlDoesNotAddASecondHistoryEntry() = runTest {
         // Nothing is listening on this port, so UrlExpander.resolve() fails fast
-        // (connection refused) and returns the URL unchanged -- no real network needed.
+        // (connection refused) and returns the URL unchanged: no real network needed.
         val unreachable = "http://127.0.0.1:1/"
         viewModel.cleanUrl(unreachable)
         historyRepository.loadHistory()
@@ -252,5 +285,69 @@ class MainScreenViewModelTest {
         viewModel.expandShortUrl()
         historyRepository.loadHistory()
         assertEquals(1, historyRepository.historyFlow.value.size)
+    }
+
+    @Test
+    fun onUrlInputDismissesClipboardSuggestionWhenMatchingUrlIsEntered() = runTest {
+        settingsRepository.setCheckClipboardForLinks(true)
+        viewModel.checkClipboardText("https://example.com/test?utm_source=promo")
+        assertEquals("https://example.com/test?utm_source=promo", viewModel.uiState.value.clipboardSuggestionUrl)
+
+        // Typing non-matching input leaves suggestion intact
+        viewModel.onUrlInput("https://other.com")
+        assertEquals("https://example.com/test?utm_source=promo", viewModel.uiState.value.clipboardSuggestionUrl)
+
+        // Typing matching input dismisses suggestion
+        viewModel.onUrlInput("https://example.com/test?utm_source=promo")
+        assertEquals(null, viewModel.uiState.value.clipboardSuggestionUrl)
+    }
+
+    @Test
+    fun cleanUrlDismissesClipboardSuggestionEvenWhenUrlAlreadyCleaned() = runTest {
+        val testUrl = "https://example.com/product?utm_source=newsletter"
+        viewModel.cleanUrl(testUrl)
+        assertTrue(viewModel.uiState.value.isCleaned)
+
+        // Simulate a clipboard suggestion appearing (e.g. from background or external clip)
+        settingsRepository.setCheckClipboardForLinks(true)
+        // Manually set suggestion or check clipboard
+        viewModel.onUrlInput("some-input") // clear display check temporarily or set suggestion
+        viewModel.checkClipboardText(testUrl)
+
+        // Re-clean the same URL (e.g. user pressed clean again with same URL input)
+        viewModel.cleanUrl(testUrl)
+        assertEquals(null, viewModel.uiState.value.clipboardSuggestionUrl)
+        assertEquals(null, viewModel.uiState.value.bulkClipboardUrls)
+    }
+
+    @Test
+    fun cleanUrlDismissesClipboardSuggestionAtomicallyOnCompletion() = runTest {
+        val testUrl = "https://example.com/product?utm_source=newsletter"
+        settingsRepository.setCheckClipboardForLinks(true)
+        viewModel.checkClipboardText(testUrl)
+        assertEquals(testUrl, viewModel.uiState.value.clipboardSuggestionUrl)
+
+        viewModel.cleanUrl(testUrl)
+        val finalState = viewModel.uiState.value
+        assertTrue(finalState.isCleaned)
+        assertFalse(finalState.isLoading)
+        assertEquals(null, finalState.clipboardSuggestionUrl)
+        assertEquals("https://example.com/product", finalState.cleanedUrl)
+    }
+
+    @Test
+    fun clearAndCheckClipboardResetsDisplayAndPopulatesSuggestionAtomically() = runTest {
+        val testUrl = "https://example.com/product?utm_source=newsletter"
+        settingsRepository.setCheckClipboardForLinks(true)
+        viewModel.cleanUrl(testUrl)
+        assertTrue(viewModel.uiState.value.isCleaned)
+        assertEquals(null, viewModel.uiState.value.clipboardSuggestionUrl)
+
+        viewModel.clearAndCheckClipboard(testUrl)
+        val state = viewModel.uiState.value
+        assertFalse(state.isCleaned)
+        assertEquals("", state.inputUrl)
+        assertEquals("", state.cleanedUrl)
+        assertEquals(testUrl, state.clipboardSuggestionUrl)
     }
 }

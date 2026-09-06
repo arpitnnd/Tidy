@@ -169,11 +169,21 @@ class SettingsRepositoryTest {
 
     @Test
     fun statsAccumulateAcrossCalls() = runTest {
-        repository.addStats(cleanedCount = 2, trackersBlockedCount = 5)
-        repository.incrementAnalytics(trackersBlockedCount = 3)
+        repository.addLifetimeStats(cleanedCount = 2, trackersBlockedCount = 5)
+        repository.recordClean(trackersBlockedCount = 3)
 
         assertEquals(3, repository.totalCleanedCount.first())
         assertEquals(8, repository.totalTrackersBlocked.first())
+    }
+
+    @Test
+    fun lifetimeStatsMergeWithoutInflation() = runTest {
+        repository.addLifetimeStats(cleanedCount = 5, trackersBlockedCount = 10)
+
+        repository.mergeLifetimeStats(cleanedCount = 3, trackersBlockedCount = 12)
+
+        assertEquals(5, repository.totalCleanedCount.first())
+        assertEquals(12, repository.totalTrackersBlocked.first())
     }
 
     @Test
@@ -202,9 +212,9 @@ class SettingsRepositoryTest {
     @Test
     fun blocklistMetadataRoundTrips() = runTest {
         repository.setBlocklistEtag("abc123")
-        repository.setBlocklistLastFetchTime(42L)
+        repository.setBlocklistLastSuccessfulCheckTime(42L)
 
         assertEquals("abc123", repository.blocklistEtag.first())
-        assertEquals(42L, repository.blocklistLastFetchTime.first())
+        assertEquals(42L, repository.blocklistLastSuccessfulCheckTime.first())
     }
 }

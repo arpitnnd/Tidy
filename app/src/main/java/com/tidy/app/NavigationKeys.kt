@@ -3,13 +3,15 @@ package com.tidy.app
 import androidx.navigation3.runtime.NavKey
 import kotlinx.serialization.Serializable
 
-// shareSequence disambiguates repeated shares of the identical URL: NavKey's default content
-// key is this data class's own toString(), so two Main instances with the same sharedUrl
-// would otherwise collide (same back-stack contentKey), and the second share would silently
-// inherit the first entry's saved state -- including hasHandledThisSharedUrl -- and do
-// nothing. Irrelevant to entries created any other way, which just take the default 0.
+// shareSequence disambiguates repeated navigation events: NavKey's default content key is this
+// data class's own toString(), so two Main instances with the same sharedUrl or two upsell
+// requests would otherwise collide and silently inherit the first entry's saved state.
 @Serializable
-data class Main(val sharedUrl: String? = null, val shareSequence: Int = 0) : NavKey
+data class Main(
+    val sharedUrl: String? = null,
+    val shareSequence: Int = 0,
+    val showPlusUpsell: Boolean = false
+) : NavKey
 
 @Serializable
 data object Settings : NavKey

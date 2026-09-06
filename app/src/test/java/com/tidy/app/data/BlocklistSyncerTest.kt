@@ -69,7 +69,7 @@ class BlocklistSyncerTest {
 
         assertEquals(body, settingsRepository.blocklistJson.first())
         assertEquals("\"v1\"", settingsRepository.blocklistEtag.first())
-        assertTrue(settingsRepository.blocklistLastFetchTime.first() > 0)
+        assertTrue(settingsRepository.blocklistLastSuccessfulCheckTime.first() > 0)
     }
 
     @Test
@@ -80,11 +80,32 @@ class BlocklistSyncerTest {
             exchange.sendResponseHeaders(200, -1)
             exchange.close()
         }
-        settingsRepository.setBlocklistLastFetchTime(System.currentTimeMillis())
+        settingsRepository.setBlocklistLastSuccessfulCheckTime(System.currentTimeMillis())
 
-        BlocklistSyncer.sync(context, settingsRepository, url)
+        val result = BlocklistSyncer.sync(context, settingsRepository, url)
 
         assertEquals(0, hits.get())
+        assertEquals(BlocklistSyncer.SyncResult.Skipped, result)
+    }
+
+    @Test
+    fun forcesNetworkCallWhenCacheIsFreshIfForced() = runTest {
+        val hits = AtomicInteger(0)
+        val body = """[{"name":"custom_tracker","description":"test tracker"}]"""
+        val url = startServer { exchange ->
+            hits.incrementAndGet()
+            exchange.responseHeaders.add("ETag", "\"v2\"")
+            val bytes = body.toByteArray()
+            exchange.sendResponseHeaders(200, bytes.size.toLong())
+            exchange.responseBody.use { it.write(bytes) }
+        }
+        settingsRepository.setBlocklistLastSuccessfulCheckTime(System.currentTimeMillis())
+
+        val result = BlocklistSyncer.sync(context, settingsRepository, url, force = true)
+
+        assertEquals(1, hits.get())
+        assertTrue(result is BlocklistSyncer.SyncResult.Updated)
+        assertEquals(body, settingsRepository.blocklistJson.first())
     }
 
     @Test
@@ -101,7 +122,7 @@ class BlocklistSyncerTest {
             SettingsRepository.DEFAULT_BLOCKLIST_JSON,
             settingsRepository.blocklistJson.first()
         )
-        assertTrue(settingsRepository.blocklistLastFetchTime.first() > 0)
+        assertTrue(settingsRepository.blocklistLastSuccessfulCheckTime.first() > 0)
     }
 
     @Test
@@ -130,8 +151,9 @@ class BlocklistSyncerTest {
             exchange.responseBody.use { it.write(bytes) }
         }
 
-        BlocklistSyncer.sync(context, settingsRepository, url)
+        val result = BlocklistSyncer.sync(context, settingsRepository, url)
 
+        assertEquals(BlocklistSyncer.SyncResult.UpToDate, result)
         assertEquals(
             SettingsRepository.DEFAULT_BLOCKLIST_JSON,
             settingsRepository.blocklistJson.first()
@@ -143,7 +165,7 @@ class BlocklistSyncerTest {
         // Nothing is listening on this port.
         BlocklistSyncer.sync(context, settingsRepository, "http://127.0.0.1:1/trackers.json")
 
-        assertEquals(0L, settingsRepository.blocklistLastFetchTime.first())
+        assertEquals(0L, settingsRepository.blocklistLastSuccessfulCheckTime.first())
         assertEquals(
             SettingsRepository.DEFAULT_BLOCKLIST_JSON,
             settingsRepository.blocklistJson.first()
@@ -152,8 +174,8 @@ class BlocklistSyncerTest {
 
     @Test
     fun acceptsAPayloadWithAnUnrecognisedField() = runTest {
-        // Simulates a future schema addition this build doesn't know about yet -- must
-        // still sync successfully (ignoreUnknownKeys) rather than silently stop retrying
+        // Simulates a future schema addition this build doesn't know about yet: sync
+        // must still succeed (ignoreUnknownKeys) rather than silently stop retrying
         // forever, the same failure mode that made trackers.json (no "v2") need freezing
         // in the first place when "domains" was added.
         val body = """[{"name":"custom_tracker","description":"test","futureField":"x"}]"""
@@ -166,7 +188,7 @@ class BlocklistSyncerTest {
         BlocklistSyncer.sync(context, settingsRepository, url)
 
         assertEquals(body, settingsRepository.blocklistJson.first())
-        assertTrue(settingsRepository.blocklistLastFetchTime.first() > 0)
+        assertTrue(settingsRepository.blocklistLastSuccessfulCheckTime.first() > 0)
     }
 
     @Test

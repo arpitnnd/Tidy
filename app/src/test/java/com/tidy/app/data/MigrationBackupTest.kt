@@ -69,6 +69,7 @@ class MigrationBackupTest {
         settingsRepository.setAutoCleanOnInput(false)
         settingsRepository.setSelectedTheme("forest")
         settingsRepository.setDontAskAgainCrash(true)
+        settingsRepository.addLifetimeStats(cleanedCount = 7, trackersBlockedCount = 12)
 
         val backupJson =
             buildMigrationBackup(historyRepository, settingsRepository, allowSystemBackup = true)
@@ -100,24 +101,31 @@ class MigrationBackupTest {
         assertFalse(freshSettings.autoCleanOnInput.first())
         assertEquals("forest", freshSettings.selectedTheme.first())
         assertTrue(freshSettings.dontAskAgainCrash.first())
+        assertEquals(7, freshSettings.totalCleanedCount.first())
+        assertEquals(12, freshSettings.totalTrackersBlocked.first())
     }
 
     @Test
-    fun restoreMergesRulesWithoutDroppingExistingOnes() = runTest {
+    fun restoreMergesRulesAndLifetimeStatsWithoutInflation() = runTest {
         settingsRepository.addWhitelistedDomain("already-here.com")
+        settingsRepository.addLifetimeStats(cleanedCount = 6, trackersBlockedCount = 2)
         historyRepository.addEntry(sampleEntry("https://a.com/1"))
 
         val other = HistoryRepository(testFile = File(tempFolder.root, "other.json"))
         val otherSettings = SettingsRepository(FakeDataStore())
         otherSettings.addWhitelistedDomain("imported.com")
+        otherSettings.addLifetimeStats(cleanedCount = 4, trackersBlockedCount = 9)
         val backupJson = buildMigrationBackup(other, otherSettings, allowSystemBackup = false)
 
+        restoreMigrationBackup(backupJson, historyRepository, settingsRepository)
         restoreMigrationBackup(backupJson, historyRepository, settingsRepository)
 
         assertEquals(
             setOf("already-here.com", "imported.com"),
             settingsRepository.whitelistedDomains.first()
         )
+        assertEquals(6, settingsRepository.totalCleanedCount.first())
+        assertEquals(9, settingsRepository.totalTrackersBlocked.first())
     }
 
     @Test
@@ -139,6 +147,8 @@ class MigrationBackupTest {
         // legacy backup carries no settings fields at all (they decode as null, not false/default).
         assertEquals("velvet", settingsRepository.selectedTheme.first())
         assertFalse(settingsRepository.autoExpandShortUrls.first())
+        assertEquals(1, settingsRepository.totalCleanedCount.first())
+        assertEquals(2, settingsRepository.totalTrackersBlocked.first())
     }
 
     @Test

@@ -178,7 +178,7 @@ class UrlExpanderTest {
 
     // Deliberately no automated test for "a failed resolution isn't cached": reliably
     // forcing resolve() into its exception path with a live listener, without either a
-    // slow real-time timeout (introduces flakiness in the wider suite -- confirmed while
+    // slow real-time timeout (introduces flakiness in the wider suite, confirmed while
     // writing this) or a stop/rebind-the-port race (flaky under Windows' delayed socket
     // release), isn't achievable here with reasonable effort. Verified by code review
     // instead: succeeded above starts false and is only set before the two non-exception

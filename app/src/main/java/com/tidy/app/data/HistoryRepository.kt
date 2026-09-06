@@ -8,11 +8,16 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
+import androidx.annotation.Keep
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.decodeFromJsonElement
 import java.io.File
 import java.util.UUID
 
+@Keep
 @Serializable
 data class HistoryEntry(
     val id: String = UUID.randomUUID().toString(),
@@ -21,6 +26,12 @@ data class HistoryEntry(
     val cleanedUrl: String,
     val removedParamsCount: Int,
     val domain: String
+)
+
+@Keep
+data class HistoryImportResult(
+    val newEntriesCount: Int,
+    val newTrackersBlocked: Int
 )
 
 class HistoryRepository(
@@ -97,6 +108,10 @@ class HistoryRepository(
     }
 
     suspend fun importFromJson(jsonStr: String): Int {
+        return importFromJsonWithResult(jsonStr)?.newEntriesCount ?: -1
+    }
+
+    suspend fun importFromJsonWithResult(jsonStr: String): HistoryImportResult? {
         return withContext(Dispatchers.IO) {
             mutex.withLock {
                 try {
@@ -104,14 +119,19 @@ class HistoryRepository(
                     val current = getOrLoadEntries().toMutableList()
                     val existingIds = current.map { it.id }.toSet()
                     val newEntries = imported.filter { it.id !in existingIds }
-                    current.addAll(0, newEntries)
-                    current.sortByDescending { it.timestamp }
-                    cachedEntries = current
-                    writeToFile(current)
-                    _historyFlow.value = current
-                    newEntries.size
+                    if (newEntries.isNotEmpty()) {
+                        current.addAll(0, newEntries)
+                        current.sortByDescending { it.timestamp }
+                        cachedEntries = current
+                        writeToFile(current)
+                        _historyFlow.value = current
+                    }
+                    HistoryImportResult(
+                        newEntriesCount = newEntries.size,
+                        newTrackersBlocked = newEntries.sumOf { it.removedParamsCount }
+                    )
                 } catch (e: Exception) {
-                    -1 // error indicator
+                    null
                 }
             }
         }
@@ -127,7 +147,17 @@ class HistoryRepository(
     }
 
     private fun parseJson(jsonStr: String): List<HistoryEntry> {
-        return json.decodeFromString<List<HistoryEntry>>(jsonStr)
+        return when (val payload = json.parseToJsonElement(jsonStr)) {
+            is JsonArray -> json.decodeFromJsonElement<List<HistoryEntry>>(payload)
+            is JsonObject -> {
+                val history = requireNotNull(payload["history"]) {
+                    "Migration backup does not contain history"
+                }
+                json.decodeFromJsonElement<List<HistoryEntry>>(history)
+            }
+
+            else -> error("History import must be an array or migration backup")
+        }
     }
 
     private fun writeToFile(entries: List<HistoryEntry>) {

@@ -22,6 +22,10 @@ object UrlDetection {
         if (!trimmed.contains('.')) return false
         val firstSlash = trimmed.indexOf('/')
         val hostPart = if (firstSlash != -1) trimmed.substring(0, firstSlash) else trimmed
+        // '@' only disqualifies a schemeless candidate in the authority position (e.g. an
+        // email address's local@domain) - a path segment like "medium.com/@user" is a
+        // legitimate bare-domain URL and must still be recognised.
+        if (hostPart.contains('@')) return false
         val host = hostPart.substringBefore('?').substringBefore('#')
         val lastDot = host.lastIndexOf('.')
         if (lastDot == -1 || lastDot == host.length - 1) return false
@@ -56,7 +60,7 @@ object UrlDetection {
 
     /**
      * Replaces the first occurrence of [oldUrl] within [text] with [newUrl], leaving any
-     * surrounding text untouched -- e.g. turning "here's the file <link> enjoy" into
+     * surrounding text untouched, e.g. turning "here's the file <link> enjoy" into
      * "here's the file <cleaned link> enjoy" instead of discarding "here's the file"/
      * "enjoy" entirely. Falls back to returning [newUrl] alone if [oldUrl] can't be found
      * verbatim in [text] (e.g. detection trimmed trailing punctuation around it).

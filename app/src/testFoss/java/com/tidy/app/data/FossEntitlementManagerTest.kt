@@ -28,7 +28,7 @@ class FossEntitlementManagerTest {
     @Test
     fun launchPurchaseFlow_isANoOp() {
         manager.launchPurchaseFlow(Activity()) { fail("onError should never be invoked in foss") }
-        // No exception, no callback -- confirms the no-op didn't touch the activity or report an error.
+        // No exception, no callback: this confirms the no-op didn't touch the activity or report an error.
         assertEquals(false, manager.isPlusUnlocked.value)
     }
 }

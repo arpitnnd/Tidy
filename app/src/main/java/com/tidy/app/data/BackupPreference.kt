@@ -1,6 +1,7 @@
 package com.tidy.app.data
 
 import android.content.Context
+import androidx.core.content.edit
 
 object BackupPreference {
     private const val PREFS_NAME = "tidy_backup_prefs"
@@ -11,9 +12,8 @@ object BackupPreference {
             .getBoolean(KEY_ALLOW_SYSTEM_BACKUP, false)
 
     fun setAllowed(context: Context, allowed: Boolean) {
-        context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-            .edit()
-            .putBoolean(KEY_ALLOW_SYSTEM_BACKUP, allowed)
-            .apply()
+        context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).edit {
+            putBoolean(KEY_ALLOW_SYSTEM_BACKUP, allowed)
+        }
     }
 }

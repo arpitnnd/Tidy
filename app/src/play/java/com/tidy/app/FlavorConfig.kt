@@ -145,8 +145,6 @@ fun PlayOnboardingRestoreView(onDismiss: () -> Unit) {
                             settingsRepository
                         )
                         if (result != null) {
-                            // Save stats to settings repository
-                            settingsRepository.addStats(result.urlsCleaned, result.trackersBlocked)
                             result.allowSystemBackup?.let {
                                 com.tidy.app.data.BackupPreference.setAllowed(context, it)
                             }

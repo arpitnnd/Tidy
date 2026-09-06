@@ -50,6 +50,10 @@ class TidyApp : Application() {
         com.tidy.app.data.SharedDependencies.entitlementManager = entitlementManager
         com.tidy.app.data.SharedDependencies.settingsRepository = settingsRepository
 
+        syncBlocklistInBackground()
+    }
+
+    fun syncBlocklistInBackground() {
         applicationScope.launch {
             com.tidy.app.data.BlocklistSyncer.sync(this@TidyApp, settingsRepository)
         }

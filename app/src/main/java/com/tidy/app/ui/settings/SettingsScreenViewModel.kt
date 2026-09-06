@@ -1,9 +1,11 @@
 package com.tidy.app.ui.settings
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.tidy.app.TidyApp
 import com.tidy.app.data.BackupPreference
+import com.tidy.app.data.BlocklistSyncer
 import com.tidy.app.data.ClipboardCleanTier
 import com.tidy.app.data.SettingsRepository
 import com.tidy.app.data.ShareCleanTier
@@ -25,6 +27,8 @@ class SettingsScreenViewModel(
         val blacklistedParams: Set<String> = emptySet(),
         val domainWhitelistedParams: Set<String> = emptySet(),
         val trackers: List<TrackerEntry> = emptyList(),
+        val blocklistLastSuccessfulCheckTime: Long = 0L,
+        val isRefreshingBlocklist: Boolean = false,
         val domainInput: String = "",
         val paramInput: String = "",
         val newParamWhitelistDomain: String = "",
@@ -55,7 +59,8 @@ class SettingsScreenViewModel(
         val whitelist: Set<String>,
         val blacklist: Set<String>,
         val domainParams: Set<String>,
-        val trackers: List<TrackerEntry>
+        val trackers: List<TrackerEntry>,
+        val lastSuccessfulCheckTime: Long
     )
 
     private val _uiState = MutableStateFlow(
@@ -66,9 +71,10 @@ class SettingsScreenViewModel(
             settingsRepository.whitelistedDomains,
             settingsRepository.blacklistedParams,
             settingsRepository.domainWhitelistedParams,
-            settingsRepository.trackers
-        ) { whitelist, blacklist, domainParams, trackers ->
-            RulesData(whitelist, blacklist, domainParams, trackers)
+            settingsRepository.trackers,
+            settingsRepository.blocklistLastSuccessfulCheckTime
+        ) { whitelist, blacklist, domainParams, trackers, lastSuccessfulCheckTime ->
+            RulesData(whitelist, blacklist, domainParams, trackers, lastSuccessfulCheckTime)
         },
         combine<Any, AutomationSettings>(
             settingsRepository.checkClipboardForLinks,
@@ -98,6 +104,7 @@ class SettingsScreenViewModel(
             blacklistedParams = reposFlow1.blacklist,
             domainWhitelistedParams = reposFlow1.domainParams,
             trackers = reposFlow1.trackers,
+            blocklistLastSuccessfulCheckTime = reposFlow1.lastSuccessfulCheckTime,
             checkClipboardForLinks = reposFlow2.checkClipboard,
             clipboardCleanTier = reposFlow2.clipboardTier,
             shareCleanTier = reposFlow2.shareTier,
@@ -108,6 +115,23 @@ class SettingsScreenViewModel(
             autoCleanOnInput = reposFlow2.autoCleanInput
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), UiState())
+
+    fun refreshBlocklist(context: Context, onResult: (BlocklistSyncer.SyncResult) -> Unit) {
+        if (_uiState.value.isRefreshingBlocklist) return
+        _uiState.update { it.copy(isRefreshingBlocklist = true) }
+        viewModelScope.launch {
+            try {
+                val result = BlocklistSyncer.sync(
+                    context = context,
+                    settingsRepository = settingsRepository,
+                    force = true
+                )
+                onResult(result)
+            } finally {
+                _uiState.update { it.copy(isRefreshingBlocklist = false) }
+            }
+        }
+    }
 
     fun setCheckClipboardForLinks(enabled: Boolean) {
         viewModelScope.launch {

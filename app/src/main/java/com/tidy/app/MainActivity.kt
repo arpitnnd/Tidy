@@ -20,6 +20,7 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 // response to a genuine incoming ACTION_SEND intent from another app.
 class MainActivity : ComponentActivity() {
     private val sharedUrls = MutableSharedFlow<String>(extraBufferCapacity = 1)
+    private val plusUpsellRequests = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         setTheme(R.style.Theme_Tidy)
@@ -44,11 +45,10 @@ class MainActivity : ComponentActivity() {
         }
 
         val initialUrl = handleIntent(intent)
-        if (initialUrl != null) {
-            sharedUrls.tryEmit(initialUrl)
-        }
+        if (initialUrl != null) sharedUrls.tryEmit(initialUrl)
 
         val showPlusUpsell = intent?.getBooleanExtra("show_plus_upsell", false) ?: false
+        intent?.removeExtra("show_plus_upsell")
 
         enableEdgeToEdge()
         setContent {
@@ -57,19 +57,31 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    MainNavigation(initialUrl, sharedUrls, crashReportText, showPlusUpsell)
+                    MainNavigation(
+                        initialUrl = initialUrl,
+                        sharedUrls = sharedUrls,
+                        plusUpsellRequests = plusUpsellRequests,
+                        crashReportText = crashReportText,
+                        showPlusUpsell = showPlusUpsell
+                    )
                 }
             }
         }
     }
 
+    override fun onResume() {
+        super.onResume()
+        TidyApp.instance.syncBlocklistInBackground()
+    }
+
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
+        val showPlusUpsell = intent.getBooleanExtra("show_plus_upsell", false)
+        intent.removeExtra("show_plus_upsell")
         setIntent(intent)
         val url = handleIntent(intent)
-        if (url != null) {
-            sharedUrls.tryEmit(url)
-        }
+        if (url != null) sharedUrls.tryEmit(url)
+        if (showPlusUpsell) plusUpsellRequests.tryEmit(Unit)
     }
 
     private fun handleIntent(intent: Intent): String? {

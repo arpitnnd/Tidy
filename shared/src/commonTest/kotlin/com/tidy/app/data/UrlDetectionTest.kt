@@ -34,6 +34,20 @@ class UrlDetectionTest {
     }
 
     @Test
+    fun rejectsEmailAddresses() {
+        assertFalse(UrlDetection.looksLikeUrl("user@example.com"))
+        assertFalse(UrlDetection.looksLikeUrl("first.last@company.co.uk"))
+        assertFalse(UrlDetection.looksLikeUrl("support@service.io"))
+        assertFalse(UrlDetection.looksLikeUrl("mailto:user@example.com"))
+    }
+
+    @Test
+    fun acceptsBareDomainsWithAtInThePath() {
+        assertTrue(UrlDetection.looksLikeUrl("medium.com/@someuser"))
+        assertTrue(UrlDetection.looksLikeUrl("npmjs.com/package/@babel/core"))
+    }
+
+    @Test
     fun findsUrlsInsideFreeFormText() {
         assertEquals(
             "https://example.com/a?fbclid=1",

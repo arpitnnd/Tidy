@@ -43,7 +43,8 @@ class SettingsRepository(private val dataStore: DataStore<Preferences>) {
         val KEY_SELECTED_THEME = stringPreferencesKey("selected_theme")
         val KEY_BLOCKLIST_JSON = stringPreferencesKey("blocklist_json")
         val KEY_BLOCKLIST_ETAG = stringPreferencesKey("blocklist_etag")
-        val KEY_BLOCKLIST_LAST_FETCH_TIME = longPreferencesKey("blocklist_last_fetch_time")
+        val KEY_BLOCKLIST_LAST_SUCCESSFUL_CHECK_TIME =
+            longPreferencesKey("blocklist_last_fetch_time")
 
         // Generated at build time from blocklist/trackers.json — the single authored
         // source of truth, also fetched remotely by BlocklistSyncer. Do not hand-copy
@@ -170,7 +171,7 @@ class SettingsRepository(private val dataStore: DataStore<Preferences>) {
         }
     }
 
-    suspend fun incrementAnalytics(trackersBlockedCount: Int) {
+    suspend fun recordClean(trackersBlockedCount: Int) {
         dataStore.edit { preferences ->
             val currentCleaned = preferences[KEY_TOTAL_CLEANED_COUNT] ?: 0
             val currentBlocked = preferences[KEY_TOTAL_TRACKERS_BLOCKED] ?: 0
@@ -179,12 +180,21 @@ class SettingsRepository(private val dataStore: DataStore<Preferences>) {
         }
     }
 
-    suspend fun addStats(cleanedCount: Int, trackersBlockedCount: Int) {
+    suspend fun addLifetimeStats(cleanedCount: Int, trackersBlockedCount: Int) {
         dataStore.edit { preferences ->
             val currentCleaned = preferences[KEY_TOTAL_CLEANED_COUNT] ?: 0
             val currentBlocked = preferences[KEY_TOTAL_TRACKERS_BLOCKED] ?: 0
             preferences[KEY_TOTAL_CLEANED_COUNT] = currentCleaned + cleanedCount
             preferences[KEY_TOTAL_TRACKERS_BLOCKED] = currentBlocked + trackersBlockedCount
+        }
+    }
+
+    suspend fun mergeLifetimeStats(cleanedCount: Int, trackersBlockedCount: Int) {
+        dataStore.edit { preferences ->
+            val currentCleaned = preferences[KEY_TOTAL_CLEANED_COUNT] ?: 0
+            val currentBlocked = preferences[KEY_TOTAL_TRACKERS_BLOCKED] ?: 0
+            preferences[KEY_TOTAL_CLEANED_COUNT] = maxOf(currentCleaned, cleanedCount)
+            preferences[KEY_TOTAL_TRACKERS_BLOCKED] = maxOf(currentBlocked, trackersBlockedCount)
         }
     }
 
@@ -355,13 +365,13 @@ class SettingsRepository(private val dataStore: DataStore<Preferences>) {
         }
     }
 
-    val blocklistLastFetchTime: Flow<Long> = dataStore.data.map { preferences ->
-        preferences[KEY_BLOCKLIST_LAST_FETCH_TIME] ?: 0L
+    val blocklistLastSuccessfulCheckTime: Flow<Long> = dataStore.data.map { preferences ->
+        preferences[KEY_BLOCKLIST_LAST_SUCCESSFUL_CHECK_TIME] ?: 0L
     }
 
-    suspend fun setBlocklistLastFetchTime(time: Long) {
+    suspend fun setBlocklistLastSuccessfulCheckTime(time: Long) {
         dataStore.edit { preferences ->
-            preferences[KEY_BLOCKLIST_LAST_FETCH_TIME] = time
+            preferences[KEY_BLOCKLIST_LAST_SUCCESSFUL_CHECK_TIME] = time
         }
     }
 
