@@ -28,12 +28,8 @@
     <string name="welcome_get_started">Get started</string>
     <string name="welcome_welcome_to">Welcome to Tidy</string>
     <string name="welcome_welcome_desc">Tidy removes tracking parameters from URLs, keeping your sharing private and clean</string>
-    <string name="welcome_paste_prompt">Paste URL to clean</string>
     <string name="welcome_placeholder">https://example.com/link?utm_source=&#8230;</string>
 
-    <string name="dialog_allow_param_title">Allow parameter?</string>
-    <string name="dialog_allow_param_text">Always keep parameter \"%1$s\" on \"%2$s\"?</string>
-    <string name="dialog_allow">Allow</string>
     <string name="dialog_cancel">Cancel</string>
 
     <string name="banner_found_clipboard">Found URL in clipboard</string>
@@ -191,14 +187,11 @@
     <string name="details_always_keep">Always keep</string>
     <string name="process_text_plus_required">Tidy+ is required for this feature</string>
     <string name="process_text_cleaned">URL cleaned</string>
-    <string name="process_text_label">Clean with Tidy</string>
     <string name="history_copy_original">Copy original</string>
 
     <!-- Diagnostics & Crashes -->
-    <string name="settings_diagnostics_title">Diagnostics and crashes</string>
     <string name="settings_crash_log_title">Latest crash report</string>
     <string name="settings_crash_log_desc">Inspect, share, or delete the last recorded application crash</string>
-    <string name="dialog_crash_log_title">Latest crash log</string>
     <string name="dialog_delete">Delete</string>
     <string name="dialog_share">Share</string>
     <string name="toast_crash_deleted">Crash report deleted</string>
@@ -210,7 +203,6 @@
     <string name="tooltip_share_clean">Share cleaned URL with other apps</string>
     <string name="tooltip_clean_new">Clean another link</string>
     <string name="tooltip_open_browser">Open cleaned URL in browser</string>
-    <string name="tooltip_toggle_details">Toggle parameter details</string>
     <string name="tooltip_clear_input">Clear text input</string>
     <string name="tooltip_process_url">Process and clean URL</string>
     <string name="tooltip_back">Back to dashboard</string>
@@ -220,14 +212,9 @@
     <string name="tooltip_copy_original">Copy original unmodified URL</string>
 
     <!-- Crash Reporting -->
-    <string name="crash_share_log">Share log</string>
     <string name="crash_report_github">Report on GitHub</string>
-    <string name="crash_view_local">View local crash log</string>
     <string name="crash_toast_copied">Copied log. Paste it on GitHub!</string>
     <string name="crash_toast_browser_error">Could not open browser</string>
-
-    <!-- Plus Entitlements -->
-    <string name="plus_value_proposition">Zero subscription. Pay once, own forever.</string>
 
     <!-- History Import status -->
     <string name="history_import_success" tools:ignore="PluralsCandidate">Imported %1$d new entries</string>
@@ -240,7 +227,6 @@
     <!-- About Screen -->
     <string name="about_title">About Tidy</string>
     <string name="about_values_statement">Cleaned entirely offline on your device. You\'re in control with custom rules, history, and backups. No ads, ever.</string>
-    <string name="about_license">Licence</string>
     <string name="about_license_desc">Apache License 2.0</string>
     <string name="about_links">Links</string>
     <string name="about_link_github">GitHub repository</string>
@@ -334,5 +320,4 @@
     <string name="tooltip_add_custom_param">Add custom parameter</string>
     <string name="tooltip_remove_custom_param">Remove custom parameter</string>
     <string name="tooltip_view_crash_log">View crash report log</string>
-    <string name="tooltip_cancel">Cancel</string>
 </resources>

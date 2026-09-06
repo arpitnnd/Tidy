@@ -4,30 +4,37 @@ All notable changes to Tidy will be documented in this file.
 
 ## [Unreleased]
 
+## [1.3.0]
+
+This release improves sharing, backup restores, and the home screen.
+
 ### New
 
-- Add domain-scoped tracker rules for Samsung (`cid`) and XDA (`taid`).
-
-### Bug fixes
-
-- Prevent email addresses without a scheme from being falsely detected as bare web URLs.
+- Check for blocklist updates from Settings.
 
 ### Improvements
 
-- Immediately populate the URL input field and display a dedicated cleaning card during link resolution when receiving shared links.
-- Add a manual update check and precise last-checked status to the default blocklist sheet in settings.
-- Automatically sync default blocklist updates on app resume and share intent handling.
-- Consolidate home branding and add smooth collapsing transition from hero title to top app bar on scroll.
+- Shared URLs appear straight away, with a loading indicator while short URLs expand.
+- The home-screen header shrinks as you scroll, and the input, suggestions, and results change
+  more smoothly.
+- Tidy checks for blocklist updates when you return to the app or share a URL. Settings shows
+  when it last checked.
+- Added tracking rules for Samsung's `cid` and XDA's `taid` parameters.
+- Tidied up the wording of lifetime statistics and the borders on clipboard prompts.
+
+### Bug fixes
+
+- Email addresses are no longer mistaken for URLs.
+- Restoring history now updates your lifetime statistics. Full backups keep those totals too.
+- Sharing to Tidy keeps one separate card in Recents instead of opening duplicate screens inside
+  the sending app.
+- Clipboard suggestions disappear when you enter or clean the same URL.
 
 ### Internal
 
-- Upgrade Gradle wrapper to 9.7.1, Android Gradle Plugin to 9.3.2, Jetpack
-  Compose BOM to 2026.08.00, and Navigation 3 to 1.1.7.
-- Configure explicit domain-scoped backup extraction rules for Android 12+ cloud
-  and device-to-device transfers while excluding local crash reports.
-- Enable parallel Gradle task execution for faster multi-module builds.
-- Optimise internal state allocations and align composable modifier parameters
-  with Compose API guidelines.
+- Updated Gradle, Android Gradle Plugin, Compose, Navigation 3, and supporting AndroidX libraries.
+- Scoped Android backups to user data and excluded local crash reports.
+- Enabled parallel Gradle task execution.
 
 ## [1.2.0]
 
