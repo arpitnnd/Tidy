@@ -6,28 +6,29 @@ All notable changes to Tidy will be documented in this file.
 
 ## [1.3.0]
 
-This release improves sharing, backup restores, and the home screen.
+Sharing into Tidy now feels immediate, even when a short URL takes time to expand. The home screen
+moves more smoothly, and restoring history keeps your lifetime totals accurate.
 
 ### New
 
-- Check for blocklist updates from Settings.
+- You can now check for blocklist updates from Settings.
 
 ### Improvements
 
 - Shared URLs appear straight away, with a loading indicator while short URLs expand.
-- The home-screen header shrinks as you scroll, and the input, suggestions, and results change
-  more smoothly.
+- The home screen header shrinks as you scroll. Input, suggestions, and results transition more
+  smoothly.
 - Tidy checks for blocklist updates when you return to the app or share a URL. Settings shows
   when it last checked.
-- Added tracking rules for Samsung's `cid` and XDA's `taid` parameters.
-- Tidied up the wording of lifetime statistics and the borders on clipboard prompts.
+- Tidy now removes `cid` from Samsung URLs and `taid` from XDA URLs.
+- Lifetime statistics now use natural singular and plural wording, and clipboard prompts have
+  more consistent borders.
 
 ### Bug fixes
 
 - Email addresses are no longer mistaken for URLs.
 - Restoring history now updates your lifetime statistics. Full backups keep those totals too.
-- Sharing to Tidy keeps one separate card in Recents instead of opening duplicate screens inside
-  the sending app.
+- Sharing to Tidy now opens one Tidy card in Recents, separate from the app you shared from.
 - Clipboard suggestions disappear when you enter or clean the same URL.
 
 ### Internal
