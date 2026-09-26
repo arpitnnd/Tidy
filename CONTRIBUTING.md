@@ -50,6 +50,8 @@ buildable here.
   touching rather than introducing a new one — this codebase leans on
   a handful of shared components (`TidyModalBottomSheet`,
   `SettingCard`, `TooltipWrapper`, etc.) instead of one-off UI.
+  See the [design system guide](docs/design-system.md) for theme roles,
+  component behaviour and layout conventions.
 - No unrelated reformatting or renaming in the same PR as a
   behavioural change — keep diffs reviewable.
 
