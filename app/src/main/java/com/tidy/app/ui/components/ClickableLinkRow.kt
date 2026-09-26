@@ -19,6 +19,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.tidy.app.theme.TidyCardTokens
 
 /**
  * A full-width clickable row that displays a text label on the left and a trailing
@@ -39,9 +40,12 @@ fun ClickableLinkRow(
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(12.dp))
+            .clip(RoundedCornerShape(TidyCardTokens.rowCornerRadius))
             .clickable(onClick = onClick)
-            .padding(horizontal = 8.dp, vertical = 12.dp),
+            .padding(
+                horizontal = TidyCardTokens.rowHorizontalPadding,
+                vertical = TidyCardTokens.rowVerticalPadding
+            ),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {

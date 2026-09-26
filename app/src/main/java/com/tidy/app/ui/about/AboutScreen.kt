@@ -42,6 +42,7 @@ import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import com.tidy.app.BuildConfig
 import com.tidy.app.R
+import com.tidy.app.theme.TidyCardTokens
 import com.tidy.app.ui.components.AppIconBox
 import com.tidy.app.ui.components.CardSectionLabel
 import com.tidy.app.ui.components.ClickableLinkRow
@@ -156,7 +157,7 @@ fun AboutScreen(
 
                 // Licensing Card
                 SettingCard {
-                    Column(modifier = Modifier.padding(12.dp)) {
+                    Column(modifier = Modifier.padding(TidyCardTokens.contentPadding)) {
                         TooltipWrapper(tooltipText = stringResource(R.string.tooltip_open)) {
                             ClickableLinkRow(
                                 label = stringResource(R.string.about_license_desc),
@@ -179,12 +180,15 @@ fun AboutScreen(
                 // Links Card
                 SettingCard {
                     Column(
-                        modifier = Modifier.padding(12.dp),
+                        modifier = Modifier.padding(TidyCardTokens.contentPadding),
                         verticalArrangement = Arrangement.spacedBy(4.dp)
                     ) {
                         CardSectionLabel(
                             text = stringResource(R.string.about_links),
-                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                            modifier = Modifier.padding(
+                                horizontal = TidyCardTokens.rowHorizontalPadding,
+                                vertical = 4.dp
+                            )
                         )
 
                         TooltipWrapper(tooltipText = stringResource(R.string.tooltip_open)) {
@@ -244,16 +248,19 @@ fun AboutScreen(
                 if (currentCrashReportText != null) {
                     SettingCard {
                         Column(
-                            modifier = Modifier.padding(12.dp),
-                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                            modifier = Modifier.padding(TidyCardTokens.contentPadding),
+                            verticalArrangement = Arrangement.spacedBy(TidyCardTokens.contentSpacing)
                         ) {
                             TooltipWrapper(tooltipText = stringResource(R.string.tooltip_view_crash_log)) {
                                 Row(
                                     modifier = Modifier
                                         .fillMaxWidth()
-                                        .clip(RoundedCornerShape(12.dp))
+                                        .clip(RoundedCornerShape(TidyCardTokens.rowCornerRadius))
                                         .clickable { showCrashDialog = true }
-                                        .padding(horizontal = 8.dp, vertical = 12.dp),
+                                        .padding(
+                                            horizontal = TidyCardTokens.rowHorizontalPadding,
+                                            vertical = TidyCardTokens.rowVerticalPadding
+                                        ),
                                     horizontalArrangement = Arrangement.spacedBy(16.dp),
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {

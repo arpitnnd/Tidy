@@ -80,6 +80,7 @@ import com.tidy.app.R
 import com.tidy.app.data.BlocklistSyncer
 import com.tidy.app.data.ClipboardCleanTier
 import com.tidy.app.data.ShareCleanTier
+import com.tidy.app.theme.TidyCardTokens
 import com.tidy.app.ui.components.ExpandableSettingRow
 import com.tidy.app.ui.components.ScreenSectionHeader
 import com.tidy.app.ui.components.SettingCard
@@ -321,8 +322,8 @@ fun SettingsScreen(
 
                 SettingCard(modifier = Modifier.animateContentSize()) {
                     Column(
-                        modifier = Modifier.padding(12.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                        modifier = Modifier.padding(TidyCardTokens.contentPadding),
+                        verticalArrangement = Arrangement.spacedBy(TidyCardTokens.contentSpacing)
                     ) {
                         // 1. Bypass List Row (Clickable Row Header)
                         val bypassSummary = if (state.whitelistedDomains.isEmpty()) {
@@ -343,7 +344,11 @@ fun SettingsScreen(
                                 verticalArrangement = Arrangement.spacedBy(12.dp),
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .padding(start = 8.dp, end = 8.dp, bottom = 12.dp)
+                                    .padding(
+                                        start = TidyCardTokens.rowHorizontalPadding,
+                                        end = TidyCardTokens.rowHorizontalPadding,
+                                        bottom = 12.dp
+                                    )
                             ) {
                                 Text(
                                     text = stringResource(R.string.settings_bypass_desc),
@@ -448,7 +453,7 @@ fun SettingsScreen(
 
                         HorizontalDivider(
                             color = MaterialTheme.colorScheme.outline.copy(alpha = 0.12f),
-                            modifier = Modifier.padding(horizontal = 8.dp)
+                            modifier = Modifier.padding(horizontal = TidyCardTokens.rowHorizontalPadding)
                         )
 
                         // 2. Parameter Whitelist Row (Clickable Row Header)
@@ -474,7 +479,11 @@ fun SettingsScreen(
                                 verticalArrangement = Arrangement.spacedBy(12.dp),
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .padding(start = 8.dp, end = 8.dp, bottom = 12.dp)
+                                    .padding(
+                                        start = TidyCardTokens.rowHorizontalPadding,
+                                        end = TidyCardTokens.rowHorizontalPadding,
+                                        bottom = 12.dp
+                                    )
                             ) {
                                 Text(
                                     text = stringResource(R.string.settings_param_whitelist_desc),
@@ -610,7 +619,7 @@ fun SettingsScreen(
 
                         HorizontalDivider(
                             color = MaterialTheme.colorScheme.outline.copy(alpha = 0.12f),
-                            modifier = Modifier.padding(horizontal = 8.dp)
+                            modifier = Modifier.padding(horizontal = TidyCardTokens.rowHorizontalPadding)
                         )
 
                         // 3. Custom Blacklisted Parameters Row (Clickable Row Header)
@@ -632,7 +641,11 @@ fun SettingsScreen(
                                 verticalArrangement = Arrangement.spacedBy(12.dp),
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .padding(start = 8.dp, end = 8.dp, bottom = 12.dp)
+                                    .padding(
+                                        start = TidyCardTokens.rowHorizontalPadding,
+                                        end = TidyCardTokens.rowHorizontalPadding,
+                                        bottom = 12.dp
+                                    )
                             ) {
                                 Text(
                                     text = stringResource(R.string.settings_custom_params_desc),
@@ -738,13 +751,16 @@ fun SettingsScreen(
 
                 // Default Blocklist Card (separated reference link)
                 SettingCard {
-                    Column(modifier = Modifier.padding(12.dp)) {
+                    Column(modifier = Modifier.padding(TidyCardTokens.contentPadding)) {
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .clip(RoundedCornerShape(12.dp))
+                                .clip(RoundedCornerShape(TidyCardTokens.rowCornerRadius))
                                 .clickable { showDefaultBlocklistSheet = true }
-                                .padding(horizontal = 8.dp, vertical = 12.dp),
+                                .padding(
+                                    horizontal = TidyCardTokens.rowHorizontalPadding,
+                                    vertical = TidyCardTokens.rowVerticalPadding
+                                ),
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
@@ -779,8 +795,8 @@ fun SettingsScreen(
 
                 SettingCard {
                     Column(
-                        modifier = Modifier.padding(12.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                        modifier = Modifier.padding(TidyCardTokens.contentPadding),
+                        verticalArrangement = Arrangement.spacedBy(TidyCardTokens.contentSpacing)
                     ) {
 
                         val themeSageSlate = stringResource(R.string.theme_sage_slate)
@@ -821,7 +837,7 @@ fun SettingsScreen(
                                 Row(
                                     modifier = Modifier
                                         .fillMaxWidth()
-                                        .clip(RoundedCornerShape(12.dp))
+                                        .clip(RoundedCornerShape(TidyCardTokens.rowCornerRadius))
                                         .clickable {
                                             if (themeKey == "slate" || isPlusUnlocked) {
                                                 scope.launch {
@@ -833,7 +849,7 @@ fun SettingsScreen(
                                         }
                                         .padding(
                                             start = 0.dp,
-                                            end = 8.dp,
+                                            end = TidyCardTokens.rowHorizontalPadding,
                                             top = 8.dp,
                                             bottom = 8.dp
                                         ),
@@ -884,8 +900,8 @@ fun SettingsScreen(
                 // Clipboard checking: master toggle + tiered selector
                 SettingCard(modifier = Modifier.animateContentSize()) {
                     Column(
-                        modifier = Modifier.padding(12.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                        modifier = Modifier.padding(TidyCardTokens.contentPadding),
+                        verticalArrangement = Arrangement.spacedBy(TidyCardTokens.contentSpacing)
                     ) {
                         SettingToggleRow(
                             title = stringResource(R.string.settings_check_clipboard_title),
@@ -900,7 +916,10 @@ fun SettingsScreen(
                                 style = MaterialTheme.typography.labelLarge,
                                 fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier.padding(start = 8.dp, top = 4.dp)
+                                modifier = Modifier.padding(
+                                    start = TidyCardTokens.rowHorizontalPadding,
+                                    top = 4.dp
+                                )
                             )
                             TierSelectorRow(
                                 cards = listOf(
@@ -937,15 +956,18 @@ fun SettingsScreen(
                 // Share-to-clean tiered selector
                 SettingCard(modifier = Modifier.animateContentSize()) {
                     Column(
-                        modifier = Modifier.padding(12.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                        modifier = Modifier.padding(TidyCardTokens.contentPadding),
+                        verticalArrangement = Arrangement.spacedBy(TidyCardTokens.contentSpacing)
                     ) {
                         Text(
                             text = stringResource(R.string.settings_share_tier_heading),
                             style = MaterialTheme.typography.labelLarge,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.padding(start = 8.dp, top = 4.dp)
+                            modifier = Modifier.padding(
+                                start = TidyCardTokens.rowHorizontalPadding,
+                                top = 4.dp
+                            )
                         )
                         val effectiveShareTier =
                             if (isPlusUnlocked) state.shareCleanTier else ShareCleanTier.CLEAN
@@ -982,7 +1004,7 @@ fun SettingsScreen(
                             HorizontalDivider(
                                 color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f),
                                 thickness = 1.dp,
-                                modifier = Modifier.padding(horizontal = 8.dp)
+                                modifier = Modifier.padding(horizontal = TidyCardTokens.rowHorizontalPadding)
                             )
                             SettingToggleRow(
                                 title = stringResource(R.string.settings_close_instead_title),
@@ -997,8 +1019,8 @@ fun SettingsScreen(
                 // Other automation toggles
                 SettingCard {
                     Column(
-                        modifier = Modifier.padding(12.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                        modifier = Modifier.padding(TidyCardTokens.contentPadding),
+                        verticalArrangement = Arrangement.spacedBy(TidyCardTokens.contentSpacing)
                     ) {
                         SettingToggleRow(
                             title = stringResource(R.string.settings_auto_expand_title),
@@ -1010,7 +1032,7 @@ fun SettingsScreen(
                         HorizontalDivider(
                             color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f),
                             thickness = 1.dp,
-                            modifier = Modifier.padding(horizontal = 8.dp)
+                            modifier = Modifier.padding(horizontal = TidyCardTokens.rowHorizontalPadding)
                         )
 
                         SettingToggleRow(
@@ -1023,7 +1045,7 @@ fun SettingsScreen(
                         HorizontalDivider(
                             color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f),
                             thickness = 1.dp,
-                            modifier = Modifier.padding(horizontal = 8.dp)
+                            modifier = Modifier.padding(horizontal = TidyCardTokens.rowHorizontalPadding)
                         )
 
                         SettingToggleRow(
@@ -1036,7 +1058,7 @@ fun SettingsScreen(
                         HorizontalDivider(
                             color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f),
                             thickness = 1.dp,
-                            modifier = Modifier.padding(horizontal = 8.dp)
+                            modifier = Modifier.padding(horizontal = TidyCardTokens.rowHorizontalPadding)
                         )
 
                         SettingToggleRow(
@@ -1049,7 +1071,7 @@ fun SettingsScreen(
                         HorizontalDivider(
                             color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f),
                             thickness = 1.dp,
-                            modifier = Modifier.padding(horizontal = 8.dp)
+                            modifier = Modifier.padding(horizontal = TidyCardTokens.rowHorizontalPadding)
                         )
 
                         // "Clean from any app" genuinely toggles the ACTION_PROCESS_TEXT
@@ -1084,14 +1106,17 @@ fun SettingsScreen(
 
                 SettingCard {
                     Column(
-                        modifier = Modifier.padding(12.dp)
+                        modifier = Modifier.padding(TidyCardTokens.contentPadding)
                     ) {
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .clip(RoundedCornerShape(12.dp))
+                                .clip(RoundedCornerShape(TidyCardTokens.rowCornerRadius))
                                 .clickable { viewModel.setAllowSystemBackup(!state.allowSystemBackup) }
-                                .padding(horizontal = 8.dp, vertical = 12.dp),
+                                .padding(
+                                    horizontal = TidyCardTokens.rowHorizontalPadding,
+                                    vertical = TidyCardTokens.rowVerticalPadding
+                                ),
                             horizontalArrangement = Arrangement.spacedBy(16.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
@@ -1126,14 +1151,17 @@ fun SettingsScreen(
 
                 SettingCard {
                     Column(
-                        modifier = Modifier.padding(12.dp)
+                        modifier = Modifier.padding(TidyCardTokens.contentPadding)
                     ) {
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .clip(RoundedCornerShape(12.dp))
+                                .clip(RoundedCornerShape(TidyCardTokens.rowCornerRadius))
                                 .clickable { onAboutClick() }
-                                .padding(horizontal = 8.dp, vertical = 12.dp),
+                                .padding(
+                                    horizontal = TidyCardTokens.rowHorizontalPadding,
+                                    vertical = TidyCardTokens.rowVerticalPadding
+                                ),
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
@@ -1196,9 +1224,12 @@ private fun SettingToggleRow(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(12.dp))
+            .clip(RoundedCornerShape(TidyCardTokens.rowCornerRadius))
             .clickable { if (enabled) onToggle() else onLockedTap() }
-            .padding(horizontal = 8.dp, vertical = 12.dp),
+            .padding(
+                horizontal = TidyCardTokens.rowHorizontalPadding,
+                vertical = TidyCardTokens.rowVerticalPadding
+            ),
         horizontalArrangement = Arrangement.spacedBy(16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {

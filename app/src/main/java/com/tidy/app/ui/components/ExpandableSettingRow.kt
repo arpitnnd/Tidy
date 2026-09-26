@@ -23,6 +23,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.tidy.app.R
+import com.tidy.app.theme.TidyCardTokens
 
 /**
  * A full-width clickable row used as a collapsible section header in settings cards.
@@ -45,9 +46,12 @@ fun ExpandableSettingRow(
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(12.dp))
+            .clip(RoundedCornerShape(TidyCardTokens.rowCornerRadius))
             .clickable(onClick = onToggle)
-            .padding(horizontal = 8.dp, vertical = 12.dp),
+            .padding(
+                horizontal = TidyCardTokens.rowHorizontalPadding,
+                vertical = TidyCardTokens.rowVerticalPadding
+            ),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
