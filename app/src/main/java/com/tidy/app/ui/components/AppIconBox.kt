@@ -23,8 +23,8 @@ import androidx.compose.ui.unit.dp
  * @param boxSize   The outer box dimension (default 48.dp).
  * @param iconSize  The icon dimension inside the box (default 24.dp).
  * @param cornerRadius Corner radius of the rounded box (default 12.dp).
- * @param tint      Icon tint colour (defaults to primaryContainer at 50% alpha).
- * @param background Background colour of the box (defaults to primary).
+ * @param tint      Icon tint colour (defaults to primary).
+ * @param background Background colour of the box (defaults to primaryContainer at 50% alpha).
  * @param modifier  Optional modifier for the outer Box.
  */
 @Composable
