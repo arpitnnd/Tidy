@@ -23,6 +23,9 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.selection.selectableGroup
+import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -71,6 +74,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
@@ -89,11 +93,11 @@ import com.tidy.app.ui.components.TidyTopAppBar
 import com.tidy.app.ui.components.TierCard
 import com.tidy.app.ui.components.TierSelectorRow
 import com.tidy.app.ui.components.TooltipWrapper
-import kotlinx.coroutines.launch
 import java.text.DateFormat
 import java.util.Calendar
 import java.util.Date
 import java.util.TimeZone
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
@@ -831,22 +835,26 @@ fun SettingsScreen(
 
                         Column(
                             verticalArrangement = Arrangement.spacedBy(2.dp),
-                            modifier = Modifier.fillMaxWidth()
+                            modifier = Modifier.fillMaxWidth().selectableGroup()
                         ) {
                             themes.forEach { (themeKey, themeName) ->
                                 Row(
                                     modifier = Modifier
                                         .fillMaxWidth()
                                         .clip(RoundedCornerShape(TidyCardTokens.rowCornerRadius))
-                                        .clickable {
-                                            if (themeKey == "slate" || isPlusUnlocked) {
-                                                scope.launch {
-                                                    settingsRepository.setSelectedTheme(themeKey)
+                                        .selectable(
+                                            selected = selectedTheme == themeKey,
+                                            role = Role.RadioButton,
+                                            onClick = {
+                                                if (themeKey == "slate" || isPlusUnlocked) {
+                                                    scope.launch {
+                                                        settingsRepository.setSelectedTheme(themeKey)
+                                                    }
+                                                } else {
+                                                    showUpsellSheet = true
                                                 }
-                                            } else {
-                                                showUpsellSheet = true
                                             }
-                                        }
+                                        )
                                         .padding(
                                             start = 0.dp,
                                             end = TidyCardTokens.rowHorizontalPadding,
@@ -862,15 +870,8 @@ fun SettingsScreen(
                                     ) {
                                         RadioButton(
                                             selected = (selectedTheme == themeKey),
-                                            onClick = {
-                                                if (themeKey == "slate" || isPlusUnlocked) {
-                                                    scope.launch {
-                                                        settingsRepository.setSelectedTheme(themeKey)
-                                                    }
-                                                } else {
-                                                    showUpsellSheet = true
-                                                }
-                                            }
+                                            onClick = null,
+                                            modifier = Modifier.padding(12.dp)
                                         )
                                         Text(
                                             text = themeName,
@@ -1112,7 +1113,11 @@ fun SettingsScreen(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .clip(RoundedCornerShape(TidyCardTokens.rowCornerRadius))
-                                .clickable { viewModel.setAllowSystemBackup(!state.allowSystemBackup) }
+                                .toggleable(
+                                    value = state.allowSystemBackup,
+                                    role = Role.Switch,
+                                    onValueChange = viewModel::setAllowSystemBackup
+                                )
                                 .padding(
                                     horizontal = TidyCardTokens.rowHorizontalPadding,
                                     vertical = TidyCardTokens.rowVerticalPadding
@@ -1206,7 +1211,7 @@ fun SettingsScreen(
 
 /**
  * A standard settings toggle row: title + description on the left, switch on the right.
- * [enabled] = false renders the row greyed; it stays tappable so a locked row can still
+ * [enabled] = false disables the switch; the row stays tappable so a locked row can still
  * surface the Tidy+ upsell via [onLockedTap]. [showLock] adds the lock indicator next to
  * the title.
  */
@@ -1220,12 +1225,17 @@ private fun SettingToggleRow(
     showLock: Boolean = false,
     onLockedTap: () -> Unit = {}
 ) {
-    val contentAlpha = if (enabled) 1f else 0.38f
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(TidyCardTokens.rowCornerRadius))
-            .clickable { if (enabled) onToggle() else onLockedTap() }
+            .then(
+                if (enabled) Modifier.toggleable(
+                    value = checked,
+                    role = Role.Switch,
+                    onValueChange = { onToggle() }
+                ) else Modifier.clickable(role = Role.Button, onClick = onLockedTap)
+            )
             .padding(
                 horizontal = TidyCardTokens.rowHorizontalPadding,
                 vertical = TidyCardTokens.rowVerticalPadding
@@ -1242,7 +1252,7 @@ private fun SettingToggleRow(
                     text = title,
                     style = MaterialTheme.typography.bodyMedium,
                     fontWeight = FontWeight.SemiBold,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = contentAlpha)
+                    color = MaterialTheme.colorScheme.onSurface
                 )
                 if (showLock) {
                     Icon(
@@ -1257,7 +1267,7 @@ private fun SettingToggleRow(
             Text(
                 text = description,
                 style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = contentAlpha)
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
         Switch(
@@ -1274,9 +1284,9 @@ private fun clearSwitchColors() = SwitchDefaults.colors(
     checkedThumbColor = MaterialTheme.colorScheme.onPrimary,
     checkedTrackColor = MaterialTheme.colorScheme.primary,
     checkedBorderColor = MaterialTheme.colorScheme.primary,
-    uncheckedThumbColor = MaterialTheme.colorScheme.outline,
+    uncheckedThumbColor = MaterialTheme.colorScheme.onSurfaceVariant,
     uncheckedTrackColor = MaterialTheme.colorScheme.surfaceVariant,
-    uncheckedBorderColor = MaterialTheme.colorScheme.outline,
+    uncheckedBorderColor = MaterialTheme.colorScheme.onSurfaceVariant,
     disabledCheckedThumbColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f),
     disabledCheckedTrackColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f),
     disabledCheckedBorderColor = Color.Transparent,

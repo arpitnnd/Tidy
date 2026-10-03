@@ -61,6 +61,8 @@
     </plurals>
     <string name="settings_collapse">Collapse</string>
     <string name="settings_expand">Expand</string>
+    <string name="settings_expanded">Expanded</string>
+    <string name="settings_collapsed">Collapsed</string>
     <string name="settings_bypass_desc">URLs from these domains will skip cleaning, preserving all parameters</string>
     <string name="settings_add_domain_desc">Add domain</string>
     <string name="settings_no_domains_bypassed_text">No domains skipped</string>

@@ -5,14 +5,16 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 
 /**
- * A primary-coloured, extra-bold title used to label top-level sections on a screen
+ * A primary-coloured, semibold title used to label top-level sections on a screen
  * (e.g. "Dashboard", "Rules", "Clean History").
  *
- * Style: titleMedium · ExtraBold · primary colour.
+ * Style: titleMedium · SemiBold · primary colour.
  */
 @Composable
 fun ScreenSectionHeader(
@@ -22,9 +24,9 @@ fun ScreenSectionHeader(
     Text(
         text = text,
         style = MaterialTheme.typography.titleMedium,
-        fontWeight = FontWeight.ExtraBold,
+        fontWeight = FontWeight.SemiBold,
         color = MaterialTheme.colorScheme.primary,
-        modifier = modifier.padding(vertical = 4.dp)
+        modifier = modifier.padding(vertical = 4.dp).semantics { heading() }
     )
 }
 
@@ -32,7 +34,7 @@ fun ScreenSectionHeader(
  * A smaller primary-coloured label used as a heading inside a card group
  * (e.g. "Built by", "Licence", "Included with Tidy+").
  *
- * Style: labelLarge · Bold · primary colour.
+ * Style: labelLarge · SemiBold · primary colour.
  */
 @Composable
 fun CardSectionLabel(
@@ -42,8 +44,8 @@ fun CardSectionLabel(
     Text(
         text = text,
         style = MaterialTheme.typography.labelLarge,
-        fontWeight = FontWeight.Bold,
+        fontWeight = FontWeight.SemiBold,
         color = MaterialTheme.colorScheme.primary,
-        modifier = modifier
+        modifier = modifier.semantics { heading() }
     )
 }

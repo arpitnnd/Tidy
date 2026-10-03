@@ -20,6 +20,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.tidy.app.R
@@ -43,11 +46,18 @@ fun ExpandableSettingRow(
     onToggle: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val actionLabel = stringResource(
+        if (expanded) R.string.settings_collapse else R.string.settings_expand
+    )
+    val expandedState = stringResource(
+        if (expanded) R.string.settings_expanded else R.string.settings_collapsed
+    )
     Row(
         modifier = modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(TidyCardTokens.rowCornerRadius))
-            .clickable(onClick = onToggle)
+            .semantics { stateDescription = expandedState }
+            .clickable(role = Role.Button, onClickLabel = actionLabel, onClick = onToggle)
             .padding(
                 horizontal = TidyCardTokens.rowHorizontalPadding,
                 vertical = TidyCardTokens.rowVerticalPadding
@@ -71,11 +81,7 @@ fun ExpandableSettingRow(
         }
         Icon(
             imageVector = if (expanded) Icons.Filled.KeyboardArrowUp else Icons.Filled.KeyboardArrowDown,
-            contentDescription = if (expanded) {
-                stringResource(R.string.settings_collapse)
-            } else {
-                stringResource(R.string.settings_expand)
-            },
+            contentDescription = null,
             tint = MaterialTheme.colorScheme.onSurfaceVariant
         )
     }
