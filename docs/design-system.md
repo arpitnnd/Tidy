@@ -38,8 +38,8 @@ The remaining theme styles use Material 3 defaults. Components apply these style
 | Component text | Style | Weight |
 | --- | --- | --- |
 | `TidyTopAppBar` title | `titleLarge` | Bold |
-| `ScreenSectionHeader` | `titleMedium` | ExtraBold |
-| `CardSectionLabel` | `labelLarge` | Bold |
+| `ScreenSectionHeader` | `titleMedium` | SemiBold |
+| `CardSectionLabel` | `labelLarge` | SemiBold |
 | `ExpandableSettingRow` title | `bodyLarge` | SemiBold |
 | `ExpandableSettingRow` summary | `bodySmall` | Style default |
 | `ClickableLinkRow` label | `bodyMedium` | Medium |
@@ -109,12 +109,12 @@ SettingCard {
 
 | Component | Behaviour and use |
 | --- | --- |
-| [ExpandableSettingRow](../app/src/main/java/com/tidy/app/ui/components/ExpandableSettingRow.kt) | Full-row toggle with title, summary and an up/down chevron. `expanded` controls the chevron and its expand/collapse description. The caller controls the body and state. |
+| [ExpandableSettingRow](../app/src/main/java/com/tidy/app/ui/components/ExpandableSettingRow.kt) | Full-row toggle with title, summary and an up/down chevron. `expanded` controls the decorative chevron and the row's expanded/collapsed state description; the row exposes an expand/collapse action label. The caller controls the body and state. |
 | [ClickableLinkRow](../app/src/main/java/com/tidy/app/ui/components/ClickableLinkRow.kt) | Full-row action with a label and optional trailing icon, defaulting to `OpenInNew`. The icon is decorative; the caller supplies the destination action. |
-| [ScreenSectionHeader and CardSectionLabel](../app/src/main/java/com/tidy/app/ui/components/SectionHeader.kt) | Primary-coloured headings at screen-section and card-group levels. The screen places them relative to their content. |
+| [ScreenSectionHeader and CardSectionLabel](../app/src/main/java/com/tidy/app/ui/components/SectionHeader.kt) | Primary-coloured headings at screen-section and card-group levels, exposed as accessibility headings. The screen places them relative to their content. |
 | [TidyTopAppBar](../app/src/main/java/com/tidy/app/ui/components/TidyTopAppBar.kt) | Transparent top bar with title, optional back button and trailing actions. A null `onBackClick` hides the back button. |
 | [TidyModalBottomSheet](../app/src/main/java/com/tidy/app/ui/components/TidyModalBottomSheet.kt) | Surface-coloured modal sheet with 8 dp tonal elevation and the Material drag handle. The default sheet state skips partial expansion; callers can supply a different state. Attach the provided scroll connection to the content's `nestedScroll` modifier. |
-| [TierSelectorRow](../app/src/main/java/com/tidy/app/ui/components/TierSelectorRow.kt) | Equal-width option cards driven by `selected`. Selection uses a primary border and container tint. Unlocked taps call `onSelect`; locked cards remain tappable and call `onLockedTap`. |
+| [TierSelectorRow](../app/src/main/java/com/tidy/app/ui/components/TierSelectorRow.kt) | Option cards driven by `selected`. They use an equal-width row normally and stack vertically when width or font scaling leaves less than 96 dp per option after scaling. Selection uses a primary border and container tint and is exposed through radio-button semantics. Unlocked taps call `onSelect`; locked cards retain readable text, announce their premium state and call `onLockedTap`. |
 | [AppIconBox](../app/src/main/java/com/tidy/app/ui/components/AppIconBox.kt) | Decorative icon container. Defaults to a 48 dp box, 24 dp icon and 12 dp corners, with primary tint over `primaryContainer` at 50% alpha. |
 | [FeatureRow](../app/src/main/java/com/tidy/app/ui/components/FeatureRow.kt) | Decorative leading icon with title and supporting description. Accepts content and an outer modifier. |
 | [TooltipWrapper](../app/src/main/java/com/tidy/app/ui/components/TooltipWrapper.kt) | Material plain tooltip positioned above its content. Supply a concise action label. |
@@ -141,6 +141,12 @@ concise and bound any interpolated content. Use a toast when feedback must survi
 triggering view closing.
 
 ## Accessibility and copy
+
+Settings switch rows expose their checked state and switch role on the whole row. Their inner
+switch is passive; a locked row instead exposes a button that opens the Tidy+ prompt. Theme rows
+form a selection group with one radio-button action per row, including its label and lock indicator.
+Passive radio indicators retain 12 dp padding to preserve the existing layout. Off-state switch
+thumbs and borders use `onSurfaceVariant` against `surfaceVariant`.
 
 When changing a component or screen:
 

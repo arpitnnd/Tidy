@@ -4,6 +4,13 @@ All notable changes to Tidy will be documented in this file.
 
 ## [Unreleased]
 
+### Improvements
+
+- Settings controls expose checked, selected and expanded states to accessibility services.
+  Theme choices have one action per row, and section headings support heading navigation.
+- Locked options and off-state switches have clearer contrast. Tier cards stack at larger text
+  sizes or narrow widths, and section headings use a consistent semibold weight.
+
 ## [1.3.0]
 
 Sharing into Tidy now feels immediate, even when a short URL takes time to expand. The home screen
