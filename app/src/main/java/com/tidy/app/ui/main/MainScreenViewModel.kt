@@ -35,7 +35,7 @@ class MainScreenViewModel(
     private val settingsRepository: SettingsRepository = TidyApp.instance.settingsRepository,
     private val historyRepository: HistoryRepository = TidyApp.instance.historyRepository,
     private val urlCleaner: UrlCleaner = UrlCleaner()
-) : ViewModel() {
+) : ViewModel(), MainScreenActions {
 
     sealed interface AutomationAction {
         // sourceClipText, when non-null, is the full clipboard text an automatic clean
@@ -55,7 +55,7 @@ class MainScreenViewModel(
     }
 
     private val _automationEvents = MutableSharedFlow<AutomationAction>(extraBufferCapacity = 1)
-    val automationEvents: SharedFlow<AutomationAction> = _automationEvents.asSharedFlow()
+    override val automationEvents: SharedFlow<AutomationAction> = _automationEvents.asSharedFlow()
 
     // The raw clipboard text AUTO_CLEAN last acted on (see checkClipboardText's
     // AUTO_CLEAN branch). Deliberately not part of UiState/not reset by clear(): it tracks
@@ -141,13 +141,13 @@ class MainScreenViewModel(
         val autoCleanInput: Boolean
     )
 
-    fun markFirstLaunchDone() {
+    override fun markFirstLaunchDone() {
         viewModelScope.launch {
             settingsRepository.setFirstLaunchDone()
         }
     }
 
-    fun onUrlInput(url: String) {
+    override fun onUrlInput(url: String) {
         _uiState.update {
             val isSame =
                 it.isCleaned && (url.trim() == it.originalUrl || url.trim() == it.cleanedUrl)
@@ -167,14 +167,14 @@ class MainScreenViewModel(
         }
     }
 
-    fun cleanUrl(
+    override fun cleanUrl(
         url: String,
-        isShared: Boolean = false,
-        originalShortUrl: String? = null,
-        addToHistory: Boolean = true,
-        copyResultToClipboard: Boolean = false,
-        sourceClipText: String? = null,
-        forceRefresh: Boolean = false
+        isShared: Boolean,
+        originalShortUrl: String?,
+        addToHistory: Boolean,
+        copyResultToClipboard: Boolean,
+        sourceClipText: String?,
+        forceRefresh: Boolean
     ) {
         if (url.isBlank()) return
         val trimmed = UrlDetection.normalize(url)
@@ -352,7 +352,7 @@ class MainScreenViewModel(
      * resetting to nothing and needing a lifecycle-level guess about whether the resume
      * was "real": see this function's own history for why that guess doesn't work.
      */
-    suspend fun checkClipboardText(text: String?) {
+    override suspend fun checkClipboardText(text: String?) {
         if (!settingsRepository.checkClipboardForLinks.first() || text == null) {
             _uiState.update { it.copy(clipboardSuggestionUrl = null, bulkClipboardUrls = null) }
             return
@@ -432,11 +432,11 @@ class MainScreenViewModel(
         }
     }
 
-    fun clearClipboardSuggestion() {
+    override fun clearClipboardSuggestion() {
         _uiState.update { it.copy(clipboardSuggestionUrl = null, bulkClipboardUrls = null) }
     }
 
-    fun expandShortUrl() {
+    override fun expandShortUrl() {
         val original = _uiState.value.originalUrl
         if (original.isEmpty()) return
         viewModelScope.launch {
@@ -473,7 +473,7 @@ class MainScreenViewModel(
         }
     }
 
-    fun addDomainWhitelistedParam(domain: String, param: String) {
+    override fun addDomainWhitelistedParam(domain: String, param: String) {
         viewModelScope.launch {
             settingsRepository.addDomainWhitelistedParam(domain, param)
             val original = _uiState.value.originalUrl
@@ -516,7 +516,7 @@ class MainScreenViewModel(
      * text for a new suggestion banner in a single state emission. This prevents an intermediate
      * layout state from interrupting the bottom bar's expansion animation.
      */
-    suspend fun clearAndCheckClipboard(text: String?) {
+    override suspend fun clearAndCheckClipboard(text: String?) {
         cleanJob?.cancel()
         if (!settingsRepository.checkClipboardForLinks.first() || text == null) {
             _uiState.update {
@@ -671,7 +671,7 @@ class MainScreenViewModel(
         }
     }
 
-    fun copyToClipboard(context: Context) {
+    override fun copyToClipboard(context: Context) {
         val cleaned = _uiState.value.cleanedUrl
         if (cleaned.isNotEmpty()) {
             val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
@@ -688,7 +688,7 @@ class MainScreenViewModel(
         }
     }
 
-    fun shareUrl(context: Context) {
+    override fun shareUrl(context: Context) {
         val cleaned = _uiState.value.cleanedUrl
         if (cleaned.isNotEmpty()) {
             val sendIntent: Intent = Intent().apply {

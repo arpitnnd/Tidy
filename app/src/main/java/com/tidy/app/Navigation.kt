@@ -1,13 +1,11 @@
 package com.tidy.app
 
-import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Modifier
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.ui.NavDisplay
@@ -64,27 +62,23 @@ fun MainNavigation(
                         crashReportText = crashReportText,
                         onSettingsClick = { backStack.add(Settings) },
                         onHistoryClick = { backStack.add(History) },
-                        modifier = Modifier.systemBarsPadding(),
                         showPlusUpsell = key.showPlusUpsell
                     )
                 }
                 entry<Settings> {
                     SettingsScreen(
                         onBackClick = { backStack.removeLastOrNull() },
-                        onAboutClick = { backStack.add(About) },
-                        modifier = Modifier.systemBarsPadding()
+                        onAboutClick = { backStack.add(About) }
                     )
                 }
                 entry<History> {
                     HistoryScreen(
-                        onBackClick = { backStack.removeLastOrNull() },
-                        modifier = Modifier.systemBarsPadding()
+                        onBackClick = { backStack.removeLastOrNull() }
                     )
                 }
                 entry<About> {
                     com.tidy.app.ui.about.AboutScreen(
-                        onBackClick = { backStack.removeLastOrNull() },
-                        modifier = Modifier.systemBarsPadding()
+                        onBackClick = { backStack.removeLastOrNull() }
                     )
                 }
             },

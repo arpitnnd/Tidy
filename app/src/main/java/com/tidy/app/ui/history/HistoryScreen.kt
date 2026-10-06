@@ -1,5 +1,10 @@
 package com.tidy.app.ui.history
 
+import androidx.compose.foundation.style.CommonStyle
+import com.tidy.designsystem.TidyComponentStyles
+import com.tidy.designsystem.TidyStyle
+import com.tidy.designsystem.TidyStyledCard
+
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
@@ -11,6 +16,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
@@ -18,7 +24,6 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.defaultMinSize
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -26,8 +31,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.GridItemSpan
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.OpenInNew
@@ -100,6 +108,17 @@ fun HistoryScreen(
     viewModel: HistoryScreenViewModel = viewModel()
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+    HistoryScreenContent(state, onBackClick, modifier, viewModel)
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+internal fun HistoryScreenContent(
+    state: HistoryScreenViewModel.UiState,
+    onBackClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    actions: HistoryScreenActions = object : HistoryScreenActions {}
+) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
@@ -122,7 +141,7 @@ fun HistoryScreen(
         uri?.let {
             scope.launch {
                 try {
-                    val json = viewModel.getExportJson()
+                    val json = actions.getExportJson()
                     context.contentResolver.openOutputStream(it)?.bufferedWriter()?.use { writer ->
                         writer.write(json)
                     }
@@ -143,7 +162,7 @@ fun HistoryScreen(
                     val inputStream = context.contentResolver.openInputStream(uri)
                     val json = inputStream?.bufferedReader()?.readText() ?: return@let
                     inputStream.close()
-                    viewModel.importHistory(json) { count ->
+                    actions.importHistory(json) { count ->
                         scope.launch {
                             val msg = if (count >= 0) {
                                 String.format(historyImportSuccessTemplate, count)
@@ -200,7 +219,7 @@ fun HistoryScreen(
                     // Clear all
                     if (state.history.isNotEmpty()) {
                         TooltipWrapper(tooltipText = stringResource(R.string.tooltip_clear_all)) {
-                            IconButton(onClick = { viewModel.showClearConfirmation() }) {
+                            IconButton(onClick = { actions.showClearConfirmation() }) {
                                 Icon(
                                     imageVector = Icons.Outlined.DeleteSweep,
                                     contentDescription = stringResource(R.string.history_clear_desc),
@@ -216,19 +235,27 @@ fun HistoryScreen(
     ) { paddingValues ->
         Box(
             modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues),
+                .fillMaxSize(),
             contentAlignment = Alignment.TopCenter
         ) {
-            LazyColumn(
+            val fontScale = LocalDensity.current.fontScale
+            LazyVerticalGrid(
+                columns = GridCells.Adaptive(320.dp * fontScale.coerceAtLeast(1f)),
                 modifier = Modifier
-                    .fillMaxHeight()
-                    .widthIn(max = 650.dp),
-                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
+                    .widthIn(max = 1000.dp)
+                    .fillMaxSize()
+                    .consumeWindowInsets(paddingValues),
+                contentPadding = PaddingValues(
+                    start = 16.dp,
+                    end = 16.dp,
+                    top = paddingValues.calculateTopPadding() + 8.dp,
+                    bottom = paddingValues.calculateBottomPadding() + 8.dp
+                ),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 // Analytics Section
-                item {
+                item(span = { GridItemSpan(maxLineSpan) }) {
                     ScreenSectionHeader(
                         text = stringResource(R.string.history_dashboard),
                         modifier = Modifier.padding(start = 0.dp)
@@ -236,7 +263,7 @@ fun HistoryScreen(
                 }
 
                 if (state.isInitialLoading) {
-                    item {
+                    item(span = { GridItemSpan(maxLineSpan) }) {
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.spacedBy(10.dp)
@@ -257,7 +284,7 @@ fun HistoryScreen(
                             )
                         }
                     }
-                    item {
+                    item(span = { GridItemSpan(maxLineSpan) }) {
                         Box(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -267,7 +294,7 @@ fun HistoryScreen(
                         )
                     }
                 } else {
-                    item {
+                    item(span = { GridItemSpan(maxLineSpan) }) {
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.spacedBy(10.dp)
@@ -288,7 +315,7 @@ fun HistoryScreen(
                             )
                         }
                     }
-                    item {
+                    item(span = { GridItemSpan(maxLineSpan) }) {
                         BandwidthCard(
                             trackersCount = state.totalTrackersBlocked,
                             modifier = Modifier.fillMaxWidth()
@@ -297,7 +324,7 @@ fun HistoryScreen(
                 }
 
                 // History Section
-                item {
+                item(span = { GridItemSpan(maxLineSpan) }) {
                     Spacer(modifier = Modifier.height(8.dp))
                     ScreenSectionHeader(
                         text = stringResource(R.string.history_clean_history),
@@ -316,7 +343,7 @@ fun HistoryScreen(
                         )
                     }
                 } else if (state.history.isEmpty()) {
-                    item {
+                    item(span = { GridItemSpan(maxLineSpan) }) {
                         Card(
                             shape = RoundedCornerShape(16.dp),
                             colors = CardDefaults.cardColors(
@@ -354,14 +381,14 @@ fun HistoryScreen(
                             onShowSnackbar = { msg ->
                                 scope.launch { snackbarHostState.showSnackbar(msg) }
                             },
-                            onWhitelist = viewModel::addDomainWhitelistedParam,
+                            onWhitelist = actions::addDomainWhitelistedParam,
                             reportIssueFailedMessage = crashToastBrowserError
                         )
                     }
                 }
 
                 // Bottom spacing
-                item {
+                item(span = { GridItemSpan(maxLineSpan) }) {
                     Spacer(modifier = Modifier.height(16.dp))
                 }
             }
@@ -371,7 +398,7 @@ fun HistoryScreen(
     // Clear confirmation dialog
     if (state.showClearConfirmation) {
         AlertDialog(
-            onDismissRequest = { viewModel.dismissClearConfirmation() },
+            onDismissRequest = { actions.dismissClearConfirmation() },
             icon = {
                 Icon(
                     imageVector = Icons.Filled.Delete,
@@ -391,7 +418,7 @@ fun HistoryScreen(
             confirmButton = {
                 Button(
                     onClick = {
-                        viewModel.clearHistory()
+                        actions.clearHistory()
                         scope.launch {
                             val result = snackbarHostState.showSnackbar(
                                 message = historyClearedToast,
@@ -399,7 +426,7 @@ fun HistoryScreen(
                                 duration = SnackbarDuration.Short
                             )
                             if (result == SnackbarResult.ActionPerformed) {
-                                viewModel.undoClearHistory()
+                                actions.undoClearHistory()
                             }
                         }
                     },
@@ -411,7 +438,7 @@ fun HistoryScreen(
                 }
             },
             dismissButton = {
-                TextButton(onClick = { viewModel.dismissClearConfirmation() }) {
+                TextButton(onClick = { actions.dismissClearConfirmation() }) {
                     Text(stringResource(R.string.dialog_cancel))
                 }
             }
@@ -425,17 +452,14 @@ private fun StatsCard(
     value: String,
     icon: ImageVector,
     color: Color,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    style: TidyStyle = CommonStyle
 ) {
-    Card(
-        shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f)
-        ),
-        modifier = modifier
+    TidyStyledCard(
+        modifier = modifier,
+        style = CommonStyle(TidyComponentStyles.statisticsCard, style)
     ) {
         Column(
-            modifier = Modifier.padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             Box(
@@ -473,7 +497,8 @@ private fun StatsCard(
 @Composable
 private fun BandwidthCard(
     trackersCount: Int,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    style: TidyStyle = CommonStyle
 ) {
     val bytes = trackersCount * 52
     val formattedValue = when {
@@ -482,15 +507,11 @@ private fun BandwidthCard(
         else -> "$bytes Bytes"
     }
 
-    Card(
-        shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f)
-        ),
-        modifier = modifier
+    TidyStyledCard(
+        modifier = modifier,
+        style = CommonStyle(TidyComponentStyles.statisticsCard, style)
     ) {
         Row(
-            modifier = Modifier.padding(16.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
@@ -534,7 +555,8 @@ private fun HistoryItem(
     onShowSnackbar: (String) -> Unit,
     onWhitelist: (domain: String, param: String) -> Unit,
     reportIssueFailedMessage: String,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    style: TidyStyle = CommonStyle
 ) {
     var expanded by remember { mutableStateOf(false) }
     var showFullOriginalUrl by remember { mutableStateOf(false) }
@@ -548,16 +570,12 @@ private fun HistoryItem(
     val mainCleanedUrl = stringResource(R.string.main_cleaned_url)
     val toastNoBrowserApp = stringResource(R.string.toast_no_browser_app)
 
-    Card(
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.25f)
-        ),
+    TidyStyledCard(
+        modifier = modifier,
         onClick = { expanded = !expanded },
-        modifier = modifier.fillMaxWidth()
+        style = CommonStyle(TidyComponentStyles.historyCard, style)
     ) {
         Column(
-            modifier = Modifier.padding(14.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             Row(

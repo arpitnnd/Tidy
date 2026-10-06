@@ -16,7 +16,7 @@ import kotlinx.coroutines.launch
 class HistoryScreenViewModel(
     private val historyRepository: HistoryRepository = TidyApp.instance.historyRepository,
     private val settingsRepository: SettingsRepository = TidyApp.instance.settingsRepository
-) : ViewModel() {
+) : ViewModel(), HistoryScreenActions {
 
     data class UiState(
         val history: List<HistoryEntry> = emptyList(),
@@ -56,15 +56,15 @@ class HistoryScreenViewModel(
         }
     }
 
-    fun showClearConfirmation() {
+    override fun showClearConfirmation() {
         _uiState.update { it.copy(showClearConfirmation = true) }
     }
 
-    fun dismissClearConfirmation() {
+    override fun dismissClearConfirmation() {
         _uiState.update { it.copy(showClearConfirmation = false) }
     }
 
-    fun clearHistory() {
+    override fun clearHistory() {
         viewModelScope.launch {
             val currentHistory = _uiState.value.history
             if (currentHistory.isNotEmpty()) {
@@ -75,7 +75,7 @@ class HistoryScreenViewModel(
         }
     }
 
-    fun undoClearHistory() {
+    override fun undoClearHistory() {
         val backup = lastClearedHistory
         if (backup != null) {
             viewModelScope.launch {
@@ -86,11 +86,11 @@ class HistoryScreenViewModel(
         }
     }
 
-    suspend fun getExportJson(): String {
+    override suspend fun getExportJson(): String {
         return historyRepository.exportToJson()
     }
 
-    fun importHistory(json: String, onResult: (Int) -> Unit) {
+    override fun importHistory(json: String, onResult: (Int) -> Unit) {
         viewModelScope.launch {
             val result = historyRepository.importFromJsonWithResult(json)
             if (result != null) onResult(result.newEntriesCount)
@@ -98,7 +98,7 @@ class HistoryScreenViewModel(
         }
     }
 
-    fun addDomainWhitelistedParam(domain: String, param: String) {
+    override fun addDomainWhitelistedParam(domain: String, param: String) {
         viewModelScope.launch {
             settingsRepository.addDomainWhitelistedParam(domain, param)
         }

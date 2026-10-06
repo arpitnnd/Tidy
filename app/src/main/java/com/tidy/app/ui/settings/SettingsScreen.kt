@@ -5,6 +5,8 @@ import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.consumeWindowInsets
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
@@ -108,13 +110,39 @@ fun SettingsScreen(
     viewModel: SettingsScreenViewModel = viewModel()
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+    val settings = com.tidy.app.TidyApp.instance.settingsRepository
+    val isPlusUnlocked by com.tidy.app.TidyApp.instance.entitlementManager.isPlusUnlocked
+        .collectAsStateWithLifecycle(initialValue = false)
+    val isPurchasePending by com.tidy.app.TidyApp.instance.entitlementManager.isPurchasePending
+        .collectAsStateWithLifecycle(initialValue = false)
+    val selectedTheme by settings.selectedTheme.collectAsStateWithLifecycle(initialValue = "slate")
+    val scope = rememberCoroutineScope()
+    SettingsScreenContent(
+        state, onBackClick, onAboutClick, modifier, viewModel, isPlusUnlocked, selectedTheme,
+        onSelectTheme = { theme -> scope.launch { settings.setSelectedTheme(theme) } },
+        isPurchasePending = isPurchasePending,
+        upgradeRow = { onClick -> com.tidy.app.FlavorConfig.SettingsUpgradeRow(onClick) }
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
+@Composable
+internal fun SettingsScreenContent(
+    state: SettingsScreenViewModel.UiState,
+    onBackClick: () -> Unit,
+    onAboutClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    actions: SettingsScreenActions = object : SettingsScreenActions {},
+    isPlusUnlocked: Boolean = false,
+    selectedTheme: String = "slate",
+    onSelectTheme: (String) -> Unit = {},
+    isPurchasePending: Boolean = false,
+    upgradeRow: @Composable (() -> Unit) -> Unit = { onClick ->
+        com.tidy.app.FlavorConfig.SettingsUpgradeRow(isPlusUnlocked, isPurchasePending, onClick)
+    }
+) {
     val context = LocalContext.current
     val resources = LocalResources.current
-
-    val entitlementManager = com.tidy.app.TidyApp.instance.entitlementManager
-    val isPlusUnlocked by entitlementManager.isPlusUnlocked.collectAsStateWithLifecycle(initialValue = false)
-
-    val settingsRepository = com.tidy.app.TidyApp.instance.settingsRepository
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
 
@@ -138,7 +166,9 @@ fun SettingsScreen(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues),
+                .padding(paddingValues)
+                .consumeWindowInsets(paddingValues)
+                .imePadding(),
             contentAlignment = Alignment.TopCenter
         ) {
             Column(
@@ -149,7 +179,7 @@ fun SettingsScreen(
                     .padding(horizontal = 16.dp),
                 verticalArrangement = Arrangement.spacedBy(20.dp)
             ) {
-                com.tidy.app.FlavorConfig.SettingsUpgradeRow {
+                upgradeRow {
                     if (com.tidy.app.FlavorConfig.isPlayFlavor) {
                         showUpsellSheet = true
                     } else {
@@ -211,7 +241,7 @@ fun SettingsScreen(
                                     TooltipWrapper(tooltipText = stringResource(R.string.dialog_default_blocklist_refresh)) {
                                         IconButton(
                                             onClick = {
-                                                viewModel.refreshBlocklist(context) { result ->
+                                                actions.refreshBlocklist(context) { result ->
                                                     scope.launch {
                                                         val message = when (result) {
                                                             is BlocklistSyncer.SyncResult.Updated -> {
@@ -367,7 +397,7 @@ fun SettingsScreen(
                                 ) {
                                     OutlinedTextField(
                                         value = state.domainInput,
-                                        onValueChange = { viewModel.onDomainInputChanged(it) },
+                                        onValueChange = { actions.onDomainInputChanged(it) },
                                         placeholder = { Text(stringResource(R.string.settings_placeholder_domain)) },
                                         modifier = Modifier.weight(1f),
                                         shape = RoundedCornerShape(12.dp),
@@ -388,7 +418,7 @@ fun SettingsScreen(
 
                                     TooltipWrapper(tooltipText = stringResource(R.string.tooltip_add_domain)) {
                                         FilledIconButton(
-                                            onClick = { viewModel.addDomain() },
+                                            onClick = { actions.addDomain() },
                                             enabled = isDomainValid,
                                             shape = RoundedCornerShape(12.dp),
                                             modifier = Modifier.size(52.dp)
@@ -422,7 +452,7 @@ fun SettingsScreen(
                                                     TooltipWrapper(tooltipText = stringResource(R.string.tooltip_remove_domain)) {
                                                         IconButton(
                                                             onClick = {
-                                                                viewModel.removeDomain(
+                                                                actions.removeDomain(
                                                                     domain
                                                                 )
                                                             },
@@ -503,7 +533,7 @@ fun SettingsScreen(
                                     OutlinedTextField(
                                         value = state.newParamWhitelistDomain,
                                         onValueChange = {
-                                            viewModel.onNewParamWhitelistDomainChanged(
+                                            actions.onNewParamWhitelistDomainChanged(
                                                 it
                                             )
                                         },
@@ -522,7 +552,7 @@ fun SettingsScreen(
                                     OutlinedTextField(
                                         value = state.newParamWhitelistParam,
                                         onValueChange = {
-                                            viewModel.onNewParamWhitelistParamChanged(
+                                            actions.onNewParamWhitelistParamChanged(
                                                 it
                                             )
                                         },
@@ -553,7 +583,7 @@ fun SettingsScreen(
 
                                     TooltipWrapper(tooltipText = stringResource(R.string.tooltip_add_whitelist_param)) {
                                         FilledIconButton(
-                                            onClick = { viewModel.addDomainWhitelistedParam() },
+                                            onClick = { actions.addDomainWhitelistedParam() },
                                             enabled = isParamWhitelistValid,
                                             shape = RoundedCornerShape(12.dp),
                                             modifier = Modifier.size(52.dp)
@@ -588,7 +618,7 @@ fun SettingsScreen(
                                                     TooltipWrapper(tooltipText = stringResource(R.string.tooltip_remove_whitelist_param)) {
                                                         IconButton(
                                                             onClick = {
-                                                                viewModel.removeDomainWhitelistedParam(
+                                                                actions.removeDomainWhitelistedParam(
                                                                     entry
                                                                 )
                                                             },
@@ -664,7 +694,7 @@ fun SettingsScreen(
                                 ) {
                                     OutlinedTextField(
                                         value = state.paramInput,
-                                        onValueChange = { viewModel.onParamInputChanged(it) },
+                                        onValueChange = { actions.onParamInputChanged(it) },
                                         placeholder = { Text(stringResource(R.string.settings_placeholder_param)) },
                                         modifier = Modifier.weight(1f),
                                         shape = RoundedCornerShape(12.dp),
@@ -687,7 +717,7 @@ fun SettingsScreen(
 
                                     TooltipWrapper(tooltipText = stringResource(R.string.tooltip_add_custom_param)) {
                                         FilledIconButton(
-                                            onClick = { viewModel.addParam() },
+                                            onClick = { actions.addParam() },
                                             enabled = isParamValid,
                                             shape = RoundedCornerShape(12.dp),
                                             modifier = Modifier.size(52.dp)
@@ -720,7 +750,7 @@ fun SettingsScreen(
                                                 trailingIcon = {
                                                     TooltipWrapper(tooltipText = stringResource(R.string.tooltip_remove_custom_param)) {
                                                         IconButton(
-                                                            onClick = { viewModel.removeParam(param) },
+                                                            onClick = { actions.removeParam(param) },
                                                             modifier = Modifier.size(24.dp)
                                                         ) {
                                                             Icon(
@@ -827,12 +857,6 @@ fun SettingsScreen(
                             }
                         }
 
-                        val selectedThemeState =
-                            settingsRepository.selectedTheme.collectAsStateWithLifecycle(
-                                initialValue = "slate"
-                            )
-                        val selectedTheme = selectedThemeState.value
-
                         Column(
                             verticalArrangement = Arrangement.spacedBy(2.dp),
                             modifier = Modifier.fillMaxWidth().selectableGroup()
@@ -847,9 +871,7 @@ fun SettingsScreen(
                                             role = Role.RadioButton,
                                             onClick = {
                                                 if (themeKey == "slate" || isPlusUnlocked) {
-                                                    scope.launch {
-                                                        settingsRepository.setSelectedTheme(themeKey)
-                                                    }
+                                                    onSelectTheme(themeKey)
                                                 } else {
                                                     showUpsellSheet = true
                                                 }
@@ -908,7 +930,7 @@ fun SettingsScreen(
                             title = stringResource(R.string.settings_check_clipboard_title),
                             description = stringResource(R.string.settings_check_clipboard_desc),
                             checked = state.checkClipboardForLinks,
-                            onToggle = { viewModel.setCheckClipboardForLinks(!state.checkClipboardForLinks) }
+                            onToggle = { actions.setCheckClipboardForLinks(!state.checkClipboardForLinks) }
                         )
 
                         if (state.checkClipboardForLinks) {
@@ -946,7 +968,7 @@ fun SettingsScreen(
                                     )
                                 ),
                                 selected = if (isPlusUnlocked) state.clipboardCleanTier else ClipboardCleanTier.SUGGEST,
-                                onSelect = { viewModel.setClipboardCleanTier(it) },
+                                onSelect = { actions.setClipboardCleanTier(it) },
                                 onLockedTap = { showUpsellSheet = true },
                                 modifier = Modifier.padding(horizontal = 4.dp, vertical = 4.dp)
                             )
@@ -996,7 +1018,7 @@ fun SettingsScreen(
                                 )
                             ),
                             selected = effectiveShareTier,
-                            onSelect = { viewModel.setShareCleanTier(it) },
+                            onSelect = { actions.setShareCleanTier(it) },
                             onLockedTap = { showUpsellSheet = true },
                             modifier = Modifier.padding(horizontal = 4.dp, vertical = 4.dp)
                         )
@@ -1011,7 +1033,7 @@ fun SettingsScreen(
                                 title = stringResource(R.string.settings_close_instead_title),
                                 description = stringResource(R.string.settings_close_instead_desc),
                                 checked = state.closeInsteadOfSharing,
-                                onToggle = { viewModel.setCloseInsteadOfSharing(!state.closeInsteadOfSharing) }
+                                onToggle = { actions.setCloseInsteadOfSharing(!state.closeInsteadOfSharing) }
                             )
                         }
                     }
@@ -1027,7 +1049,7 @@ fun SettingsScreen(
                             title = stringResource(R.string.settings_auto_expand_title),
                             description = stringResource(R.string.settings_auto_expand_desc),
                             checked = state.autoExpandShortUrls,
-                            onToggle = { viewModel.setAutoExpandShortUrls(!state.autoExpandShortUrls) }
+                            onToggle = { actions.setAutoExpandShortUrls(!state.autoExpandShortUrls) }
                         )
 
                         HorizontalDivider(
@@ -1040,7 +1062,7 @@ fun SettingsScreen(
                             title = stringResource(R.string.settings_remove_mobile_subdomains_title),
                             description = stringResource(R.string.settings_remove_mobile_subdomains_desc),
                             checked = state.autoRemoveMobileSubdomains,
-                            onToggle = { viewModel.setAutoRemoveMobileSubdomains(!state.autoRemoveMobileSubdomains) }
+                            onToggle = { actions.setAutoRemoveMobileSubdomains(!state.autoRemoveMobileSubdomains) }
                         )
 
                         HorizontalDivider(
@@ -1053,7 +1075,7 @@ fun SettingsScreen(
                             title = stringResource(R.string.settings_drop_trailing_slash_title),
                             description = stringResource(R.string.settings_drop_trailing_slash_desc),
                             checked = state.dropTrailingSlash,
-                            onToggle = { viewModel.setDropTrailingSlash(!state.dropTrailingSlash) }
+                            onToggle = { actions.setDropTrailingSlash(!state.dropTrailingSlash) }
                         )
 
                         HorizontalDivider(
@@ -1066,7 +1088,7 @@ fun SettingsScreen(
                             title = stringResource(R.string.settings_auto_clean_input_title),
                             description = stringResource(R.string.settings_auto_clean_input_desc),
                             checked = state.autoCleanOnInput,
-                            onToggle = { viewModel.setAutoCleanOnInput(!state.autoCleanOnInput) }
+                            onToggle = { actions.setAutoCleanOnInput(!state.autoCleanOnInput) }
                         )
 
                         HorizontalDivider(
@@ -1116,7 +1138,7 @@ fun SettingsScreen(
                                 .toggleable(
                                     value = state.allowSystemBackup,
                                     role = Role.Switch,
-                                    onValueChange = viewModel::setAllowSystemBackup
+                                    onValueChange = actions::setAllowSystemBackup
                                 )
                                 .padding(
                                     horizontal = TidyCardTokens.rowHorizontalPadding,

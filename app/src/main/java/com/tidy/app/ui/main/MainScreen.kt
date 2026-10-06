@@ -1,5 +1,10 @@
 package com.tidy.app.ui.main
 
+import androidx.compose.foundation.style.CommonStyle
+import com.tidy.designsystem.TidyComponentStyles
+import com.tidy.designsystem.TidyStyle
+import com.tidy.designsystem.TidyStyledCard
+
 import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
@@ -13,8 +18,6 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.animation.scaleIn
-import androidx.compose.animation.scaleOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
@@ -28,13 +31,17 @@ import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.unit.Velocity
-import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.FlexBox
+import androidx.compose.foundation.layout.FlexBoxConfig
+import androidx.compose.foundation.layout.FlexWrap
+import androidx.compose.foundation.layout.FlexJustifyContent
+import androidx.compose.foundation.layout.FlexAlignItems
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -42,13 +49,10 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
@@ -76,7 +80,6 @@ import androidx.compose.material3.AssistChipDefaults
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledIconButton
@@ -95,7 +98,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.VerticalDivider
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -108,17 +110,19 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.ExperimentalMediaQueryApi
+import androidx.compose.ui.derivedMediaQuery
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.lerp as lerpColor
 import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
@@ -130,8 +134,6 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.lerp
-import androidx.compose.ui.unit.sp
 import androidx.core.net.toUri
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
@@ -176,7 +178,11 @@ private enum class HomeBottomStage {
     Actions
 }
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
+@OptIn(
+    ExperimentalMaterial3Api::class,
+    ExperimentalLayoutApi::class,
+    ExperimentalMediaQueryApi::class
+)
 @Composable
 fun MainScreen(
     sharedUrl: String?,
@@ -188,6 +194,72 @@ fun MainScreen(
     showPlusUpsell: Boolean = false
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+    val settings = TidyApp.instance.settingsRepository
+    val dontAskAgainCrash by settings.dontAskAgainCrash.collectAsStateWithLifecycle(initialValue = false)
+    val checkClipboardForLinks by settings.checkClipboardForLinks.collectAsStateWithLifecycle(
+        initialValue = false
+    )
+    val clipboardCalloutDismissed by settings.clipboardCalloutDismissed.collectAsStateWithLifecycle(
+        initialValue = false
+    )
+    val isPlusUnlocked by TidyApp.instance.entitlementManager.isPlusUnlocked.collectAsStateWithLifecycle(
+        initialValue = false
+    )
+    val trackerDescriptions by settings.trackerDescriptions.collectAsStateWithLifecycle(initialValue = emptyMap())
+    MainScreenContent(
+        state = state,
+        sharedUrl = sharedUrl,
+        crashReportText = crashReportText,
+        onSettingsClick = onSettingsClick,
+        onHistoryClick = onHistoryClick,
+        modifier = modifier,
+        actions = viewModel,
+        showPlusUpsell = showPlusUpsell,
+        preferences = MainScreenPreferences(
+            dontAskAgainCrash, checkClipboardForLinks, clipboardCalloutDismissed,
+            isPlusUnlocked, trackerDescriptions,
+            settings::setDontAskAgainCrash, settings::setCheckClipboardForLinks,
+            settings::setClipboardCalloutDismissed,
+            cleanBulkUrls = { urls ->
+                val whitelist = settings.whitelistedDomains.first()
+                val customBlacklist = settings.blacklistedParams.first()
+                val domainParams = settings.domainWhitelistedParams.first()
+                val removeMobile = settings.autoRemoveMobileSubdomains.first()
+                val dropTrailingSlash = settings.dropTrailingSlash.first()
+                val trackers = settings.trackers.first()
+                urls.map { url ->
+                    UrlCleaner().clean(
+                        urlStr = url,
+                        whitelistedDomains = whitelist,
+                        customBlacklistParams = customBlacklist,
+                        domainWhitelistedParams = domainParams,
+                        removeMobileSubdomains = removeMobile,
+                        dropTrailingSlash = dropTrailingSlash,
+                        trackers = trackers
+                    ).cleanedUrl
+                }.joinToString("\n")
+            }
+        )
+    )
+}
+
+@OptIn(
+    ExperimentalMaterial3Api::class,
+    ExperimentalLayoutApi::class,
+    ExperimentalMediaQueryApi::class
+)
+@Composable
+internal fun MainScreenContent(
+    state: MainScreenViewModel.UiState,
+    onSettingsClick: () -> Unit,
+    onHistoryClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    actions: MainScreenActions = object : MainScreenActions {},
+    preferences: MainScreenPreferences = MainScreenPreferences(),
+    sharedUrl: String? = null,
+    crashReportText: String? = null,
+    showPlusUpsell: Boolean = false
+) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
     val activity = context as? android.app.Activity
@@ -202,27 +274,16 @@ fun MainScreen(
     val crashToastBrowserError = stringResource(R.string.crash_toast_browser_error)
     val dialogShareCrashTitle = stringResource(R.string.dialog_share_crash_title)
 
-    val settingsRepository = TidyApp.instance.settingsRepository
-    val dontAskAgainCrash by settingsRepository.dontAskAgainCrash.collectAsStateWithLifecycle(
-        initialValue = false
-    )
-    val checkClipboardForLinks by settingsRepository.checkClipboardForLinks.collectAsStateWithLifecycle(
-        initialValue = false
-    )
-    val clipboardCalloutDismissed by settingsRepository.clipboardCalloutDismissed.collectAsStateWithLifecycle(
-        initialValue = false
-    )
-
-    val entitlementManager = TidyApp.instance.entitlementManager
-    val isPlusUnlocked by entitlementManager.isPlusUnlocked.collectAsStateWithLifecycle(initialValue = false)
+    val dontAskAgainCrash = preferences.dontAskAgainCrash
+    val checkClipboardForLinks = preferences.checkClipboardForLinks
+    val clipboardCalloutDismissed = preferences.clipboardCalloutDismissed
+    val isPlusUnlocked = preferences.isPlusUnlocked
     // rememberSaveable, not remember: showPlusUpsell is a constant prop for the Activity's
     // whole lifetime (read once from an intent extra), so a plain remember re-initialised
     // to it on every Settings/History round trip and every rotation, silently reopening a
     // sheet the user had just dismissed.
     var showUpsellSheet by rememberSaveable { mutableStateOf(showPlusUpsell) }
-    val trackerDescriptions by settingsRepository.trackerDescriptions.collectAsStateWithLifecycle(
-        initialValue = emptyMap()
-    )
+    val trackerDescriptions = preferences.trackerDescriptions
 
     var paramToWhitelist by remember { mutableStateOf<String?>(null) }
     val introSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
@@ -251,7 +312,7 @@ fun MainScreen(
     LaunchedEffect(sharedUrl) {
         if (sharedUrl != null && !hasHandledThisSharedUrl) {
             hasHandledThisSharedUrl = true
-            viewModel.cleanUrl(sharedUrl, isShared = true)
+            actions.cleanUrl(sharedUrl, isShared = true)
         }
     }
 
@@ -262,7 +323,7 @@ fun MainScreen(
             if (UrlDetection.looksLikeUrl(trimmed) && trimmed != state.originalUrl && trimmed != state.cleanedUrl && trimmed != state.expandedUrl) {
                 delay(400.milliseconds)
                 if (trimmed != state.originalUrl && trimmed != state.cleanedUrl && trimmed != state.expandedUrl) {
-                    viewModel.cleanUrl(trimmed)
+                    actions.cleanUrl(trimmed)
                 }
             }
         }
@@ -271,8 +332,8 @@ fun MainScreen(
     // Collect and handle automation events. The shared skip rule is applied once
     // here for every automation path: if the cleaned result is already exactly
     // what's on the clipboard, nothing happens at all.
-    LaunchedEffect(viewModel.automationEvents) {
-        viewModel.automationEvents.collect { event ->
+    LaunchedEffect(actions.automationEvents) {
+        actions.automationEvents.collect { event ->
             val clipboard =
                 context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
             val cleanedUrl = when (event) {
@@ -320,7 +381,7 @@ fun MainScreen(
                 is MainScreenViewModel.AutomationAction.CopyAndShare -> {
                     // Deliberately a plain, predictable share sheet: if it lists Tidy
                     // itself and the user picks it again, that's expected.
-                    viewModel.shareUrl(context)
+                    actions.shareUrl(context)
                 }
 
                 is MainScreenViewModel.AutomationAction.CopyAndClose -> {
@@ -343,7 +404,7 @@ fun MainScreen(
         } catch (_: Exception) {
             null
         }
-        viewModel.checkClipboardText(text)
+        actions.checkClipboardText(text)
         hasCompletedInitialClipboardCheck = true
     }
 
@@ -388,7 +449,7 @@ fun MainScreen(
             null
         }
         scope.launch {
-            viewModel.clearAndCheckClipboard(text)
+            actions.clearAndCheckClipboard(text)
         }
     }
     var showUpperLoading by remember { mutableStateOf(false) }
@@ -412,10 +473,11 @@ fun MainScreen(
         }
     }
 
-    val nestedScrollConnection = remember {
+    val currentState by rememberUpdatedState(state)
+    val nestedScrollConnection = remember(scrollThresholdPx) {
         object : NestedScrollConnection {
             override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
-                if (state.isCleaned || state.isLoading) return Offset.Zero
+                if (currentState.isCleaned || currentState.isLoading) return Offset.Zero
                 val delta = available.y
                 if (delta < 0 && scrollOffset < scrollThresholdPx) {
                     val newOffset = (scrollOffset - delta).coerceIn(0f, scrollThresholdPx)
@@ -433,7 +495,7 @@ fun MainScreen(
             }
 
             override suspend fun onPreFling(available: Velocity): Velocity {
-                if (state.isCleaned || state.isLoading) return Velocity.Zero
+                if (currentState.isCleaned || currentState.isLoading) return Velocity.Zero
                 if (available.y < -300f || scrollOffset > scrollThresholdPx / 2) {
                     animate(scrollOffset, scrollThresholdPx) { value, _ -> scrollOffset = value }
                 } else {
@@ -444,17 +506,18 @@ fun MainScreen(
         }
     }
 
-    val targetCollapseFraction by remember {
+    val compactWindow by derivedMediaQuery { windowHeight < 480.dp }
+    val scrollCollapseFraction by remember(scrollThresholdPx) {
         derivedStateOf {
-            if (state.isCleaned || showUpperLoading) {
-                1f
-            } else {
-                (scrollOffset / scrollThresholdPx).coerceIn(0f, 1f)
-            }
+            (scrollOffset / scrollThresholdPx).coerceIn(0f, 1f)
         }
     }
     val collapseFraction by animateFloatAsState(
-        targetValue = targetCollapseFraction,
+        targetValue = if (compactWindow || state.isCleaned || showUpperLoading) {
+            1f
+        } else {
+            scrollCollapseFraction
+        },
         animationSpec = tween(
             durationMillis = 320,
             easing = FastOutSlowInEasing
@@ -571,7 +634,7 @@ fun MainScreen(
                                     ClipboardActionBanner(
                                         url = url,
                                         onActionClick = {
-                                            viewModel.cleanUrl(
+                                            actions.cleanUrl(
                                                 url,
                                                 copyResultToClipboard = state.suggestionCopiesOnClean
                                             )
@@ -613,7 +676,7 @@ fun MainScreen(
                                         ) {
                                             Button(
                                                 onClick = {
-                                                    viewModel.copyToClipboard(context)
+                                                    actions.copyToClipboard(context)
                                                     scope.launch {
                                                         snackbarHostState.showSnackbar(toastCopied)
                                                     }
@@ -657,7 +720,7 @@ fun MainScreen(
                                             modifier = Modifier.fillMaxWidth()
                                         ) {
                                             Button(
-                                                onClick = { viewModel.shareUrl(context) },
+                                                onClick = { actions.shareUrl(context) },
                                                 modifier = Modifier.fillMaxWidth(),
                                                 shape = RoundedCornerShape(16.dp),
                                                 colors = ButtonDefaults.buttonColors(
@@ -695,7 +758,7 @@ fun MainScreen(
                                         ClipboardCalloutBanner(
                                             onEnable = {
                                                 scope.launch {
-                                                    settingsRepository.setCheckClipboardForLinks(
+                                                    preferences.setCheckClipboardForLinks(
                                                         true
                                                     )
                                                 }
@@ -703,7 +766,7 @@ fun MainScreen(
                                             },
                                             onDismiss = {
                                                 scope.launch {
-                                                    settingsRepository.setClipboardCalloutDismissed(
+                                                    preferences.setClipboardCalloutDismissed(
                                                         true
                                                     )
                                                 }
@@ -740,7 +803,7 @@ fun MainScreen(
                                     } else {
                                         state
                                     },
-                                    viewModel = viewModel,
+                                    actions = actions,
                                     onClear = clearAndCheckClipboard
                                 )
                             }
@@ -1031,7 +1094,7 @@ fun MainScreen(
                                                 modifier = Modifier
                                                     .weight(1f)
                                                     .clickable {
-                                                        viewModel.copyToClipboard(context)
+                                                        actions.copyToClipboard(context)
                                                         scope.launch {
                                                             snackbarHostState.showSnackbar(
                                                                 toastCopied
@@ -1042,7 +1105,7 @@ fun MainScreen(
                                             if (state.canExpand) {
                                                 TooltipWrapper(tooltipText = stringResource(R.string.main_expand_url)) {
                                                     IconButton(
-                                                        onClick = { viewModel.expandShortUrl() },
+                                                        onClick = { actions.expandShortUrl() },
                                                         enabled = !state.isExpanding,
                                                         colors = IconButtonDefaults.iconButtonColors(
                                                             contentColor = MaterialTheme.colorScheme.onPrimaryContainer
@@ -1248,8 +1311,8 @@ fun MainScreen(
                     // DECLUTTERED Welcome State
                     Column(
                         modifier = Modifier
-                            .fillMaxSize()
                             .widthIn(max = 650.dp)
+                            .fillMaxSize()
                             .nestedScroll(nestedScrollConnection)
                             .verticalScroll(rememberScrollState()),
                         horizontalAlignment = Alignment.CenterHorizontally
@@ -1259,11 +1322,12 @@ fun MainScreen(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .graphicsLayer {
-                                    alpha = (1f - collapseFraction * 2.5f).coerceIn(0f, 1f)
+                                    alpha = if (compactWindow) 1f else
+                                        (1f - collapseFraction * 2.5f).coerceIn(0f, 1f)
                                 }
                         ) {
                             // Reserved space for the floating shared Logo (72dp) + Title (30sp) + Spacers
-                            Spacer(modifier = Modifier.height(154.dp))
+                            Spacer(modifier = Modifier.height(if (compactWindow) 16.dp else 154.dp))
 
                             Text(
                                 text = stringResource(R.string.welcome_subtitle),
@@ -1276,32 +1340,25 @@ fun MainScreen(
                             Spacer(modifier = Modifier.height(24.dp))
 
                             // --- Group 2: Trust Markers ---
-                            Row(
+                            FlexBox(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .padding(horizontal = 8.dp),
-                                horizontalArrangement = Arrangement.SpaceEvenly,
-                                verticalAlignment = Alignment.CenterVertically
+                                config = FlexBoxConfig {
+                                    wrap(FlexWrap.Wrap)
+                                    justifyContent(FlexJustifyContent.SpaceEvenly)
+                                    alignItems(FlexAlignItems.Center)
+                                    columnGap(12.dp)
+                                    rowGap(8.dp)
+                                }
                             ) {
                                 CompactFeatureRow(
                                     icon = Icons.Outlined.CloudOff,
                                     text = stringResource(R.string.welcome_local_title)
                                 )
-                                VerticalDivider(
-                                    modifier = Modifier
-                                        .height(16.dp)
-                                        .width(1.dp),
-                                    color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
-                                )
                                 CompactFeatureRow(
                                     icon = Icons.Outlined.Tune,
                                     text = stringResource(R.string.welcome_privacy_title)
-                                )
-                                VerticalDivider(
-                                    modifier = Modifier
-                                        .height(16.dp)
-                                        .width(1.dp),
-                                    color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
                                 )
                                 CompactFeatureRow(
                                     icon = Icons.Outlined.Block,
@@ -1363,35 +1420,13 @@ fun MainScreen(
                         // Bulk Clipboard Clean card (gated behind Tidy+)
                         com.tidy.app.FlavorConfig.BulkClipboardCleanCard(
                             bulkClipboardUrls = state.bulkClipboardUrls,
-                            onDismiss = { viewModel.clearClipboardSuggestion() },
+                            onDismiss = { actions.clearClipboardSuggestion() },
                             isPlusUnlocked = isPlusUnlocked,
                             onShowUpsell = { showUpsellSheet = true },
                             onCleanExecute = {
                                 state.bulkClipboardUrls?.let { urls ->
                                     scope.launch {
-                                        val settings = TidyApp.instance.settingsRepository
-                                        val whitelist = settings.whitelistedDomains.first()
-                                        val customBlacklist = settings.blacklistedParams.first()
-                                        val domainParams = settings.domainWhitelistedParams.first()
-                                        val removeMobile =
-                                            settings.autoRemoveMobileSubdomains.first()
-                                        val dropTrailingSlash =
-                                            settings.dropTrailingSlash.first()
-                                        val trackers = settings.trackers.first()
-
-                                        val cleaned = urls.map { url ->
-                                            UrlCleaner().clean(
-                                                urlStr = url,
-                                                whitelistedDomains = whitelist,
-                                                customBlacklistParams = customBlacklist,
-                                                domainWhitelistedParams = domainParams,
-                                                removeMobileSubdomains = removeMobile,
-                                                dropTrailingSlash = dropTrailingSlash,
-                                                trackers = trackers
-                                            ).cleanedUrl
-                                        }
-
-                                        val joinedCleaned = cleaned.joinToString("\n")
+                                        val joinedCleaned = preferences.cleanBulkUrls(urls)
 
                                         val clipboard =
                                             context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
@@ -1409,7 +1444,7 @@ fun MainScreen(
                                                 )
                                             )
                                         }
-                                        viewModel.clearClipboardSuggestion()
+                                        actions.clearClipboardSuggestion()
                                     }
                                 }
                             }
@@ -1426,7 +1461,7 @@ fun MainScreen(
             TidyModalBottomSheet(
                 onDismissRequest = {
                     showIntro = false
-                    viewModel.markFirstLaunchDone()
+                    actions.markFirstLaunchDone()
                 },
                 sheetState = introSheetState
             ) { scrollFix ->
@@ -1495,7 +1530,7 @@ fun MainScreen(
                     Button(
                         onClick = {
                             showIntro = false
-                            viewModel.markFirstLaunchDone()
+                            actions.markFirstLaunchDone()
                         },
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(16.dp),
@@ -1512,7 +1547,7 @@ fun MainScreen(
 
                     FlavorConfig.OnboardingExtra {
                         showIntro = false
-                        viewModel.markFirstLaunchDone()
+                        actions.markFirstLaunchDone()
                     }
                 }
             }
@@ -1527,7 +1562,7 @@ fun MainScreen(
                 dontAskAgainChecked = dontAskAgainCrash,
                 onDontAskAgainChange = { checked ->
                     scope.launch {
-                        settingsRepository.setDontAskAgainCrash(checked)
+                        preferences.setDontAskAgainCrash(checked)
                     }
                 },
                 showDeleteButton = false
@@ -1546,7 +1581,7 @@ fun MainScreen(
             description = description,
             domain = domain,
             onDismiss = { paramToWhitelist = null },
-            onWhitelist = { d, p -> viewModel.addDomainWhitelistedParam(d, p) },
+            onWhitelist = { d, p -> actions.addDomainWhitelistedParam(d, p) },
             onReportIssueFailed = {
                 scope.launch {
                     snackbarHostState.showSnackbar(crashToastBrowserError)
@@ -1569,7 +1604,7 @@ fun MainScreen(
 @Composable
 private fun ManualEntryRow(
     state: MainScreenViewModel.UiState,
-    viewModel: MainScreenViewModel,
+    actions: MainScreenActions,
     onClear: () -> Unit
 ) {
     Row(
@@ -1579,7 +1614,7 @@ private fun ManualEntryRow(
     ) {
         OutlinedTextField(
             value = state.inputUrl,
-            onValueChange = { viewModel.onUrlInput(it) },
+            onValueChange = { actions.onUrlInput(it) },
             enabled = !state.isLoading,
             placeholder = {
                 Text(
@@ -1613,7 +1648,7 @@ private fun ManualEntryRow(
             keyboardActions = KeyboardActions(
                 onDone = {
                     if (UrlDetection.looksLikeUrl(state.inputUrl) && !state.isLoading) {
-                        viewModel.cleanUrl(state.inputUrl)
+                        actions.cleanUrl(state.inputUrl)
                     }
                 }
             ),
@@ -1625,7 +1660,7 @@ private fun ManualEntryRow(
 
         TooltipWrapper(tooltipText = stringResource(R.string.tooltip_process_url)) {
             Button(
-                onClick = { viewModel.cleanUrl(state.inputUrl) },
+                onClick = { actions.cleanUrl(state.inputUrl) },
                 shape = RoundedCornerShape(16.dp),
                 enabled = UrlDetection.looksLikeUrl(state.inputUrl) && !state.isLoading,
                 colors = ButtonDefaults.buttonColors(
@@ -1648,20 +1683,15 @@ private fun ClipboardActionBanner(
     url: String,
     onActionClick: () -> Unit,
     modifier: Modifier = Modifier,
-    enabled: Boolean = true
+    enabled: Boolean = true,
+    style: TidyStyle = CommonStyle
 ) {
-    Card(
-        shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.6f)
-        ),
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.25f)),
-        modifier = modifier
+    TidyStyledCard(
+        modifier = modifier,
+        style = CommonStyle(TidyComponentStyles.clipboardAction, style)
     ) {
         Row(
-            modifier = Modifier
-                .padding(12.dp)
-                .fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
@@ -1725,17 +1755,14 @@ private fun ClipboardActionBanner(
 private fun ClipboardCalloutBanner(
     onEnable: () -> Unit,
     onDismiss: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    style: TidyStyle = CommonStyle
 ) {
-    Card(
-        shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f)
-        ),
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.25f)),
-        modifier = modifier
+    TidyStyledCard(
+        modifier = modifier,
+        style = CommonStyle(TidyComponentStyles.clipboardCallout, style)
     ) {
-        Column(modifier = Modifier.padding(12.dp)) {
+        Column {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
@@ -1811,17 +1838,14 @@ private fun ClipboardCalloutBanner(
 private fun ClipboardEnabledSuccessBanner(
     onViewSettings: () -> Unit,
     onLater: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    style: TidyStyle = CommonStyle
 ) {
-    Card(
-        shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.6f)
-        ),
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.tertiary.copy(alpha = 0.25f)),
-        modifier = modifier
+    TidyStyledCard(
+        modifier = modifier,
+        style = CommonStyle(TidyComponentStyles.clipboardSuccess, style)
     ) {
-        Column(modifier = Modifier.padding(12.dp)) {
+        Column {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(12.dp),

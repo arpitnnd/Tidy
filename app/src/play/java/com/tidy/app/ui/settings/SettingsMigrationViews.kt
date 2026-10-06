@@ -1,11 +1,16 @@
 package com.tidy.app.ui.settings
 
+import androidx.compose.foundation.style.CommonStyle
+import androidx.compose.foundation.shape.RoundedCornerShape
+import com.tidy.designsystem.LocalTidyColours
+import com.tidy.designsystem.background
+import com.tidy.designsystem.shape
+
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.Star
@@ -35,7 +40,11 @@ object SettingsMigrationViews {
         val isPending by entitlementManager.isPurchasePending.collectAsStateWithLifecycle(
             initialValue = false
         )
+        UpgradePromptRow(onUpgradeClick, isUnlocked, isPending)
+    }
 
+    @Composable
+    fun UpgradePromptRow(onUpgradeClick: () -> Unit, isUnlocked: Boolean, isPending: Boolean) {
         Card(
             onClick = {
                 if (!isUnlocked && !isPending) {
@@ -61,10 +70,9 @@ object SettingsMigrationViews {
             ) {
                 AppIconBox(
                     icon = Icons.Filled.Star,
-                    boxSize = 48.dp,
-                    iconSize = 24.dp,
-                    cornerRadius = 12.dp,
-                    background = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
+                    style = CommonStyle {
+                        background(LocalTidyColours.currentValue.primary.copy(alpha = 0.1f))
+                    }
                 )
 
                 Column(modifier = Modifier.weight(1f)) {

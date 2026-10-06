@@ -1,7 +1,6 @@
 package com.tidy.app.ui.settings
 
 import android.content.Intent
-import android.net.Uri
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -84,7 +83,6 @@ object SettingsMigrationViews {
         )
 
         var showFollowup by remember { mutableStateOf(false) }
-        var showComingSoonSheet by remember { mutableStateOf(false) }
 
         LaunchedEffect(Unit) {
             val playInstalled = try {
@@ -99,6 +97,24 @@ object SettingsMigrationViews {
             showFollowup = playInstalled && isBackupOld && !dismissed
         }
 
+        val scope = rememberCoroutineScope()
+        UpgradePromptRow(onUpgradeClick, showFollowup) {
+            scope.launch {
+                settingsRepository.setMigrationFollowupDismissed(true)
+                showFollowup = false
+            }
+        }
+    }
+
+    @OptIn(ExperimentalMaterial3Api::class)
+    @Composable
+    fun UpgradePromptRow(
+        onUpgradeClick: () -> Unit,
+        showFollowup: Boolean,
+        onDismissFollowup: () -> Unit = {}
+    ) {
+        val context = LocalContext.current
+        var showComingSoonSheet by remember { mutableStateOf(false) }
         val isAvailable = com.tidy.app.BuildConfig.TIDY_PLUS_AVAILABLE
 
         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -198,7 +214,6 @@ object SettingsMigrationViews {
 
             // Optional Follow-up Banner
             AnimatedVisibility(visible = showFollowup) {
-                val scope = rememberCoroutineScope()
                 Card(
                     shape = RoundedCornerShape(16.dp),
                     colors = CardDefaults.cardColors(
@@ -245,10 +260,7 @@ object SettingsMigrationViews {
                             )
                         }
                         IconButton(onClick = {
-                            scope.launch {
-                                settingsRepository.setMigrationFollowupDismissed(true)
-                                showFollowup = false
-                            }
+                            onDismissFollowup()
                         }) {
                             Icon(
                                 imageVector = Icons.Filled.Close,
@@ -365,10 +377,7 @@ object SettingsMigrationViews {
                             item {
                                 // Icon / Logo Box (matching Welcome Intro design)
                                 AppIconBox(
-                                    icon = Icons.Outlined.CleaningServices,
-                                    boxSize = 48.dp,
-                                    iconSize = 24.dp,
-                                    cornerRadius = 12.dp
+                                    icon = Icons.Outlined.CleaningServices
                                 )
                             }
 
@@ -605,7 +614,8 @@ object SettingsMigrationViews {
                                             context.startActivity(playIntent)
                                         } catch (e: Exception) {
                                             val webIntent = Intent(Intent.ACTION_VIEW).apply {
-                                                data = "https://play.google.com/store/apps/details?id=$playId".toUri()
+                                                data =
+                                                    "https://play.google.com/store/apps/details?id=$playId".toUri()
                                                 addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                                             }
                                             context.startActivity(webIntent)

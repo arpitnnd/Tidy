@@ -20,7 +20,7 @@ import kotlinx.coroutines.launch
 
 class SettingsScreenViewModel(
     private val settingsRepository: SettingsRepository = TidyApp.instance.settingsRepository
-) : ViewModel() {
+) : ViewModel(), SettingsScreenActions {
 
     data class UiState(
         val whitelistedDomains: Set<String> = emptySet(),
@@ -116,7 +116,10 @@ class SettingsScreenViewModel(
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), UiState())
 
-    fun refreshBlocklist(context: Context, onResult: (BlocklistSyncer.SyncResult) -> Unit) {
+    override fun refreshBlocklist(
+        context: Context,
+        onResult: (BlocklistSyncer.SyncResult) -> Unit
+    ) {
         if (_uiState.value.isRefreshingBlocklist) return
         _uiState.update { it.copy(isRefreshingBlocklist = true) }
         viewModelScope.launch {
@@ -133,39 +136,39 @@ class SettingsScreenViewModel(
         }
     }
 
-    fun setCheckClipboardForLinks(enabled: Boolean) {
+    override fun setCheckClipboardForLinks(enabled: Boolean) {
         viewModelScope.launch {
             settingsRepository.setCheckClipboardForLinks(enabled)
         }
     }
 
-    fun setClipboardCleanTier(tier: ClipboardCleanTier) {
+    override fun setClipboardCleanTier(tier: ClipboardCleanTier) {
         viewModelScope.launch {
             settingsRepository.setClipboardCleanTier(tier)
         }
     }
 
-    fun setShareCleanTier(tier: ShareCleanTier) {
+    override fun setShareCleanTier(tier: ShareCleanTier) {
         viewModelScope.launch {
             settingsRepository.setShareCleanTier(tier)
         }
     }
 
-    fun setCloseInsteadOfSharing(enabled: Boolean) {
+    override fun setCloseInsteadOfSharing(enabled: Boolean) {
         viewModelScope.launch {
             settingsRepository.setCloseInsteadOfSharing(enabled)
         }
     }
 
-    fun onDomainInputChanged(value: String) {
+    override fun onDomainInputChanged(value: String) {
         _uiState.update { it.copy(domainInput = value) }
     }
 
-    fun onParamInputChanged(value: String) {
+    override fun onParamInputChanged(value: String) {
         _uiState.update { it.copy(paramInput = value) }
     }
 
-    fun addDomain() {
+    override fun addDomain() {
         val domain = _uiState.value.domainInput.trim().lowercase()
         if (domain.isNotEmpty() && domain.contains(".") && !domain.contains(" ")) {
             viewModelScope.launch {
@@ -175,13 +178,13 @@ class SettingsScreenViewModel(
         }
     }
 
-    fun removeDomain(domain: String) {
+    override fun removeDomain(domain: String) {
         viewModelScope.launch {
             settingsRepository.removeWhitelistedDomain(domain)
         }
     }
 
-    fun addParam() {
+    override fun addParam() {
         val param = _uiState.value.paramInput.trim()
         if (param.isNotEmpty() && !param.contains(" ") && !param.contains("?") && !param.contains("&") && !param.contains(
                 "="
@@ -194,50 +197,50 @@ class SettingsScreenViewModel(
         }
     }
 
-    fun removeParam(param: String) {
+    override fun removeParam(param: String) {
         viewModelScope.launch {
             settingsRepository.removeBlacklistedParam(param)
         }
     }
 
-    fun setAutoExpandShortUrls(enabled: Boolean) {
+    override fun setAutoExpandShortUrls(enabled: Boolean) {
         viewModelScope.launch {
             settingsRepository.setAutoExpandShortUrls(enabled)
         }
     }
 
-    fun setAutoRemoveMobileSubdomains(enabled: Boolean) {
+    override fun setAutoRemoveMobileSubdomains(enabled: Boolean) {
         viewModelScope.launch {
             settingsRepository.setAutoRemoveMobileSubdomains(enabled)
         }
     }
 
-    fun setDropTrailingSlash(enabled: Boolean) {
+    override fun setDropTrailingSlash(enabled: Boolean) {
         viewModelScope.launch {
             settingsRepository.setDropTrailingSlash(enabled)
         }
     }
 
-    fun setAutoCleanOnInput(enabled: Boolean) {
+    override fun setAutoCleanOnInput(enabled: Boolean) {
         viewModelScope.launch {
             settingsRepository.setAutoCleanOnInput(enabled)
         }
     }
 
-    fun setAllowSystemBackup(enabled: Boolean) {
+    override fun setAllowSystemBackup(enabled: Boolean) {
         BackupPreference.setAllowed(TidyApp.instance, enabled)
         _uiState.update { it.copy(allowSystemBackup = enabled) }
     }
 
-    fun onNewParamWhitelistDomainChanged(value: String) {
+    override fun onNewParamWhitelistDomainChanged(value: String) {
         _uiState.update { it.copy(newParamWhitelistDomain = value) }
     }
 
-    fun onNewParamWhitelistParamChanged(value: String) {
+    override fun onNewParamWhitelistParamChanged(value: String) {
         _uiState.update { it.copy(newParamWhitelistParam = value) }
     }
 
-    fun addDomainWhitelistedParam() {
+    override fun addDomainWhitelistedParam() {
         val domain = _uiState.value.newParamWhitelistDomain.trim().lowercase()
         val param = _uiState.value.newParamWhitelistParam.trim().lowercase()
         if (domain.isNotEmpty() && param.isNotEmpty() && domain.contains(".") && !domain.contains(" ") && !param.contains(
@@ -256,7 +259,7 @@ class SettingsScreenViewModel(
         }
     }
 
-    fun removeDomainWhitelistedParam(entry: String) {
+    override fun removeDomainWhitelistedParam(entry: String) {
         val parts = entry.split(':', limit = 2)
         if (parts.size == 2) {
             viewModelScope.launch {
