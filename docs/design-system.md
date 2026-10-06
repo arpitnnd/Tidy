@@ -194,6 +194,10 @@ Typography and motion retain the existing Material roles and local transition de
   as compact and reduces the reserved hero space. The application enables MediaQuery integration
   before creating Compose content.
 
+Scrollable screen bodies receive gestures across the full viewport, including the side margins.
+Keep Home, Settings and About content bounded inside that scroll container. History centres
+its bounded grid content through padding while the grid itself fills the viewport.
+
 Use window size and font scale rather than device names when adapting content. Preserve control
 semantics and the existing action callbacks while changing layout.
 
@@ -225,6 +229,10 @@ transition, which has its own fade and size timings.
 Keep a result actionable as soon as it is available. Preserve meaningful content throughout
 entry and exit, and check transitions with system animations disabled. Errors and zero-removal
 results must remain understandable without motion or colour cues.
+
+Invalid non-empty URL, domain and parameter fields use Material text-field error styling and
+supporting text to explain why submission is disabled. Clear the feedback when the field becomes
+valid or empty, and reuse the same validation result for feedback and submission.
 
 Use a snackbar for feedback while the triggering screen is visible. A modal sheet needs its own
 snackbar host inside the sheet so the message appears above the underlying screen. Keep messages

@@ -13,6 +13,8 @@ All notable changes to Tidy will be documented in this file.
 - History arranges records in multiple columns in wider windows. Home uses less hero space in
   short windows, and its trust labels wrap when space is limited.
 - Screen app bars use a solid Material surface so scrolling content stays behind them.
+- Invalid URL and rule inputs explain why submission is disabled.
+- Scrollable screens accept swipes from their side margins while keeping content centred.
 
 ### Bug fixes
 
