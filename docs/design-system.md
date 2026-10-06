@@ -196,7 +196,9 @@ Typography and motion retain the existing Material roles and local transition de
 
 Scrollable screen bodies receive gestures across the full viewport, including the side margins.
 Keep Home, Settings and About content bounded inside that scroll container. History centres
-its bounded grid content through padding while the grid itself fills the viewport.
+its bounded grid content through padding while the grid itself fills the viewport. Preserve
+horizontal Scaffold insets in that padding. Home bottom controls avoid both navigation bars
+and display cutouts; their surface can still draw to the screen edge.
 
 Use window size and font scale rather than device names when adapting content. Preserve control
 semantics and the existing action callbacks while changing layout.
