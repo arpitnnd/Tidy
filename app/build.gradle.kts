@@ -112,8 +112,8 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_21
-        targetCompatibility = JavaVersion.VERSION_21
+        sourceCompatibility = JavaVersion.VERSION_25
+        targetCompatibility = JavaVersion.VERSION_25
     }
     buildFeatures {
         compose = true
@@ -201,6 +201,7 @@ androidComponents {
 
 kotlin {
     compilerOptions {
+        jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_25)
         optIn.add("androidx.compose.foundation.style.ExperimentalFoundationStyleApi")
     }
 }
