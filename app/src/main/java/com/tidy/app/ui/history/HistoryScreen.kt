@@ -16,6 +16,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -24,6 +25,8 @@ import androidx.compose.foundation.layout.FlexBox
 import androidx.compose.foundation.layout.FlexBoxConfig
 import androidx.compose.foundation.layout.FlexWrap
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.calculateStartPadding
+import androidx.compose.foundation.layout.calculateEndPadding
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -34,7 +37,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
@@ -81,6 +83,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -237,21 +240,25 @@ internal fun HistoryScreenContent(
         },
         modifier = modifier
     ) { paddingValues ->
-        Box(
+        BoxWithConstraints(
             modifier = Modifier
                 .fillMaxSize(),
             contentAlignment = Alignment.TopCenter
         ) {
             val fontScale = LocalDensity.current.fontScale
+            val layoutDirection = LocalLayoutDirection.current
+            val startInset = paddingValues.calculateStartPadding(layoutDirection)
+            val endInset = paddingValues.calculateEndPadding(layoutDirection)
+            val availableWidth = maxWidth - startInset - endInset
+            val horizontalPadding = 16.dp + ((availableWidth - 1000.dp) / 2).coerceAtLeast(0.dp)
             LazyVerticalGrid(
                 columns = GridCells.Adaptive(320.dp * fontScale.coerceAtLeast(1f)),
                 modifier = Modifier
-                    .widthIn(max = 1000.dp)
                     .fillMaxSize()
                     .consumeWindowInsets(paddingValues),
                 contentPadding = PaddingValues(
-                    start = 16.dp,
-                    end = 16.dp,
+                    start = startInset + horizontalPadding,
+                    end = endInset + horizontalPadding,
                     top = paddingValues.calculateTopPadding() + 8.dp,
                     bottom = paddingValues.calculateBottomPadding() + 8.dp
                 ),

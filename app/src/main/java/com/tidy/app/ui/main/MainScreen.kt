@@ -45,7 +45,6 @@ import androidx.compose.foundation.layout.FlexAlignItems
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -473,11 +472,14 @@ internal fun MainScreenContent(
         }
     }
 
-    val currentState by rememberUpdatedState(state)
+    val compactWindow by derivedMediaQuery { windowHeight < 480.dp }
+    val canCollapseHero by rememberUpdatedState(
+        !compactWindow && !state.isCleaned && !state.isLoading
+    )
     val nestedScrollConnection = remember(scrollThresholdPx) {
         object : NestedScrollConnection {
             override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
-                if (currentState.isCleaned || currentState.isLoading) return Offset.Zero
+                if (!canCollapseHero) return Offset.Zero
                 val delta = available.y
                 if (delta < 0 && scrollOffset < scrollThresholdPx) {
                     val newOffset = (scrollOffset - delta).coerceIn(0f, scrollThresholdPx)
@@ -495,7 +497,7 @@ internal fun MainScreenContent(
             }
 
             override suspend fun onPreFling(available: Velocity): Velocity {
-                if (currentState.isCleaned || currentState.isLoading) return Velocity.Zero
+                if (!canCollapseHero) return Velocity.Zero
                 if (available.y < -300f || scrollOffset > scrollThresholdPx / 2) {
                     animate(scrollOffset, scrollThresholdPx) { value, _ -> scrollOffset = value }
                 } else {
@@ -506,7 +508,6 @@ internal fun MainScreenContent(
         }
     }
 
-    val compactWindow by derivedMediaQuery { windowHeight < 480.dp }
     val scrollCollapseFraction by remember(scrollThresholdPx) {
         derivedStateOf {
             (scrollOffset / scrollThresholdPx).coerceIn(0f, 1f)
@@ -817,8 +818,7 @@ internal fun MainScreenContent(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues)
-                .padding(horizontal = 16.dp),
+                .padding(paddingValues),
             contentAlignment = Alignment.TopCenter
         ) {
             var titleWidthPx by remember { mutableIntStateOf(0) }
@@ -826,7 +826,7 @@ internal fun MainScreenContent(
 
             // --- THE PHYSICAL SHARED BRAND ELEMENT (LOGO + TITLE) ---
             BoxWithConstraints(
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)
             ) {
                 val screenWidthPx = constraints.maxWidth.toFloat()
                 val density = LocalDensity.current
@@ -931,311 +931,300 @@ internal fun MainScreenContent(
                                 fadeOut(tween(140))
                     }
                 },
+                modifier = Modifier.fillMaxSize(),
                 label = "homeContentMorph"
             ) { showResult ->
                 if (showResult) {
-                    // Unified Results Card Container (Morphs smoothly between Loading and Cleaned Result)
-                    Column(
+                    Box(
                         modifier = Modifier
-                            .fillMaxHeight()
-                            .widthIn(max = 650.dp)
-                            .verticalScroll(rememberScrollState()),
-                        verticalArrangement = Arrangement.spacedBy(16.dp)
+                            .fillMaxSize()
+                            .verticalScroll(rememberScrollState())
+                            .padding(horizontal = 16.dp),
+                        contentAlignment = Alignment.TopCenter
                     ) {
-                        Spacer(modifier = Modifier.height(12.dp))
-
-                        val showCleanedContent = !showUpperLoading &&
-                                (state.isCleaned || (!state.isLoading && lastResultWasCleaned))
-                        val resultReveal by animateFloatAsState(
-                            targetValue = if (showCleanedContent) 1f else 0f,
-                            animationSpec = tween(360),
-                            label = "resultSurfaceReveal"
-                        )
-                        val loadingContainerColor =
-                            MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
-                        val gradientBrush = Brush.linearGradient(
-                            colors = listOf(
-                                lerpColor(
-                                    loadingContainerColor,
-                                    MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.8f),
-                                    resultReveal
-                                ),
-                                lerpColor(
-                                    loadingContainerColor,
-                                    MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.5f),
-                                    resultReveal
-                                )
-                            )
-                        )
-
-                        Box(
+                        // Unified Results Card Container (Morphs smoothly between Loading and Cleaned Result)
+                        Column(
                             modifier = Modifier
-                                .fillMaxWidth()
-                                .clip(RoundedCornerShape(24.dp))
-                                .background(gradientBrush)
-                                .border(
-                                    width = 1.dp,
-                                    color = lerpColor(
-                                        MaterialTheme.colorScheme.outline.copy(alpha = 0.15f),
-                                        MaterialTheme.colorScheme.primary.copy(alpha = 0.2f),
+                                .widthIn(max = 650.dp)
+                                .fillMaxWidth(),
+                            verticalArrangement = Arrangement.spacedBy(16.dp)
+                        ) {
+                            Spacer(modifier = Modifier.height(12.dp))
+
+                            val showCleanedContent = !showUpperLoading &&
+                                    (state.isCleaned || (!state.isLoading && lastResultWasCleaned))
+                            val resultReveal by animateFloatAsState(
+                                targetValue = if (showCleanedContent) 1f else 0f,
+                                animationSpec = tween(360),
+                                label = "resultSurfaceReveal"
+                            )
+                            val loadingContainerColor =
+                                MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+                            val gradientBrush = Brush.linearGradient(
+                                colors = listOf(
+                                    lerpColor(
+                                        loadingContainerColor,
+                                        MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.8f),
                                         resultReveal
                                     ),
-                                    shape = RoundedCornerShape(24.dp)
-                                )
-                        ) {
-                            Column(modifier = Modifier.fillMaxWidth()) {
-                                if (!showCleanedContent) {
-                                    // Loading Content inside the Unified Card
-                                    Column(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .padding(20.dp),
-                                        verticalArrangement = Arrangement.spacedBy(14.dp)
-                                    ) {
-                                        Row(
-                                            verticalAlignment = Alignment.CenterVertically,
-                                            horizontalArrangement = Arrangement.spacedBy(12.dp),
-                                            modifier = Modifier.fillMaxWidth()
-                                        ) {
-                                            CircularProgressIndicator(
-                                                modifier = Modifier.size(20.dp),
-                                                strokeWidth = 2.dp,
-                                                color = MaterialTheme.colorScheme.primary
-                                            )
-                                            Text(
-                                                text = stringResource(R.string.main_cleaning_url),
-                                                style = MaterialTheme.typography.titleMedium,
-                                                fontWeight = FontWeight.Bold,
-                                                color = MaterialTheme.colorScheme.onSurface
-                                            )
-                                        }
-                                        if (state.inputUrl.isNotBlank()) {
-                                            Text(
-                                                text = state.inputUrl,
-                                                style = MaterialTheme.typography.bodyMedium,
-                                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                                maxLines = 3,
-                                                overflow = TextOverflow.Ellipsis
-                                            )
-                                        }
-                                    }
-                                }
-
-                                if (showCleanedContent) {
-                                    // Cleaned Result Content inside the Unified Card
-                                    var showDetails by remember { mutableStateOf(false) }
-
-                                    Column(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .padding(
-                                                start = 20.dp,
-                                                end = 20.dp,
-                                                top = 20.dp,
-                                                bottom = 12.dp
-                                            ),
-                                        verticalArrangement = Arrangement.spacedBy(14.dp)
-                                    ) {
-                                        Row(
-                                            horizontalArrangement = Arrangement.SpaceBetween,
-                                            verticalAlignment = Alignment.CenterVertically,
-                                            modifier = Modifier.fillMaxWidth()
-                                        ) {
-                                            Text(
-                                                text = stringResource(R.string.main_cleaned_url),
-                                                style = MaterialTheme.typography.titleMedium,
-                                                fontWeight = FontWeight.Bold,
-                                                color = MaterialTheme.colorScheme.onPrimaryContainer
-                                            )
-
-                                            val removedCount = state.removedParams.size
-                                            val badgeColor = if (removedCount > 0) {
-                                                MaterialTheme.colorScheme.primaryContainer
-                                            } else {
-                                                MaterialTheme.colorScheme.surfaceVariant
-                                            }
-                                            val badgeTextColor = if (removedCount > 0) {
-                                                MaterialTheme.colorScheme.onPrimaryContainer
-                                            } else {
-                                                MaterialTheme.colorScheme.onSurfaceVariant
-                                            }
-                                            Surface(
-                                                shape = RoundedCornerShape(12.dp),
-                                                color = badgeColor
-                                            ) {
-                                                Text(
-                                                    text = if (removedCount > 0) stringResource(
-                                                        R.string.history_item_removed_count,
-                                                        removedCount
-                                                    ) else stringResource(R.string.history_item_clean),
-                                                    fontWeight = FontWeight.Bold,
-                                                    style = MaterialTheme.typography.labelSmall,
-                                                    color = badgeTextColor,
-                                                    modifier = Modifier.padding(
-                                                        horizontal = 10.dp,
-                                                        vertical = 4.dp
-                                                    )
-                                                )
-                                            }
-                                        }
-
-                                        Row(
-                                            verticalAlignment = Alignment.CenterVertically,
-                                            horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                            modifier = Modifier.fillMaxWidth()
-                                        ) {
-                                            Text(
-                                                text = state.cleanedUrl,
-                                                style = MaterialTheme.typography.bodyMedium,
-                                                fontWeight = FontWeight.SemiBold,
-                                                color = MaterialTheme.colorScheme.onPrimaryContainer,
-                                                maxLines = 5,
-                                                overflow = TextOverflow.Ellipsis,
-                                                modifier = Modifier
-                                                    .weight(1f)
-                                                    .clickable {
-                                                        actions.copyToClipboard(context)
-                                                        scope.launch {
-                                                            snackbarHostState.showSnackbar(
-                                                                toastCopied
-                                                            )
-                                                        }
-                                                    }
-                                            )
-                                            if (state.canExpand) {
-                                                TooltipWrapper(tooltipText = stringResource(R.string.main_expand_url)) {
-                                                    IconButton(
-                                                        onClick = { actions.expandShortUrl() },
-                                                        enabled = !state.isExpanding,
-                                                        colors = IconButtonDefaults.iconButtonColors(
-                                                            contentColor = MaterialTheme.colorScheme.onPrimaryContainer
-                                                        )
-                                                    ) {
-                                                        if (state.isExpanding) {
-                                                            CircularProgressIndicator(
-                                                                modifier = Modifier.size(20.dp),
-                                                                color = MaterialTheme.colorScheme.onPrimaryContainer,
-                                                                strokeWidth = 2.dp
-                                                            )
-                                                        } else {
-                                                            Icon(
-                                                                imageVector = Icons.Outlined.ArrowsOutward,
-                                                                contentDescription = stringResource(
-                                                                    R.string.main_expand_url
-                                                                )
-                                                            )
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                            TooltipWrapper(tooltipText = stringResource(R.string.tooltip_open_browser)) {
-                                                IconButton(
-                                                    onClick = {
-                                                        try {
-                                                            val intent = Intent(
-                                                                Intent.ACTION_VIEW,
-                                                                state.cleanedUrl.toUri()
-                                                            ).apply {
-                                                                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                                                            }
-                                                            context.startActivity(intent)
-                                                        } catch (e: Exception) {
-                                                            scope.launch {
-                                                                snackbarHostState.showSnackbar(
-                                                                    toastNoBrowserApp
-                                                                )
-                                                            }
-                                                        }
-                                                    },
-                                                    colors = IconButtonDefaults.iconButtonColors(
-                                                        contentColor = MaterialTheme.colorScheme.onPrimaryContainer
-                                                    )
-                                                ) {
-                                                    Icon(
-                                                        imageVector = Icons.AutoMirrored.Filled.OpenInNew,
-                                                        contentDescription = stringResource(R.string.tooltip_open_browser)
-                                                    )
-                                                }
-                                            }
-                                        }
-                                    }
-
-                                    HorizontalDivider(
-                                        color = MaterialTheme.colorScheme.onPrimaryContainer.copy(
-                                            alpha = 0.12f
-                                        ),
-                                        modifier = Modifier.fillMaxWidth()
+                                    lerpColor(
+                                        loadingContainerColor,
+                                        MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.5f),
+                                        resultReveal
                                     )
+                                )
+                            )
 
-                                    TooltipWrapper(
-                                        tooltipText = stringResource(if (showDetails) R.string.main_hide_details else R.string.main_show_details),
-                                        modifier = Modifier.fillMaxWidth()
-                                    ) {
-                                        Row(
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clip(RoundedCornerShape(24.dp))
+                                    .background(gradientBrush)
+                                    .border(
+                                        width = 1.dp,
+                                        color = lerpColor(
+                                            MaterialTheme.colorScheme.outline.copy(alpha = 0.15f),
+                                            MaterialTheme.colorScheme.primary.copy(alpha = 0.2f),
+                                            resultReveal
+                                        ),
+                                        shape = RoundedCornerShape(24.dp)
+                                    )
+                            ) {
+                                Column(modifier = Modifier.fillMaxWidth()) {
+                                    if (!showCleanedContent) {
+                                        // Loading Content inside the Unified Card
+                                        Column(
                                             modifier = Modifier
                                                 .fillMaxWidth()
-                                                .clickable { showDetails = !showDetails }
-                                                .padding(horizontal = 20.dp, vertical = 16.dp),
-                                            verticalAlignment = Alignment.CenterVertically,
-                                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                                .padding(20.dp),
+                                            verticalArrangement = Arrangement.spacedBy(14.dp)
                                         ) {
-                                            Icon(
-                                                imageVector = if (showDetails) Icons.Filled.KeyboardArrowUp else Icons.Filled.KeyboardArrowDown,
-                                                contentDescription = null,
-                                                modifier = Modifier.size(24.dp),
-                                                tint = MaterialTheme.colorScheme.onPrimaryContainer.copy(
-                                                    alpha = 0.8f
+                                            Row(
+                                                verticalAlignment = Alignment.CenterVertically,
+                                                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                                                modifier = Modifier.fillMaxWidth()
+                                            ) {
+                                                CircularProgressIndicator(
+                                                    modifier = Modifier.size(20.dp),
+                                                    strokeWidth = 2.dp,
+                                                    color = MaterialTheme.colorScheme.primary
                                                 )
-                                            )
-                                            Text(
-                                                text = if (showDetails) stringResource(R.string.main_hide_details) else stringResource(
-                                                    R.string.main_show_details
-                                                ),
-                                                style = MaterialTheme.typography.labelLarge,
-                                                color = MaterialTheme.colorScheme.onPrimaryContainer.copy(
-                                                    alpha = 0.8f
-                                                ),
-                                                fontWeight = FontWeight.Bold
-                                            )
+                                                Text(
+                                                    text = stringResource(R.string.main_cleaning_url),
+                                                    style = MaterialTheme.typography.titleMedium,
+                                                    fontWeight = FontWeight.Bold,
+                                                    color = MaterialTheme.colorScheme.onSurface
+                                                )
+                                            }
+                                            if (state.inputUrl.isNotBlank()) {
+                                                Text(
+                                                    text = state.inputUrl,
+                                                    style = MaterialTheme.typography.bodyMedium,
+                                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                                    maxLines = 3,
+                                                    overflow = TextOverflow.Ellipsis
+                                                )
+                                            }
                                         }
                                     }
 
-                                    AnimatedVisibility(
-                                        visible = showDetails,
-                                        enter = fadeIn() + expandVertically(),
-                                        exit = fadeOut() + shrinkVertically()
-                                    ) {
+                                    if (showCleanedContent) {
+                                        // Cleaned Result Content inside the Unified Card
+                                        var showDetails by remember { mutableStateOf(false) }
+
                                         Column(
-                                            verticalArrangement = Arrangement.spacedBy(12.dp),
                                             modifier = Modifier
                                                 .fillMaxWidth()
                                                 .padding(
                                                     start = 20.dp,
                                                     end = 20.dp,
-                                                    bottom = 20.dp
-                                                )
+                                                    top = 20.dp,
+                                                    bottom = 12.dp
+                                                ),
+                                            verticalArrangement = Arrangement.spacedBy(14.dp)
                                         ) {
-                                            Column {
+                                            Row(
+                                                horizontalArrangement = Arrangement.SpaceBetween,
+                                                verticalAlignment = Alignment.CenterVertically,
+                                                modifier = Modifier.fillMaxWidth()
+                                            ) {
                                                 Text(
-                                                    text = stringResource(R.string.main_original_url),
-                                                    style = MaterialTheme.typography.labelSmall,
+                                                    text = stringResource(R.string.main_cleaned_url),
+                                                    style = MaterialTheme.typography.titleMedium,
+                                                    fontWeight = FontWeight.Bold,
+                                                    color = MaterialTheme.colorScheme.onPrimaryContainer
+                                                )
+
+                                                val removedCount = state.removedParams.size
+                                                val badgeColor = if (removedCount > 0) {
+                                                    MaterialTheme.colorScheme.primaryContainer
+                                                } else {
+                                                    MaterialTheme.colorScheme.surfaceVariant
+                                                }
+                                                val badgeTextColor = if (removedCount > 0) {
+                                                    MaterialTheme.colorScheme.onPrimaryContainer
+                                                } else {
+                                                    MaterialTheme.colorScheme.onSurfaceVariant
+                                                }
+                                                Surface(
+                                                    shape = RoundedCornerShape(12.dp),
+                                                    color = badgeColor
+                                                ) {
+                                                    Text(
+                                                        text = if (removedCount > 0) stringResource(
+                                                            R.string.history_item_removed_count,
+                                                            removedCount
+                                                        ) else stringResource(R.string.history_item_clean),
+                                                        fontWeight = FontWeight.Bold,
+                                                        style = MaterialTheme.typography.labelSmall,
+                                                        color = badgeTextColor,
+                                                        modifier = Modifier.padding(
+                                                            horizontal = 10.dp,
+                                                            vertical = 4.dp
+                                                        )
+                                                    )
+                                                }
+                                            }
+
+                                            Row(
+                                                verticalAlignment = Alignment.CenterVertically,
+                                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                                modifier = Modifier.fillMaxWidth()
+                                            ) {
+                                                Text(
+                                                    text = state.cleanedUrl,
+                                                    style = MaterialTheme.typography.bodyMedium,
+                                                    fontWeight = FontWeight.SemiBold,
+                                                    color = MaterialTheme.colorScheme.onPrimaryContainer,
+                                                    maxLines = 5,
+                                                    overflow = TextOverflow.Ellipsis,
+                                                    modifier = Modifier
+                                                        .weight(1f)
+                                                        .clickable {
+                                                            actions.copyToClipboard(context)
+                                                            scope.launch {
+                                                                snackbarHostState.showSnackbar(
+                                                                    toastCopied
+                                                                )
+                                                            }
+                                                        }
+                                                )
+                                                if (state.canExpand) {
+                                                    TooltipWrapper(tooltipText = stringResource(R.string.main_expand_url)) {
+                                                        IconButton(
+                                                            onClick = { actions.expandShortUrl() },
+                                                            enabled = !state.isExpanding,
+                                                            colors = IconButtonDefaults.iconButtonColors(
+                                                                contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                                                            )
+                                                        ) {
+                                                            if (state.isExpanding) {
+                                                                CircularProgressIndicator(
+                                                                    modifier = Modifier.size(20.dp),
+                                                                    color = MaterialTheme.colorScheme.onPrimaryContainer,
+                                                                    strokeWidth = 2.dp
+                                                                )
+                                                            } else {
+                                                                Icon(
+                                                                    imageVector = Icons.Outlined.ArrowsOutward,
+                                                                    contentDescription = stringResource(
+                                                                        R.string.main_expand_url
+                                                                    )
+                                                                )
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                                TooltipWrapper(tooltipText = stringResource(R.string.tooltip_open_browser)) {
+                                                    IconButton(
+                                                        onClick = {
+                                                            try {
+                                                                val intent = Intent(
+                                                                    Intent.ACTION_VIEW,
+                                                                    state.cleanedUrl.toUri()
+                                                                ).apply {
+                                                                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                                                                }
+                                                                context.startActivity(intent)
+                                                            } catch (e: Exception) {
+                                                                scope.launch {
+                                                                    snackbarHostState.showSnackbar(
+                                                                        toastNoBrowserApp
+                                                                    )
+                                                                }
+                                                            }
+                                                        },
+                                                        colors = IconButtonDefaults.iconButtonColors(
+                                                            contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                                                        )
+                                                    ) {
+                                                        Icon(
+                                                            imageVector = Icons.AutoMirrored.Filled.OpenInNew,
+                                                            contentDescription = stringResource(R.string.tooltip_open_browser)
+                                                        )
+                                                    }
+                                                }
+                                            }
+                                        }
+
+                                        HorizontalDivider(
+                                            color = MaterialTheme.colorScheme.onPrimaryContainer.copy(
+                                                alpha = 0.12f
+                                            ),
+                                            modifier = Modifier.fillMaxWidth()
+                                        )
+
+                                        TooltipWrapper(
+                                            tooltipText = stringResource(if (showDetails) R.string.main_hide_details else R.string.main_show_details),
+                                            modifier = Modifier.fillMaxWidth()
+                                        ) {
+                                            Row(
+                                                modifier = Modifier
+                                                    .fillMaxWidth()
+                                                    .clickable { showDetails = !showDetails }
+                                                    .padding(horizontal = 20.dp, vertical = 16.dp),
+                                                verticalAlignment = Alignment.CenterVertically,
+                                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                            ) {
+                                                Icon(
+                                                    imageVector = if (showDetails) Icons.Filled.KeyboardArrowUp else Icons.Filled.KeyboardArrowDown,
+                                                    contentDescription = null,
+                                                    modifier = Modifier.size(24.dp),
+                                                    tint = MaterialTheme.colorScheme.onPrimaryContainer.copy(
+                                                        alpha = 0.8f
+                                                    )
+                                                )
+                                                Text(
+                                                    text = if (showDetails) stringResource(R.string.main_hide_details) else stringResource(
+                                                        R.string.main_show_details
+                                                    ),
+                                                    style = MaterialTheme.typography.labelLarge,
                                                     color = MaterialTheme.colorScheme.onPrimaryContainer.copy(
-                                                        alpha = 0.6f
+                                                        alpha = 0.8f
                                                     ),
                                                     fontWeight = FontWeight.Bold
                                                 )
-                                                Spacer(modifier = Modifier.height(2.dp))
-                                                Text(
-                                                    text = state.originalUrl,
-                                                    style = MaterialTheme.typography.bodySmall,
-                                                    color = MaterialTheme.colorScheme.onPrimaryContainer
-                                                )
                                             }
+                                        }
 
-                                            if (state.expandedUrl != null) {
+                                        AnimatedVisibility(
+                                            visible = showDetails,
+                                            enter = fadeIn() + expandVertically(),
+                                            exit = fadeOut() + shrinkVertically()
+                                        ) {
+                                            Column(
+                                                verticalArrangement = Arrangement.spacedBy(12.dp),
+                                                modifier = Modifier
+                                                    .fillMaxWidth()
+                                                    .padding(
+                                                        start = 20.dp,
+                                                        end = 20.dp,
+                                                        bottom = 20.dp
+                                                    )
+                                            ) {
                                                 Column {
                                                     Text(
-                                                        text = stringResource(R.string.main_expanded_url),
+                                                        text = stringResource(R.string.main_original_url),
                                                         style = MaterialTheme.typography.labelSmall,
                                                         color = MaterialTheme.colorScheme.onPrimaryContainer.copy(
                                                             alpha = 0.6f
@@ -1244,59 +1233,78 @@ internal fun MainScreenContent(
                                                     )
                                                     Spacer(modifier = Modifier.height(2.dp))
                                                     Text(
-                                                        text = state.expandedUrl!!,
+                                                        text = state.originalUrl,
                                                         style = MaterialTheme.typography.bodySmall,
                                                         color = MaterialTheme.colorScheme.onPrimaryContainer
                                                     )
                                                 }
-                                            }
 
-                                            if (state.removedParams.isNotEmpty()) {
-                                                Column(
-                                                    verticalArrangement = Arrangement.spacedBy(
-                                                        6.dp
-                                                    )
-                                                ) {
-                                                    Text(
-                                                        text = stringResource(R.string.main_removed_parameters),
-                                                        style = MaterialTheme.typography.labelSmall,
-                                                        color = MaterialTheme.colorScheme.onPrimaryContainer.copy(
-                                                            alpha = 0.6f
-                                                        ),
-                                                        fontWeight = FontWeight.Bold
-                                                    )
-                                                    FlowRow(
-                                                        horizontalArrangement = Arrangement.spacedBy(
-                                                            8.dp
-                                                        ),
+                                                if (state.expandedUrl != null) {
+                                                    Column {
+                                                        Text(
+                                                            text = stringResource(R.string.main_expanded_url),
+                                                            style = MaterialTheme.typography.labelSmall,
+                                                            color = MaterialTheme.colorScheme.onPrimaryContainer.copy(
+                                                                alpha = 0.6f
+                                                            ),
+                                                            fontWeight = FontWeight.Bold
+                                                        )
+                                                        Spacer(modifier = Modifier.height(2.dp))
+                                                        Text(
+                                                            text = state.expandedUrl!!,
+                                                            style = MaterialTheme.typography.bodySmall,
+                                                            color = MaterialTheme.colorScheme.onPrimaryContainer
+                                                        )
+                                                    }
+                                                }
+
+                                                if (state.removedParams.isNotEmpty()) {
+                                                    Column(
                                                         verticalArrangement = Arrangement.spacedBy(
-                                                            8.dp
-                                                        ),
-                                                        modifier = Modifier.fillMaxWidth()
+                                                            6.dp
+                                                        )
                                                     ) {
-                                                        state.removedParams.forEach { param ->
-                                                            AssistChip(
-                                                                onClick = {
-                                                                    paramToWhitelist = param
-                                                                },
-                                                                label = {
-                                                                    Text(
-                                                                        param,
-                                                                        style = MaterialTheme.typography.bodySmall
-                                                                    )
-                                                                },
-                                                                colors = AssistChipDefaults.assistChipColors(
-                                                                    containerColor = MaterialTheme.colorScheme.secondaryContainer,
-                                                                    labelColor = MaterialTheme.colorScheme.onSecondaryContainer
-                                                                ),
-                                                                shape = RoundedCornerShape(12.dp),
-                                                                border = BorderStroke(
-                                                                    width = 1.dp,
-                                                                    color = MaterialTheme.colorScheme.outline.copy(
-                                                                        alpha = 0.3f
+                                                        Text(
+                                                            text = stringResource(R.string.main_removed_parameters),
+                                                            style = MaterialTheme.typography.labelSmall,
+                                                            color = MaterialTheme.colorScheme.onPrimaryContainer.copy(
+                                                                alpha = 0.6f
+                                                            ),
+                                                            fontWeight = FontWeight.Bold
+                                                        )
+                                                        FlowRow(
+                                                            horizontalArrangement = Arrangement.spacedBy(
+                                                                8.dp
+                                                            ),
+                                                            verticalArrangement = Arrangement.spacedBy(
+                                                                8.dp
+                                                            ),
+                                                            modifier = Modifier.fillMaxWidth()
+                                                        ) {
+                                                            state.removedParams.forEach { param ->
+                                                                AssistChip(
+                                                                    onClick = {
+                                                                        paramToWhitelist = param
+                                                                    },
+                                                                    label = {
+                                                                        Text(
+                                                                            param,
+                                                                            style = MaterialTheme.typography.bodySmall
+                                                                        )
+                                                                    },
+                                                                    colors = AssistChipDefaults.assistChipColors(
+                                                                        containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                                                                        labelColor = MaterialTheme.colorScheme.onSecondaryContainer
+                                                                    ),
+                                                                    shape = RoundedCornerShape(12.dp),
+                                                                    border = BorderStroke(
+                                                                        width = 1.dp,
+                                                                        color = MaterialTheme.colorScheme.outline.copy(
+                                                                            alpha = 0.3f
+                                                                        )
                                                                     )
                                                                 )
-                                                            )
+                                                            }
                                                         }
                                                     }
                                                 }
@@ -1308,149 +1316,156 @@ internal fun MainScreenContent(
                         }
                     }
                 } else if (!showIntro) {
-                    // DECLUTTERED Welcome State
-                    Column(
+                    Box(
                         modifier = Modifier
-                            .widthIn(max = 650.dp)
                             .fillMaxSize()
                             .nestedScroll(nestedScrollConnection)
-                            .verticalScroll(rememberScrollState()),
-                        horizontalAlignment = Alignment.CenterHorizontally
+                            .verticalScroll(rememberScrollState())
+                            .padding(horizontal = 16.dp),
+                        contentAlignment = Alignment.TopCenter
                     ) {
+                        // DECLUTTERED Welcome State
                         Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
                             modifier = Modifier
-                                .fillMaxWidth()
-                                .graphicsLayer {
-                                    alpha = if (compactWindow) 1f else
-                                        (1f - collapseFraction * 2.5f).coerceIn(0f, 1f)
-                                }
+                                .widthIn(max = 650.dp)
+                                .fillMaxWidth(),
+                            horizontalAlignment = Alignment.CenterHorizontally
                         ) {
-                            // Reserved space for the floating shared Logo (72dp) + Title (30sp) + Spacers
-                            Spacer(modifier = Modifier.height(if (compactWindow) 16.dp else 154.dp))
-
-                            Text(
-                                text = stringResource(R.string.welcome_subtitle),
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                textAlign = TextAlign.Center,
-                                modifier = Modifier.padding(horizontal = 16.dp)
-                            )
-
-                            Spacer(modifier = Modifier.height(24.dp))
-
-                            // --- Group 2: Trust Markers ---
-                            FlexBox(
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally,
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .padding(horizontal = 8.dp),
-                                config = FlexBoxConfig {
-                                    wrap(FlexWrap.Wrap)
-                                    justifyContent(FlexJustifyContent.SpaceEvenly)
-                                    alignItems(FlexAlignItems.Center)
-                                    columnGap(12.dp)
-                                    rowGap(8.dp)
-                                }
+                                    .graphicsLayer {
+                                        alpha = if (compactWindow) 1f else
+                                            (1f - collapseFraction * 2.5f).coerceIn(0f, 1f)
+                                    }
                             ) {
-                                CompactFeatureRow(
-                                    icon = Icons.Outlined.CloudOff,
-                                    text = stringResource(R.string.welcome_local_title)
-                                )
-                                CompactFeatureRow(
-                                    icon = Icons.Outlined.Tune,
-                                    text = stringResource(R.string.welcome_privacy_title)
-                                )
-                                CompactFeatureRow(
-                                    icon = Icons.Outlined.Block,
-                                    text = stringResource(R.string.welcome_free_title)
-                                )
-                            }
+                                // Reserved space for the floating shared Logo (72dp) + Title (30sp) + Spacers
+                                Spacer(modifier = Modifier.height(if (compactWindow) 16.dp else 154.dp))
 
-                            Spacer(modifier = Modifier.height(20.dp))
+                                Text(
+                                    text = stringResource(R.string.welcome_subtitle),
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    textAlign = TextAlign.Center,
+                                    modifier = Modifier.padding(horizontal = 16.dp)
+                                )
 
-                            // --- Group 3: Cleaning Stats Counter ---
-                            when {
-                                state.isInitialLoading -> {
-                                    Box(
-                                        modifier = Modifier
-                                            .width(220.dp)
-                                            .height(36.dp)
-                                            .clip(RoundedCornerShape(12.dp))
-                                            .shimmer()
+                                Spacer(modifier = Modifier.height(24.dp))
+
+                                // --- Group 2: Trust Markers ---
+                                FlexBox(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(horizontal = 8.dp),
+                                    config = FlexBoxConfig {
+                                        wrap(FlexWrap.Wrap)
+                                        justifyContent(FlexJustifyContent.SpaceEvenly)
+                                        alignItems(FlexAlignItems.Center)
+                                        columnGap(12.dp)
+                                        rowGap(8.dp)
+                                    }
+                                ) {
+                                    CompactFeatureRow(
+                                        icon = Icons.Outlined.CloudOff,
+                                        text = stringResource(R.string.welcome_local_title)
+                                    )
+                                    CompactFeatureRow(
+                                        icon = Icons.Outlined.Tune,
+                                        text = stringResource(R.string.welcome_privacy_title)
+                                    )
+                                    CompactFeatureRow(
+                                        icon = Icons.Outlined.Block,
+                                        text = stringResource(R.string.welcome_free_title)
                                     )
                                 }
 
-                                state.totalCleanedCount > 0 -> {
-                                    val cleanedSummary = pluralStringResource(
-                                        R.plurals.main_urls_cleaned,
-                                        state.totalCleanedCount,
-                                        state.totalCleanedCount
-                                    )
-                                    val blockedSummary = pluralStringResource(
-                                        R.plurals.main_trackers_blocked,
-                                        state.totalTrackersBlocked,
-                                        state.totalTrackersBlocked
-                                    )
-                                    Surface(
-                                        onClick = onHistoryClick,
-                                        shape = RoundedCornerShape(12.dp),
-                                        color = MaterialTheme.colorScheme.surfaceVariant.copy(
-                                            alpha = 0.4f
-                                        )
-                                    ) {
-                                        Text(
-                                            text = stringResource(
-                                                R.string.main_stats_summary,
-                                                cleanedSummary,
-                                                blockedSummary
-                                            ),
-                                            style = MaterialTheme.typography.labelMedium,
-                                            fontWeight = FontWeight.SemiBold,
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                            modifier = Modifier.padding(
-                                                horizontal = 16.dp,
-                                                vertical = 8.dp
-                                            )
+                                Spacer(modifier = Modifier.height(20.dp))
+
+                                // --- Group 3: Cleaning Stats Counter ---
+                                when {
+                                    state.isInitialLoading -> {
+                                        Box(
+                                            modifier = Modifier
+                                                .width(220.dp)
+                                                .height(36.dp)
+                                                .clip(RoundedCornerShape(12.dp))
+                                                .shimmer()
                                         )
                                     }
-                                }
-                            }
-                        }
 
-                        // Bulk Clipboard Clean card (gated behind Tidy+)
-                        com.tidy.app.FlavorConfig.BulkClipboardCleanCard(
-                            bulkClipboardUrls = state.bulkClipboardUrls,
-                            onDismiss = { actions.clearClipboardSuggestion() },
-                            isPlusUnlocked = isPlusUnlocked,
-                            onShowUpsell = { showUpsellSheet = true },
-                            onCleanExecute = {
-                                state.bulkClipboardUrls?.let { urls ->
-                                    scope.launch {
-                                        val joinedCleaned = preferences.cleanBulkUrls(urls)
-
-                                        val clipboard =
-                                            context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-                                        val clip = android.content.ClipData.newPlainText(
-                                            "Cleaned URLs",
-                                            joinedCleaned
+                                    state.totalCleanedCount > 0 -> {
+                                        val cleanedSummary = pluralStringResource(
+                                            R.plurals.main_urls_cleaned,
+                                            state.totalCleanedCount,
+                                            state.totalCleanedCount
                                         )
-                                        clipboard.setPrimaryClip(clip)
-
-                                        scope.launch {
-                                            snackbarHostState.showSnackbar(
-                                                String.format(
-                                                    plusToastBulkCleanedTemplate,
-                                                    urls.size
+                                        val blockedSummary = pluralStringResource(
+                                            R.plurals.main_trackers_blocked,
+                                            state.totalTrackersBlocked,
+                                            state.totalTrackersBlocked
+                                        )
+                                        Surface(
+                                            onClick = onHistoryClick,
+                                            shape = RoundedCornerShape(12.dp),
+                                            color = MaterialTheme.colorScheme.surfaceVariant.copy(
+                                                alpha = 0.4f
+                                            )
+                                        ) {
+                                            Text(
+                                                text = stringResource(
+                                                    R.string.main_stats_summary,
+                                                    cleanedSummary,
+                                                    blockedSummary
+                                                ),
+                                                style = MaterialTheme.typography.labelMedium,
+                                                fontWeight = FontWeight.SemiBold,
+                                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                                modifier = Modifier.padding(
+                                                    horizontal = 16.dp,
+                                                    vertical = 8.dp
                                                 )
                                             )
                                         }
-                                        actions.clearClipboardSuggestion()
                                     }
                                 }
                             }
-                        )
 
-                        Spacer(modifier = Modifier.height(200.dp))
+                            // Bulk Clipboard Clean card (gated behind Tidy+)
+                            com.tidy.app.FlavorConfig.BulkClipboardCleanCard(
+                                bulkClipboardUrls = state.bulkClipboardUrls,
+                                onDismiss = { actions.clearClipboardSuggestion() },
+                                isPlusUnlocked = isPlusUnlocked,
+                                onShowUpsell = { showUpsellSheet = true },
+                                onCleanExecute = {
+                                    state.bulkClipboardUrls?.let { urls ->
+                                        scope.launch {
+                                            val joinedCleaned = preferences.cleanBulkUrls(urls)
+
+                                            val clipboard =
+                                                context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                                            val clip = android.content.ClipData.newPlainText(
+                                                "Cleaned URLs",
+                                                joinedCleaned
+                                            )
+                                            clipboard.setPrimaryClip(clip)
+
+                                            scope.launch {
+                                                snackbarHostState.showSnackbar(
+                                                    String.format(
+                                                        plusToastBulkCleanedTemplate,
+                                                        urls.size
+                                                    )
+                                                )
+                                            }
+                                            actions.clearClipboardSuggestion()
+                                        }
+                                    }
+                                }
+                            )
+
+                            Spacer(modifier = Modifier.height(200.dp))
+                        }
                     }
                 }
             }
