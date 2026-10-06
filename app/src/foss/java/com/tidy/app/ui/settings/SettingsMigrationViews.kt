@@ -6,7 +6,13 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlexAlignItems
+import androidx.compose.foundation.layout.FlexBox
+import androidx.compose.foundation.layout.FlexBoxConfig
+import androidx.compose.foundation.layout.FlexWrap
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -55,6 +61,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -67,6 +74,7 @@ import com.tidy.app.TidyApp
 import com.tidy.app.data.PlusFeature
 import com.tidy.app.ui.components.AppIconBox
 import com.tidy.app.ui.components.FeatureRow
+import com.tidy.app.ui.components.StatusBadge
 import com.tidy.app.ui.components.TidyModalBottomSheet
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
@@ -109,7 +117,7 @@ object SettingsMigrationViews {
         }
     }
 
-    @OptIn(ExperimentalMaterial3Api::class)
+    @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
     @Composable
     fun UpgradePromptRow(
         onUpgradeClick: () -> Unit,
@@ -140,78 +148,70 @@ object SettingsMigrationViews {
                 ),
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Row(
-                    modifier = Modifier
-                        .padding(16.dp)
-                        .fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(16.dp)
+                BoxWithConstraints(
+                    modifier = Modifier.padding(16.dp).fillMaxWidth()
                 ) {
-                    Box(
-                        modifier = Modifier
-                            .size(48.dp)
-                            .clip(RoundedCornerShape(12.dp))
-                            .background(
-                                if (isAvailable) {
-                                    MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
-                                } else {
-                                    MaterialTheme.colorScheme.onSurface.copy(alpha = 0.06f)
-                                }
-                            ),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            imageVector = Icons.Filled.Star,
-                            contentDescription = null,
-                            tint = if (isAvailable) {
-                                MaterialTheme.colorScheme.primary
-                            } else {
-                                MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
-                            },
-                            modifier = Modifier.size(24.dp)
-                        )
-                    }
-
-                    Column(modifier = Modifier.weight(1f)) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    val stackContent = maxWidth / LocalDensity.current.fontScale < 160.dp
+                    val leadingIcon: @Composable () -> Unit = {
+                        Box(
+                            modifier = Modifier
+                                .size(48.dp)
+                                .clip(RoundedCornerShape(12.dp))
+                                .background(
+                                    if (isAvailable) {
+                                        MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
+                                    } else {
+                                        MaterialTheme.colorScheme.onSurface.copy(alpha = 0.06f)
+                                    }
+                                ),
+                            contentAlignment = Alignment.Center
                         ) {
-                            Text(
-                                text = stringResource(R.string.settings_tidy_plus_get_title),
-                                style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.Bold,
-                                color = if (isAvailable) {
-                                    MaterialTheme.colorScheme.onPrimaryContainer
+                            Icon(
+                                imageVector = Icons.Filled.Star,
+                                contentDescription = null,
+                                tint = if (isAvailable) {
+                                    MaterialTheme.colorScheme.primary
                                 } else {
                                     MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
-                                }
+                                },
+                                modifier = Modifier.size(24.dp)
                             )
-                            if (!isAvailable) {
-                                ComingSoonBadge()
-                            }
                         }
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Text(
-                            text = stringResource(R.string.settings_tidy_plus_upgrade_desc),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = if (isAvailable) {
-                                MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
+                    }
+                    val trailingIcon: @Composable () -> Unit = {
+                        Icon(
+                            imageVector = Icons.Filled.ChevronRight,
+                            contentDescription = null,
+                            tint = if (isAvailable) {
+                                MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
                             } else {
-                                MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.38f)
+                                MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
                             }
                         )
                     }
-
-                    Icon(
-                        imageVector = Icons.Filled.ChevronRight,
-                        contentDescription = null,
-                        tint = if (isAvailable) {
-                            MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
-                        } else {
-                            MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
+                    if (stackContent) {
+                        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                leadingIcon()
+                                trailingIcon()
+                            }
+                            UpgradePromptText(isAvailable)
                         }
-                    )
+                    } else {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(16.dp)
+                        ) {
+                            leadingIcon()
+                            UpgradePromptText(isAvailable, Modifier.weight(1f))
+                            trailingIcon()
+                        }
+                    }
                 }
             }
 
@@ -281,18 +281,46 @@ object SettingsMigrationViews {
         }
     }
 
+    @OptIn(ExperimentalLayoutApi::class)
     @Composable
-    private fun ComingSoonBadge() {
-        Surface(
-            shape = RoundedCornerShape(12.dp),
-            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f)
-        ) {
+    private fun UpgradePromptText(isAvailable: Boolean, modifier: Modifier = Modifier) {
+        Column(modifier = modifier) {
+            FlexBox(
+                modifier = Modifier.fillMaxWidth(),
+                config = FlexBoxConfig {
+                    wrap(FlexWrap.Wrap)
+                    alignItems(FlexAlignItems.Center)
+                    columnGap(8.dp)
+                    rowGap(4.dp)
+                }
+            ) {
+                Text(
+                    text = stringResource(R.string.settings_tidy_plus_get_title),
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = if (isAvailable) {
+                        MaterialTheme.colorScheme.onPrimaryContainer
+                    } else {
+                        MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
+                    }
+                )
+                if (!isAvailable) {
+                    StatusBadge(
+                        text = stringResource(R.string.settings_coming_soon_badge),
+                        containerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
+                        contentColor = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+            Spacer(modifier = Modifier.height(4.dp))
             Text(
-                text = stringResource(R.string.settings_coming_soon_badge),
-                style = MaterialTheme.typography.labelSmall,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
-                modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
+                text = stringResource(R.string.settings_tidy_plus_upgrade_desc),
+                style = MaterialTheme.typography.bodySmall,
+                color = if (isAvailable) {
+                    MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
+                } else {
+                    MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.38f)
+                }
             )
         }
     }
