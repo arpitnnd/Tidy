@@ -12,6 +12,7 @@ All notable changes to Tidy will be documented in this file.
   sizes or narrow widths, and section headings use a consistent semibold weight.
 - History arranges records in multiple columns in wider windows. Home uses less hero space in
   short windows, and its trust labels wrap when space is limited.
+- Screen app bars use a solid Material surface so scrolling content stays behind them.
 
 ### Bug fixes
 
