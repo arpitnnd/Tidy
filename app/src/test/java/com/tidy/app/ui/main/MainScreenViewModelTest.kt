@@ -99,7 +99,8 @@ class MainScreenViewModelTest {
         assertEquals(1, state.totalCleanedCount)
         assertEquals(4, state.totalTrackersBlocked)
 
-        // Verify history contains entry
+        // History is saved on Dispatchers.IO after the result is published.
+        viewModel.uiState.first { !it.isLoading }
         historyRepository.loadHistory()
         val history = historyRepository.historyFlow.value
         assertEquals(1, history.size)
@@ -291,11 +292,17 @@ class MainScreenViewModelTest {
     fun onUrlInputDismissesClipboardSuggestionWhenMatchingUrlIsEntered() = runTest {
         settingsRepository.setCheckClipboardForLinks(true)
         viewModel.checkClipboardText("https://example.com/test?utm_source=promo")
-        assertEquals("https://example.com/test?utm_source=promo", viewModel.uiState.value.clipboardSuggestionUrl)
+        assertEquals(
+            "https://example.com/test?utm_source=promo",
+            viewModel.uiState.value.clipboardSuggestionUrl
+        )
 
         // Typing non-matching input leaves suggestion intact
         viewModel.onUrlInput("https://other.com")
-        assertEquals("https://example.com/test?utm_source=promo", viewModel.uiState.value.clipboardSuggestionUrl)
+        assertEquals(
+            "https://example.com/test?utm_source=promo",
+            viewModel.uiState.value.clipboardSuggestionUrl
+        )
 
         // Typing matching input dismisses suggestion
         viewModel.onUrlInput("https://example.com/test?utm_source=promo")
