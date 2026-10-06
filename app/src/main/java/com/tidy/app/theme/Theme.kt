@@ -6,6 +6,7 @@ import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.tidy.designsystem.TidyStyleTheme
 
 private val DarkColorScheme = darkColorScheme(
     primary = TidyDarkPrimary,
@@ -74,6 +75,17 @@ fun TidyTheme(
         entitlementManager.isPlusUnlocked.collectAsStateWithLifecycle(initialValue = false)
     val isPlusUnlocked = isPlusUnlockedState.value
 
+    TidyTheme(darkTheme, selectedTheme, isPlusUnlocked, content)
+}
+
+/** Applies explicit theme state, allowing previews to render without an application instance. */
+@Composable
+fun TidyTheme(
+    darkTheme: Boolean = isSystemInDarkTheme(),
+    selectedTheme: String,
+    isPlusUnlocked: Boolean,
+    content: @Composable () -> Unit
+) {
     val context = androidx.compose.ui.platform.LocalContext.current
     val colorScheme = when (selectedTheme) {
         "dynamic" -> {
@@ -97,7 +109,8 @@ fun TidyTheme(
 
     MaterialTheme(
         colorScheme = colorScheme,
-        typography = Typography,
-        content = content
-    )
+        typography = Typography
+    ) {
+        TidyStyleTheme(content)
+    }
 }

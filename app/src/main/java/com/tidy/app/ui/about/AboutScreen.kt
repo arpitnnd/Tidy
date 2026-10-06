@@ -1,5 +1,10 @@
 package com.tidy.app.ui.about
 
+import androidx.compose.foundation.style.CommonStyle
+import androidx.compose.foundation.shape.RoundedCornerShape
+import com.tidy.designsystem.shape
+import com.tidy.designsystem.size
+
 import android.content.Intent
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -8,12 +13,12 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ChevronRight
@@ -107,6 +112,7 @@ fun AboutScreen(
         ) {
             Column(
                 modifier = Modifier
+                    .widthIn(max = 650.dp)
                     .fillMaxWidth()
                     .verticalScroll(rememberScrollState())
                     .padding(horizontal = 20.dp, vertical = 8.dp)
@@ -119,9 +125,11 @@ fun AboutScreen(
                 // Logo Block
                 AppIconBox(
                     icon = Icons.Outlined.CleaningServices,
-                    boxSize = 64.dp,
                     iconSize = 32.dp,
-                    cornerRadius = 16.dp
+                    style = CommonStyle {
+                        size(64.dp)
+                        shape(RoundedCornerShape(16.dp))
+                    }
                 )
 
                 Text(

@@ -1,6 +1,8 @@
 package com.tidy.app
 
 import android.app.Application
+import androidx.compose.ui.ComposeUiFlags
+import androidx.compose.ui.ExperimentalComposeUiApi
 import com.tidy.app.data.HistoryRepository
 import com.tidy.app.data.SettingsRepository
 import com.tidy.app.data.createPlatformDataStore
@@ -37,7 +39,9 @@ class TidyApp : Application() {
         ACRA.init(this, builder)
     }
 
+    @OptIn(ExperimentalComposeUiApi::class)
     override fun onCreate() {
+        ComposeUiFlags.isMediaQueryIntegrationEnabled = true
         super.onCreate()
         val dataStore = createPlatformDataStore(this)
         settingsRepository = SettingsRepository(dataStore)

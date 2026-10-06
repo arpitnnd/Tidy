@@ -1,12 +1,21 @@
+@file:OptIn(androidx.compose.foundation.style.ExperimentalFoundationStyleApi::class)
+
 package com.tidy.app.ui.components
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.style.CommonStyle
+import androidx.compose.material3.ripple
+import androidx.compose.runtime.remember
+import androidx.compose.ui.semantics.Role
+import com.tidy.designsystem.TidyComponentStyles
+import com.tidy.designsystem.TidyStyle
+import com.tidy.designsystem.rememberTidyStyle
+import com.tidy.designsystem.tidyStyleContent
+import com.tidy.designsystem.tidyStyleSurface
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.OpenInNew
 import androidx.compose.material3.Icon
@@ -15,11 +24,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.tidy.app.theme.TidyCardTokens
 
 /**
  * A full-width clickable row that displays a text label on the left and a trailing
@@ -35,17 +42,16 @@ fun ClickableLinkRow(
     label: String,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
-    trailingIcon: ImageVector = Icons.AutoMirrored.Filled.OpenInNew
+    trailingIcon: ImageVector = Icons.AutoMirrored.Filled.OpenInNew,
+    style: TidyStyle = CommonStyle
 ) {
+    val interactionSource = remember { MutableInteractionSource() }
+    val resolver = rememberTidyStyle(TidyComponentStyles.settingsRow, style, interactionSource)
     Row(
         modifier = modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(TidyCardTokens.rowCornerRadius))
-            .clickable(onClick = onClick)
-            .padding(
-                horizontal = TidyCardTokens.rowHorizontalPadding,
-                vertical = TidyCardTokens.rowVerticalPadding
-            ),
+            .tidyStyleSurface(resolver)
+            .clickable(interactionSource, ripple(), role = Role.Button, onClick = onClick)
+            .tidyStyleContent(resolver),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {

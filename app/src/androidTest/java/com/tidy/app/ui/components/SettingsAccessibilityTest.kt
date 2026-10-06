@@ -4,6 +4,7 @@ import androidx.activity.ComponentActivity
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.MaterialTheme
+import com.tidy.designsystem.TidyStyleTheme
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.SemanticsProperties
@@ -29,9 +30,11 @@ class SettingsAccessibilityTest {
         val expanded = mutableStateOf(false)
         compose.setContent {
             MaterialTheme {
-                ExpandableSettingRow("Rules", "Summary", expanded.value, {
-                    expanded.value = !expanded.value
-                })
+                TidyStyleTheme {
+                    ExpandableSettingRow("Rules", "Summary", expanded.value, {
+                        expanded.value = !expanded.value
+                    })
+                }
             }
         }
         compose.onNodeWithText("Rules")
@@ -47,19 +50,25 @@ class SettingsAccessibilityTest {
         var lockedTaps = 0
         compose.setContent {
             MaterialTheme {
-                TierSelectorRow(
-                    cards = listOf(
-                        TierCard(0, Icons.Default.Check, "Free", "First"),
-                        TierCard(1, Icons.Default.Check, "Other", "Second"),
-                        TierCard(2, Icons.Default.Check, "Locked", "Third", locked = true)
-                    ),
-                    selected = selected.value,
-                    onSelect = { selected.value = it },
-                    onLockedTap = { lockedTaps++ }
-                )
+                TidyStyleTheme {
+                    TierSelectorRow(
+                        cards = listOf(
+                            TierCard(0, Icons.Default.Check, "Free", "First"),
+                            TierCard(1, Icons.Default.Check, "Other", "Second"),
+                            TierCard(2, Icons.Default.Check, "Locked", "Third", locked = true)
+                        ),
+                        selected = selected.value,
+                        onSelect = { selected.value = it },
+                        onLockedTap = { lockedTaps++ }
+                    )
+                }
             }
         }
         compose.onNodeWithText("Free").assertIsSelected()
+        val widths = listOf("Free", "Other", "Locked").map {
+            compose.onNodeWithText(it).fetchSemanticsNode().boundsInRoot.width
+        }
+        org.junit.Assert.assertTrue(widths.max() - widths.min() <= 1f)
         compose.onNodeWithText("Other").performClick().assertIsSelected()
         compose.onNodeWithText("Free").assertIsNotSelected()
         compose.onNodeWithText("Locked")
