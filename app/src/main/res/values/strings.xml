@@ -43,6 +43,9 @@
     <string name="banner_view_settings">View settings</string>
     <string name="banner_later">Later</string>
     <string name="button_clean_url">Clean URL</string>
+    <string name="main_invalid_url">Enter a URL, such as example.com</string>
+    <string name="settings_invalid_domain">Enter a domain, such as example.com</string>
+    <string name="settings_invalid_param">Use a parameter name without spaces, ?, &amp; or =</string>
     <string name="toast_no_browser_app">No app found to open URL</string>
     <string name="toast_copied">Copied to clipboard</string>
     <string name="toast_cleaned_copied">URL cleaned and copied</string>

@@ -1607,8 +1607,15 @@ private fun ManualEntryRow(
     actions: MainScreenActions,
     onClear: () -> Unit
 ) {
+    val isUrlValid = remember(state.inputUrl) { UrlDetection.looksLikeUrl(state.inputUrl) }
+    var validationRequested by rememberSaveable(state.inputUrl) { mutableStateOf(false) }
+    val showInputError = validationRequested && state.inputUrl.isNotBlank() && !isUrlValid
+    val submit = {
+        validationRequested = true
+        if (isUrlValid && !state.isLoading) actions.cleanUrl(state.inputUrl)
+    }
     Row(
-        verticalAlignment = Alignment.CenterVertically,
+        verticalAlignment = Alignment.Top,
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         modifier = Modifier.fillMaxWidth()
     ) {
@@ -1616,6 +1623,10 @@ private fun ManualEntryRow(
             value = state.inputUrl,
             onValueChange = { actions.onUrlInput(it) },
             enabled = !state.isLoading,
+            isError = showInputError,
+            supportingText = if (showInputError) {
+                { Text(stringResource(R.string.main_invalid_url)) }
+            } else null,
             placeholder = {
                 Text(
                     stringResource(R.string.welcome_placeholder),
@@ -1647,9 +1658,7 @@ private fun ManualEntryRow(
             ),
             keyboardActions = KeyboardActions(
                 onDone = {
-                    if (UrlDetection.looksLikeUrl(state.inputUrl) && !state.isLoading) {
-                        actions.cleanUrl(state.inputUrl)
-                    }
+                    if (state.inputUrl.isNotBlank() && !state.isLoading) submit()
                 }
             ),
             colors = OutlinedTextFieldDefaults.colors(
@@ -1660,9 +1669,9 @@ private fun ManualEntryRow(
 
         TooltipWrapper(tooltipText = stringResource(R.string.tooltip_process_url)) {
             Button(
-                onClick = { actions.cleanUrl(state.inputUrl) },
+                onClick = submit,
                 shape = RoundedCornerShape(16.dp),
-                enabled = UrlDetection.looksLikeUrl(state.inputUrl) && !state.isLoading,
+                enabled = state.inputUrl.isNotBlank() && !state.isLoading,
                 colors = ButtonDefaults.buttonColors(
                     containerColor = MaterialTheme.colorScheme.primary
                 ),

@@ -63,6 +63,7 @@ import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
@@ -390,13 +391,29 @@ internal fun SettingsScreenContent(
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
 
+                                var domainValidationRequested by rememberSaveable(state.domainInput) {
+                                    mutableStateOf(
+                                        false
+                                    )
+                                }
+                                val isDomainValid = remember(state.domainInput) {
+                                    state.domainInput.trim().run {
+                                        isNotEmpty() && contains(".") && !contains(" ")
+                                    }
+                                }
+
+
                                 Row(
-                                    verticalAlignment = Alignment.CenterVertically,
+                                    verticalAlignment = Alignment.Top,
                                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                                     modifier = Modifier.fillMaxWidth()
                                 ) {
                                     OutlinedTextField(
                                         value = state.domainInput,
+                                        isError = domainValidationRequested && state.domainInput.isNotBlank() && !isDomainValid,
+                                        supportingText = if (domainValidationRequested && state.domainInput.isNotBlank() && !isDomainValid) {
+                                            { Text(stringResource(R.string.settings_invalid_domain)) }
+                                        } else null,
                                         onValueChange = { actions.onDomainInputChanged(it) },
                                         placeholder = { Text(stringResource(R.string.settings_placeholder_domain)) },
                                         modifier = Modifier.weight(1f),
@@ -410,16 +427,15 @@ internal fun SettingsScreenContent(
                                         )
                                     )
 
-                                    val isDomainValid = remember(state.domainInput) {
-                                        state.domainInput.trim().run {
-                                            isNotEmpty() && contains(".") && !contains(" ")
-                                        }
-                                    }
-
-                                    TooltipWrapper(tooltipText = stringResource(R.string.tooltip_add_domain)) {
+                                    TooltipWrapper(
+                                        tooltipText = stringResource(R.string.tooltip_add_domain)
+                                    ) {
                                         FilledIconButton(
-                                            onClick = { actions.addDomain() },
-                                            enabled = isDomainValid,
+                                            onClick = {
+                                                domainValidationRequested =
+                                                    true; if (isDomainValid) actions.addDomain()
+                                            },
+                                            enabled = state.domainInput.isNotBlank(),
                                             shape = RoundedCornerShape(12.dp),
                                             modifier = Modifier.size(52.dp)
                                         ) {
@@ -525,13 +541,38 @@ internal fun SettingsScreenContent(
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
 
+                                var whitelistValidationRequested by rememberSaveable(
+                                    state.newParamWhitelistDomain,
+                                    state.newParamWhitelistParam
+                                ) { mutableStateOf(false) }
+                                val isWhitelistDomainValid =
+                                    remember(state.newParamWhitelistDomain) {
+                                        state.newParamWhitelistDomain.trim().run {
+                                            isNotEmpty() && contains(".") && !contains(" ")
+                                        }
+                                    }
+                                val isWhitelistParamValid =
+                                    remember(state.newParamWhitelistParam) {
+                                        state.newParamWhitelistParam.trim().run {
+                                            isNotEmpty() && !contains(" ") && !contains("?") &&
+                                                    !contains("&") && !contains("=")
+                                        }
+                                    }
+                                val isParamWhitelistValid =
+                                    isWhitelistDomainValid && isWhitelistParamValid
+
+
                                 Row(
-                                    verticalAlignment = Alignment.CenterVertically,
+                                    verticalAlignment = Alignment.Top,
                                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                                     modifier = Modifier.fillMaxWidth()
                                 ) {
                                     OutlinedTextField(
                                         value = state.newParamWhitelistDomain,
+                                        isError = whitelistValidationRequested && !isWhitelistDomainValid,
+                                        supportingText = if (whitelistValidationRequested && !isWhitelistDomainValid) {
+                                            { Text(stringResource(R.string.settings_invalid_domain)) }
+                                        } else null,
                                         onValueChange = {
                                             actions.onNewParamWhitelistDomainChanged(
                                                 it
@@ -551,6 +592,10 @@ internal fun SettingsScreenContent(
 
                                     OutlinedTextField(
                                         value = state.newParamWhitelistParam,
+                                        isError = whitelistValidationRequested && !isWhitelistParamValid,
+                                        supportingText = if (whitelistValidationRequested && !isWhitelistParamValid) {
+                                            { Text(stringResource(R.string.settings_invalid_param)) }
+                                        } else null,
                                         onValueChange = {
                                             actions.onNewParamWhitelistParamChanged(
                                                 it
@@ -568,23 +613,15 @@ internal fun SettingsScreenContent(
                                         )
                                     )
 
-                                    val isParamWhitelistValid = remember(
-                                        state.newParamWhitelistDomain,
-                                        state.newParamWhitelistParam
+                                    TooltipWrapper(
+                                        tooltipText = stringResource(R.string.tooltip_add_whitelist_param)
                                     ) {
-                                        state.newParamWhitelistDomain.trim().run {
-                                            isNotEmpty() && contains(".") && !contains(" ")
-                                        } && state.newParamWhitelistParam.trim().run {
-                                            isNotEmpty() && !contains(" ") && !contains("?") && !contains(
-                                                "&"
-                                            ) && !contains("=")
-                                        }
-                                    }
-
-                                    TooltipWrapper(tooltipText = stringResource(R.string.tooltip_add_whitelist_param)) {
                                         FilledIconButton(
-                                            onClick = { actions.addDomainWhitelistedParam() },
-                                            enabled = isParamWhitelistValid,
+                                            onClick = {
+                                                whitelistValidationRequested =
+                                                    true; if (isParamWhitelistValid) actions.addDomainWhitelistedParam()
+                                            },
+                                            enabled = state.newParamWhitelistDomain.isNotBlank() && state.newParamWhitelistParam.isNotBlank(),
                                             shape = RoundedCornerShape(12.dp),
                                             modifier = Modifier.size(52.dp)
                                         ) {
@@ -595,6 +632,7 @@ internal fun SettingsScreenContent(
                                         }
                                     }
                                 }
+
 
                                 if (state.domainWhitelistedParams.isNotEmpty()) {
                                     Spacer(modifier = Modifier.height(4.dp))
@@ -687,13 +725,31 @@ internal fun SettingsScreenContent(
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
 
+                                var paramValidationRequested by rememberSaveable(state.paramInput) {
+                                    mutableStateOf(
+                                        false
+                                    )
+                                }
+                                val isParamValid = remember(state.paramInput) {
+                                    state.paramInput.trim().run {
+                                        isNotEmpty() && !contains(" ") && !contains("?") && !contains(
+                                            "&"
+                                        ) && !contains("=")
+                                    }
+                                }
+
+
                                 Row(
-                                    verticalAlignment = Alignment.CenterVertically,
+                                    verticalAlignment = Alignment.Top,
                                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                                     modifier = Modifier.fillMaxWidth()
                                 ) {
                                     OutlinedTextField(
                                         value = state.paramInput,
+                                        isError = paramValidationRequested && state.paramInput.isNotBlank() && !isParamValid,
+                                        supportingText = if (paramValidationRequested && state.paramInput.isNotBlank() && !isParamValid) {
+                                            { Text(stringResource(R.string.settings_invalid_param)) }
+                                        } else null,
                                         onValueChange = { actions.onParamInputChanged(it) },
                                         placeholder = { Text(stringResource(R.string.settings_placeholder_param)) },
                                         modifier = Modifier.weight(1f),
@@ -707,18 +763,15 @@ internal fun SettingsScreenContent(
                                         )
                                     )
 
-                                    val isParamValid = remember(state.paramInput) {
-                                        state.paramInput.trim().run {
-                                            isNotEmpty() && !contains(" ") && !contains("?") && !contains(
-                                                "&"
-                                            ) && !contains("=")
-                                        }
-                                    }
-
-                                    TooltipWrapper(tooltipText = stringResource(R.string.tooltip_add_custom_param)) {
+                                    TooltipWrapper(
+                                        tooltipText = stringResource(R.string.tooltip_add_custom_param)
+                                    ) {
                                         FilledIconButton(
-                                            onClick = { actions.addParam() },
-                                            enabled = isParamValid,
+                                            onClick = {
+                                                paramValidationRequested =
+                                                    true; if (isParamValid) actions.addParam()
+                                            },
+                                            enabled = state.paramInput.isNotBlank(),
                                             shape = RoundedCornerShape(12.dp),
                                             modifier = Modifier.size(52.dp)
                                         ) {
