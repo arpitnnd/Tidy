@@ -40,6 +40,7 @@ plugins {
 rootProject.name = "Tidy"
 include(":app")
 include(":shared")
+include(":design-system")
 if (file("feature-plus").exists()) {
     include(":feature-plus")
 }

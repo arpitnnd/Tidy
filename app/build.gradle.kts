@@ -16,7 +16,9 @@ if (keystorePropertiesFile.exists()) {
 
 android {
     namespace = "com.tidy.app"
-    compileSdk = 37
+    compileSdk {
+        version = release(37) { minorApiLevel = 2 }
+    }
 
     signingConfigs {
         create("fossRelease") {
@@ -120,6 +122,18 @@ android {
         shaders = false
     }
 
+    testOptions {
+        unitTests.isIncludeAndroidResources = true
+        screenshotTests.create("screenshotTest") {
+            engineVersion = libs.versions.screenshot.get()
+            targetVariants.addAll(listOf("fossDebug", "playDebug"))
+            dependencies {
+                implementation(libs.androidx.compose.ui.tooling)
+                implementation(libs.screenshot.validation.api)
+            }
+        }
+    }
+
     packaging {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
@@ -185,7 +199,14 @@ androidComponents {
     }
 }
 
+kotlin {
+    compilerOptions {
+        optIn.add("androidx.compose.foundation.style.ExperimentalFoundationStyleApi")
+    }
+}
+
 dependencies {
+    implementation(project(":design-system"))
     val composeBom = platform(libs.androidx.compose.bom)
     implementation(composeBom)
     androidTestImplementation(composeBom)
@@ -201,6 +222,7 @@ dependencies {
 
     // Compose
     implementation(libs.androidx.compose.ui)
+    implementation(libs.androidx.compose.foundation)
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.compose.material3)
     implementation(libs.androidx.compose.material.icons.extended)
