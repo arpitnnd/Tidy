@@ -68,6 +68,9 @@ import com.tidy.app.data.PlusFeature
 import com.tidy.app.ui.components.AppIconBox
 import com.tidy.app.ui.components.FeatureRow
 import com.tidy.app.ui.components.TidyModalBottomSheet
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import kotlinx.coroutines.launch
 import java.io.File
 
@@ -571,22 +574,49 @@ object SettingsMigrationViews {
                                 item {
                                     Button(
                                         onClick = {
-                                            val uri = FileProvider.getUriForFile(
-                                                context,
-                                                "${context.packageName}.fileprovider",
-                                                file
-                                            )
-                                            val shareIntent = Intent(Intent.ACTION_SEND).apply {
-                                                type = "application/json"
-                                                putExtra(Intent.EXTRA_STREAM, uri)
-                                                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                                            scope.launch {
+                                                try {
+                                                    val sharedFile = withContext(Dispatchers.IO) {
+                                                        val sharingDirectory = File(
+                                                            context.cacheDir, "migration_backups"
+                                                        ).apply { mkdirs() }
+                                                        val sharedFile =
+                                                            File(
+                                                                sharingDirectory,
+                                                                "TidyBackup.json"
+                                                            )
+                                                        file.copyTo(sharedFile, overwrite = true)
+                                                        sharedFile
+                                                    }
+                                                    val uri = FileProvider.getUriForFile(
+                                                        context,
+                                                        "${context.packageName}.fileprovider",
+                                                        sharedFile
+                                                    )
+                                                    val shareIntent =
+                                                        Intent(Intent.ACTION_SEND).apply {
+                                                            type = "application/json"
+                                                            putExtra(Intent.EXTRA_STREAM, uri)
+                                                            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                                                        }
+                                                    context.startActivity(
+                                                        Intent.createChooser(
+                                                            shareIntent,
+                                                            shareChooserTitle
+                                                        )
+                                                    )
+                                                } catch (e: CancellationException) {
+                                                    throw e
+                                                } catch (e: Exception) {
+                                                    snackbarHostState.showSnackbar(
+                                                        backupFailedTemplate.format(
+                                                            com.tidy.app.data.errorDetail(
+                                                                e.message
+                                                            )
+                                                        )
+                                                    )
+                                                }
                                             }
-                                            context.startActivity(
-                                                Intent.createChooser(
-                                                    shareIntent,
-                                                    shareChooserTitle
-                                                )
-                                            )
                                         },
                                         modifier = Modifier.fillMaxWidth(),
                                         shape = RoundedCornerShape(16.dp),
