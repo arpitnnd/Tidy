@@ -8,6 +8,8 @@ Tidy's Android app. Use it when adding a screen or changing an existing interact
 - Put the cleaned URL and the changes made to it first. Keep supporting actions easy to find.
 - Use restrained surfaces and clear typography to distinguish content, controls and feedback.
 - Preserve Android navigation, touch feedback, scrolling and text scaling behaviour.
+- Prefer existing Compose Material components over custom imitations. Check Compose
+  Multiplatform availability for reusable UI; keep platform services at screen hosts.
 - Express outcomes precisely: a successful clean, an unchanged URL and a failed operation carry
   different meanings.
 
@@ -17,6 +19,10 @@ Tidy's Android app. Use it when adding a screen or changing an existing interact
 `MaterialTheme.colorScheme` and typography. The default Sage Slate palette has light and dark
 schemes defined in [Color.kt](../app/src/main/java/com/tidy/app/theme/Color.kt).
 Read colour roles from the active theme so components also work with alternative schemes.
+
+The normal `TidyTheme` entry point observes app settings and entitlement state. The overload
+accepting `selectedTheme`, `isPlusUnlocked` and `darkTheme` renders explicit state in previews.
+Both supply the Material palette to `TidyStyleTheme`, so Styles follow live theme changes.
 
 | Role | Use |
 | --- | --- |
@@ -45,6 +51,10 @@ The remaining theme styles use Material 3 defaults. Components apply these style
 | `ClickableLinkRow` label | `bodyMedium` | Medium |
 
 ## Cards and alignment
+
+Shared tokens are defined in
+[the design-system module](../design-system/src/main/java/com/tidy/designsystem/TidyCardTokens.kt).
+The app's `TidyCardTokens` type alias preserves existing imports.
 
 [SettingCard](../app/src/main/java/com/tidy/app/ui/components/SettingCard.kt) provides the
 full-width shape and background. Its caller provides the content layout, padding and spacing.
@@ -114,7 +124,7 @@ SettingCard {
 | [ScreenSectionHeader and CardSectionLabel](../app/src/main/java/com/tidy/app/ui/components/SectionHeader.kt) | Primary-coloured headings at screen-section and card-group levels, exposed as accessibility headings. The screen places them relative to their content. |
 | [TidyTopAppBar](../app/src/main/java/com/tidy/app/ui/components/TidyTopAppBar.kt) | Transparent top bar with title, optional back button and trailing actions. A null `onBackClick` hides the back button. |
 | [TidyModalBottomSheet](../app/src/main/java/com/tidy/app/ui/components/TidyModalBottomSheet.kt) | Surface-coloured modal sheet with 8 dp tonal elevation and the Material drag handle. The default sheet state skips partial expansion; callers can supply a different state. Attach the provided scroll connection to the content's `nestedScroll` modifier. |
-| [TierSelectorRow](../app/src/main/java/com/tidy/app/ui/components/TierSelectorRow.kt) | Option cards driven by `selected`. They use an equal-width row normally and stack vertically when width or font scaling leaves less than 96 dp per option after scaling. Selection uses a primary border and container tint and is exposed through radio-button semantics. Unlocked taps call `onSelect`; locked cards retain readable text, announce their premium state and call `onLockedTap`. |
+| [TierSelectorRow](../app/src/main/java/com/tidy/app/ui/components/TierSelectorRow.kt) | Option cards driven by `selected`. Their Grid normally uses equal-width columns and stacks vertically when width or font scaling leaves less than 96 dp per option after scaling. Selection uses a primary border and container tint and is exposed through radio-button semantics. Unlocked taps call `onSelect`; locked cards retain readable text, announce their premium state and call `onLockedTap`. |
 | [AppIconBox](../app/src/main/java/com/tidy/app/ui/components/AppIconBox.kt) | Decorative icon container. Defaults to a 48 dp box, 24 dp icon and 12 dp corners, with primary tint over `primaryContainer` at 50% alpha. |
 | [FeatureRow](../app/src/main/java/com/tidy/app/ui/components/FeatureRow.kt) | Decorative leading icon with title and supporting description. Accepts content and an outer modifier. |
 | [TooltipWrapper](../app/src/main/java/com/tidy/app/ui/components/TooltipWrapper.kt) | Material plain tooltip positioned above its content. Supply a concise action label. |
@@ -122,6 +132,87 @@ SettingCard {
 The Settings toggle pattern makes the whole row the action target and gives its `Switch`
 `onCheckedChange = null`. A locked row routes its tap to the Tidy+ prompt. Locked tier cards
 keep their lock badge and use the same prompt; a lock indicates an available upgrade action.
+
+## Compose Styles
+
+The public `:design-system` library owns
+[TidyStyle](../design-system/src/main/java/com/tidy/designsystem/TidyStyle.kt), an alias for
+Compose's experimental `CommonStyle`, and
+[TidyComponentStyles](../design-system/src/main/java/com/tidy/designsystem/TidyComponentStyles.kt).
+Component defaults define surface colours, shapes, borders, dimensions and content padding.
+Caller-supplied styles override those defaults. Interaction state can change borders and fills,
+including selected tier cards and keyboard-focused rows.
+
+`SettingCard`, `ExpandableSettingRow`, `ClickableLinkRow`, `TierSelectorRow`, `AppIconBox` and
+`FeatureRow` accept a `style` argument. `AppIconBox` keeps separate `iconSize` and `tint` arguments;
+its container geometry and fill are supplied through Styles:
+
+```kotlin
+AppIconBox(
+    icon = icon,
+    style = CommonStyle {
+        size(40.dp)
+        shape(RoundedCornerShape(10.dp))
+        background(LocalTidyColours.currentValue.primaryContainer.copy(alpha = 0.4f))
+    }
+)
+```
+
+Import `CommonStyle` from `androidx.compose.foundation.style` and the style helpers and
+`LocalTidyColours` from `com.tidy.designsystem`. Opt in to `ExperimentalFoundationStyleApi`
+when using these APIs in a module that does not already enable the compiler opt-in.
+
+For a new custom surface, compose defaults and overrides and use
+[TidyStyledCard](../design-system/src/main/java/com/tidy/designsystem/TidyStyledCard.kt).
+It owns clipping, optional click handling, ripple and style-controlled content padding.
+For a custom layout, use `rememberTidyStyle`, attach `tidyStyleSurface` once, then the interaction
+modifier, then `tidyStyleContent`. Padding remains inside the hit target. Supply the same
+interaction source to the resolver and interaction modifier, and pass selected/enabled state
+explicitly. Keep colour reads inside the style definition so a palette change resolves live.
+
+Material controls use their native component APIs. Passive status labels use
+[StatusBadge](../app/src/main/java/com/tidy/app/ui/components/StatusBadge.kt), a thin wrapper around
+Material 3 `Badge` with semantic theme colours and the native shape and typography.
+Its text adds 4 dp horizontal and 2 dp vertical padding to the native inset. Labels stay on one
+line; wrapping headers move the whole badge below the heading when necessary. Action and selection chips retain their native Material semantics.
+Typography and motion retain the existing Material roles and local transition definitions.
+
+## Adaptive layouts
+
+- Tier options use Compose `Grid` with equal fractional tracks and zero minimum track width.
+  They stack when available width divided by font scale leaves less than 96 dp per option.
+- History uses `LazyVerticalGrid` with a 320 dp minimum cell width, increased for larger text.
+  Its content is bounded to 1000 dp; summary sections and headers span all columns. Entry details
+  expand inside their cards, and parameter inspection uses the shared `ParamDetailBottomSheet`.
+  Expanding one entry increases its grid row height, leaving space below shorter neighbours
+  and moving subsequent rows down.
+- The FOSS upgrade prompt stacks its icon header above full-width content when available
+  width divided by font scale falls below 160 dp, preserving room for the padded status badge.
+- About content is bounded to 650 dp. Width limits precede fill modifiers so they constrain
+  expanded windows.
+- Home's trust labels wrap through `FlexBox`. `MediaQuery` treats windows below 480 dp in height
+  as compact and reduces the reserved hero space. The application enables MediaQuery integration
+  before creating Compose content.
+
+Use window size and font scale rather than device names when adapting content. Preserve control
+semantics and the existing action callbacks while changing layout.
+
+## Visual and interaction tests
+
+AGP's native screenshot suite renders About, Home, History and Settings at nine window sizes,
+with dark mode, large text and theme variations. Home covers welcome and cleaned-result states;
+History covers populated and empty states. Shared Settings/tier fixtures cover light, dark,
+wide and large-text configurations. Runtime screen entry points collect application state and
+pass explicit values and actions to their content composables, so previews use the real screen
+without starting repositories or billing. The explicit-state theme overload and preview MediaQuery
+scope keep host rendering deterministic. See
+[the contributor commands](../CONTRIBUTING.md#screenshot-tests) for comparisons and intentional
+reference updates.
+
+Instrumented Compose tests verify expanded/selected states, locked actions, equal tier widths,
+caller style overrides, live palette changes and large-text stacking. Screenshots check
+appearance; continue device checks for scrolling, system bars, the keyboard and accessibility.
+Screen-content tests also verify Copy/Share callbacks, inline History expansion and Settings rules.
 
 ## Motion and feedback
 

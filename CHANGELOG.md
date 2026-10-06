@@ -10,6 +10,19 @@ All notable changes to Tidy will be documented in this file.
   Theme choices have one action per row, and section headings support heading navigation.
 - Locked options and off-state switches have clearer contrast. Tier cards stack at larger text
   sizes or narrow widths, and section headings use a consistent semibold weight.
+- History arranges records in multiple columns in wider windows. Home uses less hero space in
+  short windows, and its trust labels wrap when space is limited.
+
+### Bug fixes
+
+- Complete backups remain shareable through the system chooser. Exports use a dedicated directory,
+  keeping unrelated internal app files outside the sharing provider roots.
+
+### Internal
+
+- Added a shared Compose Styles layer for custom component surfaces and theme-aware overrides.
+- Updated Kotlin, Gradle, Android Gradle Plugin and Compose dependencies, and added native AGP
+  screenshot test suites.
 
 ## [1.3.0]
 

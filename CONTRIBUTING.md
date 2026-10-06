@@ -41,6 +41,32 @@ You only need the `foss` flavour to work on anything in this repo —
 `play` requires the closed-source `:feature-plus` module and isn't
 buildable here.
 
+### Screenshot tests
+
+Compose screenshot tests use AGP's native test suites. Run the FOSS suite with:
+
+```bash
+./gradlew :app:testFossDebugScreenshotTestDefaultTestSuite
+```
+
+Previews live in `app/src/screenshotTest/kotlin`; reference images live in
+`app/src/screenshotTestDefaultFossDebug/reference`. Review the report in
+`app/build/reports/tests/testFossDebugScreenshotTestDefaultTestSuite/index.html`
+when a comparison fails. After reviewing and accepting an intentional visual change,
+update the references with:
+
+```bash
+./gradlew :app:updateFossDebugScreenshotTestDefaultTestSuite
+```
+
+Commit reviewed reference images with their preview tests so checkouts have the expected
+baseline. Generated actual images, diffs and reports remain in ignored `build/` directories.
+Use synthetic preview data rather than personal URLs or other sensitive content.
+
+Keep rendering conditions consistent when updating references: host operating systems
+and rendering-library versions can produce small differences. Screenshot comparisons
+cover appearance; instrumented Compose tests cover interaction and semantics.
+
 ## Code style
 
 - British English throughout: code comments, UI strings, commit

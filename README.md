@@ -176,12 +176,21 @@ client:
 - **`:app`**: Compose UI (Navigation3), share-intent handling, the
   Quick Settings `TileService`, and `UrlExpander` for redirect
   resolution.
+- **`:design-system`**: Shared Compose Styles, component surfaces and
+  Settings card tokens. See the [design system guide](docs/design-system.md).
 
 Written with AI-assisted tooling for code and drafting. Every line is
 reviewed, tested, and shipped by a human before it reaches you.
 
-**Requirements:** JDK 21+, Android SDK 26+, Android Studio Ladybug or
-newer.
+**Build setup:** Use Android Studio's bundled JBR for the IDE's Gradle
+JDK and `JAVA_HOME`. Install Android SDK platforms 37 and 37.2; Compose
+modules compile against 37.2. The app supports Android 7.0 (API 24) and
+newer, targets API 37 and uses Java 21 bytecode compatibility.
+
+The project uses preview AGP and Compose alpha dependencies. Versions
+are pinned in [the version catalogue](gradle/libs.versions.toml) and
+[Gradle wrapper](gradle/wrapper/gradle-wrapper.properties). Native
+screenshot test suites require Android Studio Rabbit 1 Canary 4 or newer.
 
 We have two build flavours, under Gradle's `distribution` dimension.
 **`foss`** is what's here: no Google Play Services, nothing else needed
@@ -202,7 +211,14 @@ the same either way. The build commands below are for the `foss` flavour.
 
 # Run lint checks
 ./gradlew lintFossDebug
+
+# Compare Compose previews with their reference images
+./gradlew :app:testFossDebugScreenshotTestDefaultTestSuite
 ```
+
+See [Contributing](CONTRIBUTING.md#screenshot-tests) for screenshot
+reports, reference-image review and update commands. On Windows, use
+`gradlew.bat` in place of `./gradlew`.
 
 ---
 
