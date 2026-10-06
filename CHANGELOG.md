@@ -23,6 +23,7 @@ All notable changes to Tidy will be documented in this file.
 - Added a shared Compose Styles layer for custom component surfaces and theme-aware overrides.
 - Updated Kotlin, Gradle, Android Gradle Plugin and Compose dependencies, and added native AGP
   screenshot test suites.
+- Aligned Java and Kotlin bytecode targets and CI builds on Java 25.
 
 ## [1.3.0]
 

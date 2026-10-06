@@ -183,9 +183,11 @@ Written with AI-assisted tooling for code and drafting. Every line is
 reviewed, tested, and shipped by a human before it reaches you.
 
 **Build setup:** Use Android Studio's bundled JBR for the IDE's Gradle
-JDK and `JAVA_HOME`. Install Android SDK platforms 37 and 37.2; Compose
-modules compile against 37.2. The app supports Android 7.0 (API 24) and
-newer, targets API 37 and uses Java 21 bytecode compatibility.
+JDK and `JAVA_HOME` (JBR 25 or newer). Install Android SDK platforms 37 and
+37.2; Compose modules compile against 37.2. The app supports Android 7.0 (API 24) and
+newer, targets API 37 and uses Java and Kotlin JVM 25 bytecode targets.
+CI and release workflows use JDK 25. Android's supported library APIs still
+depend on the device API level; the bytecode target does not add JDK 25 APIs.
 
 The project uses preview AGP and Compose alpha dependencies. Versions
 are pinned in [the version catalogue](gradle/libs.versions.toml) and
