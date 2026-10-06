@@ -2,14 +2,24 @@ package com.tidy.app.ui
 
 import android.content.Context
 import androidx.activity.ComponentActivity
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toPixelMap
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.captureToImage
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
+import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
 import com.tidy.app.data.HistoryEntry
 import com.tidy.app.theme.TidyTheme
+import com.tidy.app.ui.components.TidyTopAppBar
 import com.tidy.app.ui.history.HistoryScreenContent
 import com.tidy.app.ui.history.HistoryScreenViewModel
 import com.tidy.app.ui.main.MainScreenActions
@@ -18,6 +28,7 @@ import com.tidy.app.ui.main.MainScreenViewModel
 import com.tidy.app.ui.settings.SettingsScreenContent
 import com.tidy.app.ui.settings.SettingsScreenViewModel
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
@@ -60,6 +71,19 @@ class ScreenContentTest {
         val restored = title.fetchSemanticsNode().boundsInRoot
         assertEquals(expanded.top, restored.top, 1f)
         assertEquals(expanded.left, restored.left, 1f)
+    }
+
+    @Test
+    fun appBarCoversUnderlyingContent() {
+        compose.setContent {
+            TidyTheme(selectedTheme = "slate", isPlusUnlocked = false) {
+                Box(Modifier.fillMaxSize().background(Color.Magenta)) {
+                    TidyTopAppBar(title = "History", modifier = Modifier.testTag("app-bar"))
+                }
+            }
+        }
+        val pixels = compose.onNodeWithTag("app-bar").captureToImage().toPixelMap()
+        assertNotEquals(Color.Magenta, pixels[pixels.width - 1, pixels.height / 2])
     }
 
     @Test

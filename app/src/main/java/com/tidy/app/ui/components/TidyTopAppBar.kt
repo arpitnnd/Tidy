@@ -11,13 +11,12 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import com.tidy.app.R
 
 /**
- * The standard Tidy top app bar. Provides a consistent transparent bar with a bold title
+ * The standard Tidy top app bar. Provides a Material surface background with a bold title
  * and a back-navigation button wrapped in a [TooltipWrapper].
  *
  * @param title      The screen title to display.
@@ -55,9 +54,7 @@ fun TidyTopAppBar(
             }
         },
         actions = { actions() },
-        colors = TopAppBarDefaults.topAppBarColors(
-            containerColor = Color.Transparent
-        ),
+        colors = TopAppBarDefaults.topAppBarColors(),
         modifier = modifier
     )
 }
