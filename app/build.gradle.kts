@@ -91,6 +91,12 @@ android {
     }
 
     buildTypes {
+        getByName("debug") {
+            if (providers.gradleProperty("tidyVisualTest").getOrElse("false").toBoolean()) {
+                applicationIdSuffix = ".visualtest"
+                resValue("string", "app_name", "Tidy+ test")
+            }
+        }
         release {
             isMinifyEnabled = false
             proguardFiles(
@@ -119,6 +125,7 @@ android {
         compose = true
         aidl = false
         buildConfig = true
+        resValues = true
         shaders = false
     }
 
