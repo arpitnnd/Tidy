@@ -232,14 +232,17 @@ Keep a result actionable as soon as it is available. Preserve meaningful content
 entry and exit, and check transitions with system animations disabled. Errors and zero-removal
 results must remain understandable without motion or colour cues.
 
-Invalid non-empty URL, domain and parameter fields use Material text-field error styling and
-supporting text to explain why submission is disabled. Clear the feedback when the field becomes
-valid or empty, and reuse the same validation result for feedback and submission.
+Enable input actions when their required fields are non-blank, and validate on submission.
+Invalid submissions use native Material text-field error styling and supportingText. Input
+rows align their fields and actions at the top, so supporting feedback cannot shift neighbouring
+controls, including when text is enlarged. Editing clears the feedback.
+Reuse the same remembered validation result for feedback and submission.
 
 Use a snackbar for feedback while the triggering screen is visible. A modal sheet needs its own
 snackbar host inside the sheet so the message appears above the underlying screen. Keep messages
 concise and bound any interpolated content. Use a toast when feedback must survive the
-triggering view closing.
+triggering view closing. Explicit URL expansion reports network failures in a snackbar while
+keeping the cleaned result available.
 
 ## Accessibility and copy
 
@@ -263,4 +266,6 @@ When changing a component or screen:
 [SettingsScreen](../app/src/main/java/com/tidy/app/ui/settings/SettingsScreen.kt) and
 [AboutScreen](../app/src/main/java/com/tidy/app/ui/about/AboutScreen.kt) show the card patterns
 in context. [HistoryScreen](../app/src/main/java/com/tidy/app/ui/history/HistoryScreen.kt) shows
-section headings alongside summary cards and cleaned URL records.
+section headings alongside summary cards and cleaned URL records. History entry expansion
+is saved per entry, so scrolling a card out of view does not collapse it. App-bar titles stay
+on one line and ellipsise when space is limited.
