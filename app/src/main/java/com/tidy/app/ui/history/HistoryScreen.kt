@@ -75,6 +75,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
@@ -569,8 +570,8 @@ private fun HistoryItem(
     modifier: Modifier = Modifier,
     style: TidyStyle = CommonStyle
 ) {
-    var expanded by remember { mutableStateOf(false) }
-    var showFullOriginalUrl by remember { mutableStateOf(false) }
+    var expanded by rememberSaveable(entry.id) { mutableStateOf(false) }
+    var showFullOriginalUrl by rememberSaveable(entry.id) { mutableStateOf(false) }
     var selectedParam by remember { mutableStateOf<String?>(null) }
     val dateFormat = remember { SimpleDateFormat("MMM d, yyyy · h:mm a", Locale.getDefault()) }
     val formattedDate = remember(entry.timestamp) {

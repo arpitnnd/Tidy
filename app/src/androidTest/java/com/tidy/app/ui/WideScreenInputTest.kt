@@ -18,6 +18,7 @@ import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollToIndex
 import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performTextReplacement
 import androidx.compose.ui.test.performTouchInput
@@ -175,6 +176,34 @@ class WideScreenInputTest {
             }
         }
         assertSideSwipeScrolls()
+    }
+
+    @Test
+    fun historyExpansionSurvivesScrollingOutOfComposition() {
+        compose.setContent {
+            TidyTheme(selectedTheme = "slate", isPlusUnlocked = false) {
+                HistoryScreenContent(
+                    state = HistoryScreenViewModel.UiState(
+                        isInitialLoading = false,
+                        history = List(30) { index ->
+                            HistoryEntry(
+                                id = "$index",
+                                originalUrl = "https://example.com/$index?utm_source=test",
+                                cleanedUrl = "https://example.com/$index", domain = "example.com",
+                                removedParamsCount = 1
+                            )
+                        }), onBackClick = {}
+                )
+            }
+        }
+        val first = compose.onNodeWithText("https://example.com/0")
+        first.performScrollTo().performClick()
+        compose.onNodeWithText("Original URL").performScrollTo().assertIsDisplayed()
+        compose.onNode(hasScrollAction()).performScrollToIndex(29)
+        first.assertDoesNotExist()
+        compose.onNode(hasScrollAction()).performScrollToIndex(4)
+        first.performScrollTo()
+        compose.onNodeWithText("Original URL").performScrollTo().assertIsDisplayed()
     }
 
     private fun assertSideSwipeScrolls() {
