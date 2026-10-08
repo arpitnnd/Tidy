@@ -275,6 +275,8 @@ internal fun MainScreenContent(
     val toastCleanedCopied = stringResource(R.string.toast_cleaned_copied)
     val toastCopied = stringResource(R.string.toast_copied)
     val toastNoBrowserApp = stringResource(R.string.toast_no_browser_app)
+    val cleanedUrlLabel = stringResource(R.string.main_cleaned_url)
+    val cleanedUrlsLabel = stringResource(R.string.clipboard_cleaned_urls)
     val plusToastBulkCleanedTemplate = stringResource(R.string.plus_toast_bulk_cleaned)
     val crashToastCopied = stringResource(R.string.crash_toast_copied)
     val crashToastBrowserError = stringResource(R.string.crash_toast_browser_error)
@@ -374,7 +376,7 @@ internal fun MainScreenContent(
             // input would silently produce different outcomes depending on invisible
             // clipboard state.
             if (newClipText != currentClip) {
-                val clip = android.content.ClipData.newPlainText("Cleaned URL", newClipText)
+                val clip = android.content.ClipData.newPlainText(cleanedUrlLabel, newClipText)
                 clipboard.setPrimaryClip(clip)
                 android.widget.Toast.makeText(
                     context,
@@ -1465,7 +1467,7 @@ internal fun MainScreenContent(
                                             val clipboard =
                                                 context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
                                             val clip = android.content.ClipData.newPlainText(
-                                                "Cleaned URLs",
+                                                cleanedUrlsLabel,
                                                 joinedCleaned
                                             )
                                             clipboard.setPrimaryClip(clip)

@@ -1,5 +1,7 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
     <string name="app_name">Tidy</string>
+    <string name="clipboard_tile_label">Tidy clipboard</string>
+    <string name="clipboard_cleaned_urls">Cleaned URLs</string>
 
     <!-- Main Screen -->
     <string name="main_history_desc">History</string>
@@ -142,6 +144,14 @@
     <string name="history_cleared_toast">History cleared</string>
     <string name="history_undo_action">Undo</string>
     <string name="history_bandwidth_desc">Estimated bandwidth saved by stripping tracking parameters</string>
+    <string name="history_bandwidth_megabytes">%1$.1f MB</string>
+    <string name="history_bandwidth_kilobytes">%1$.1f KB</string>
+    <plurals name="history_bandwidth_bytes">
+        <item quantity="one">%1$d byte</item>
+        <item quantity="other">%1$d bytes</item>
+    </plurals>
+    <!-- Translators: use a java.text.SimpleDateFormat pattern. -->
+    <string name="history_entry_date_format">MMM d, yyyy · h:mm a</string>
     <string name="history_open">Open</string>
     <string name="history_toast_exported">Exported successfully</string>
     <string name="history_toast_export_failed">Export failed</string>
@@ -192,8 +202,8 @@
     <string name="details_no_explanation">No explanation available for this parameter</string>
     <string name="details_report_issue">Report issue</string>
     <string name="details_always_keep">Always keep</string>
-    <string name="process_text_plus_required">Tidy+ is required for this feature</string>
-    <string name="process_text_cleaned">URL cleaned</string>
+    <string name="details_report_title">Broken parameter: %1$s on %2$s</string>
+    <string name="details_report_body">**Parameter:** %1$s\n**Domain:** %2$s\n\n**Description:**\nThe parameter `%1$s` was removed from `%2$s`, which broke the site or removed required information. Please review this rule.</string>
     <string name="history_copy_original">Copy original</string>
 
     <!-- Diagnostics & Crashes -->
@@ -220,6 +230,11 @@
 
     <!-- Crash Reporting -->
     <string name="crash_report_github">Report on GitHub</string>
+    <string name="crash_report_title">Crash report</string>
+    <string name="crash_report_issue_body">Paste copied crash log here</string>
+    <string name="crash_report_unknown">Unknown</string>
+    <string name="crash_report_no_stacktrace">No stack trace</string>
+    <string name="crash_report_contents">App version: %1$s (%2$s)\nAndroid version: %3$s\nDevice model: %4$s\nStack trace:\n%5$s\n</string>
     <string name="crash_toast_copied">Copied log. Paste it on GitHub!</string>
     <string name="crash_toast_browser_error">Could not open browser</string>
 

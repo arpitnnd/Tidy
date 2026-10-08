@@ -87,6 +87,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -514,9 +515,13 @@ private fun BandwidthCard(
 ) {
     val bytes = trackersCount * 52
     val formattedValue = when {
-        bytes >= 1_048_576 -> String.format(Locale.US, "%.1f MB", bytes / 1_048_576f)
-        bytes >= 1024 -> String.format(Locale.US, "%.1f KB", bytes / 1024f)
-        else -> "$bytes Bytes"
+        bytes >= 1_048_576 -> stringResource(
+            R.string.history_bandwidth_megabytes,
+            bytes / 1_048_576f
+        )
+
+        bytes >= 1024 -> stringResource(R.string.history_bandwidth_kilobytes, bytes / 1024f)
+        else -> pluralStringResource(R.plurals.history_bandwidth_bytes, bytes, bytes)
     }
 
     TidyStyledCard(
@@ -573,13 +578,15 @@ private fun HistoryItem(
     var expanded by rememberSaveable(entry.id) { mutableStateOf(false) }
     var showFullOriginalUrl by rememberSaveable(entry.id) { mutableStateOf(false) }
     var selectedParam by remember { mutableStateOf<String?>(null) }
-    val dateFormat = remember { SimpleDateFormat("MMM d, yyyy · h:mm a", Locale.getDefault()) }
-    val formattedDate = remember(entry.timestamp) {
+    val datePattern = stringResource(R.string.history_entry_date_format)
+    val dateFormat = remember(datePattern) { SimpleDateFormat(datePattern, Locale.getDefault()) }
+    val formattedDate = remember(entry.timestamp, dateFormat) {
         dateFormat.format(Date(entry.timestamp))
     }
     val context = LocalContext.current
     val mainCopied = stringResource(R.string.main_copied)
     val mainCleanedUrl = stringResource(R.string.main_cleaned_url)
+    val mainOriginalUrl = stringResource(R.string.main_original_url)
     val toastNoBrowserApp = stringResource(R.string.toast_no_browser_app)
 
     TidyStyledCard(
@@ -753,7 +760,7 @@ private fun HistoryItem(
                                     val clipboard =
                                         context.getSystemService(Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
                                     val clip = android.content.ClipData.newPlainText(
-                                        "Original URL",
+                                        mainOriginalUrl,
                                         entry.originalUrl
                                     )
                                     clipboard.setPrimaryClip(clip)

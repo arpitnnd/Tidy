@@ -43,7 +43,7 @@
             android:name=".data.TidyTileService"
             android:exported="true"
             android:icon="@drawable/ic_launcher_monochrome"
-            android:label="Tidy Clipboard"
+            android:label="@string/clipboard_tile_label"
             android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">
             <intent-filter>
                 <action android:name="android.service.quicksettings.action.QS_TILE" />

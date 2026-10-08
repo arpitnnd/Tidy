@@ -1,6 +1,7 @@
 package com.tidy.app.data
 
 import android.content.Context
+import com.tidy.app.R
 import org.acra.config.CoreConfiguration
 import org.acra.data.CrashReportData
 import org.acra.sender.ReportSender
@@ -16,23 +17,22 @@ class LocalCrashReportSender : ReportSender {
             }
             val reportFile = File(crashReportsDir, "crash_${System.currentTimeMillis()}.txt")
 
+            val unknown = context.getString(R.string.crash_report_unknown)
             val appVersionName =
-                errorContent.getString(org.acra.ReportField.APP_VERSION_NAME) ?: "Unknown"
+                errorContent.getString(org.acra.ReportField.APP_VERSION_NAME) ?: unknown
             val appVersionCode =
-                errorContent.getString(org.acra.ReportField.APP_VERSION_CODE) ?: "Unknown"
+                errorContent.getString(org.acra.ReportField.APP_VERSION_CODE) ?: unknown
             val androidVersion =
-                errorContent.getString(org.acra.ReportField.ANDROID_VERSION) ?: "Unknown"
-            val phoneModel = errorContent.getString(org.acra.ReportField.PHONE_MODEL) ?: "Unknown"
+                errorContent.getString(org.acra.ReportField.ANDROID_VERSION) ?: unknown
+            val phoneModel = errorContent.getString(org.acra.ReportField.PHONE_MODEL) ?: unknown
             val stackTrace =
-                errorContent.getString(org.acra.ReportField.STACK_TRACE) ?: "No stacktrace"
+                errorContent.getString(org.acra.ReportField.STACK_TRACE)
+                    ?: context.getString(R.string.crash_report_no_stacktrace)
 
-            val reportText = buildString {
-                appendLine("App Version: $appVersionName ($appVersionCode)")
-                appendLine("Android Version: $androidVersion")
-                appendLine("Device Model: $phoneModel")
-                appendLine("Stack Trace:")
-                appendLine(stackTrace)
-            }
+            val reportText = context.getString(
+                R.string.crash_report_contents,
+                appVersionName, appVersionCode, androidVersion, phoneModel, stackTrace
+            )
             reportFile.writeText(reportText)
         } catch (_: Exception) {
             // Best-effort local write; nothing to do if it fails.

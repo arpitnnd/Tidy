@@ -110,14 +110,8 @@ fun launchGitHubBugReport(
     param: String,
     domain: String
 ): Boolean {
-    val title = "Broken parameter: $param on $domain"
-    val body = """
-**Parameter:** $param
-**Domain:** $domain
-
-**Description:**
-The parameter `$param` was removed from `$domain`, which broke the site or removed required information. Please review this rule.
-""".trimIndent()
+    val title = context.getString(R.string.details_report_title, param, domain)
+    val body = context.getString(R.string.details_report_body, param, domain)
 
     return try {
         val encodedTitle = java.net.URLEncoder.encode(title, "UTF-8")
