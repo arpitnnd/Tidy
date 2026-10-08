@@ -9,6 +9,9 @@ interface MainScreenActions {
     val automationEvents: Flow<MainScreenViewModel.AutomationAction>
         get() = emptyFlow()
 
+    val expansionFailures: Flow<MainScreenViewModel.ExpansionFailure>
+        get() = emptyFlow()
+
     fun markFirstLaunchDone() {}
     fun onUrlInput(url: String) {}
     fun cleanUrl(

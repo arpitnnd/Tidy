@@ -57,6 +57,11 @@ class MainScreenViewModel(
     private val _automationEvents = MutableSharedFlow<AutomationAction>(extraBufferCapacity = 1)
     override val automationEvents: SharedFlow<AutomationAction> = _automationEvents.asSharedFlow()
 
+    enum class ExpansionFailure { Network, Other }
+
+    private val _expansionFailures = MutableSharedFlow<ExpansionFailure>(extraBufferCapacity = 1)
+    override val expansionFailures: SharedFlow<ExpansionFailure> = _expansionFailures.asSharedFlow()
+
     // The raw clipboard text AUTO_CLEAN last acted on (see checkClipboardText's
     // AUTO_CLEAN branch). Deliberately not part of UiState/not reset by clear(): it tracks
     // what's already been auto-cleaned, independent of what's currently displayed.
@@ -442,13 +447,17 @@ class MainScreenViewModel(
         viewModelScope.launch {
             _uiState.update { it.copy(isExpanding = true) }
             try {
-                val resolvedUrl = UrlExpander.resolve(original)
+                val resolvedUrl = UrlExpander.resolve(original, reportFailure = true)
                 // addToHistory = false: the short link's own clean already added an entry
                 // and incremented analytics when it was first displayed; expanding it
                 // further must update that same result, not add a second row for one link.
                 cleanUrl(resolvedUrl, originalShortUrl = original, addToHistory = false)
-            } catch (_: Throwable) {
-                // Swallowed: isExpanding reset below leaves the UI in its pre-expand state.
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (_: java.io.IOException) {
+                _expansionFailures.emit(ExpansionFailure.Network)
+            } catch (_: Exception) {
+                _expansionFailures.emit(ExpansionFailure.Other)
             } finally {
                 _uiState.update { it.copy(isExpanding = false) }
             }

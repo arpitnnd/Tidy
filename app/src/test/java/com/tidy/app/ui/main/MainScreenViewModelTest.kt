@@ -12,6 +12,8 @@ import junit.framework.TestCase.assertFalse
 import junit.framework.TestCase.assertTrue
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.CoroutineStart
+import kotlinx.coroutines.async
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.flow.Flow
@@ -283,7 +285,13 @@ class MainScreenViewModelTest {
         historyRepository.loadHistory()
         assertEquals(1, historyRepository.historyFlow.value.size)
 
+        val cleanedBeforeExpansion = viewModel.uiState.value.cleanedUrl
+        val failure =
+            async(start = CoroutineStart.UNDISPATCHED) { viewModel.expansionFailures.first() }
         viewModel.expandShortUrl()
+        assertEquals(MainScreenViewModel.ExpansionFailure.Network, failure.await())
+        assertFalse(viewModel.uiState.value.isExpanding)
+        assertEquals(cleanedBeforeExpansion, viewModel.uiState.value.cleanedUrl)
         historyRepository.loadHistory()
         assertEquals(1, historyRepository.historyFlow.value.size)
     }

@@ -13,6 +13,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.captureToImage
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
+import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -36,6 +37,35 @@ import org.junit.Test
 class ScreenContentTest {
     @get:Rule
     val compose = createAndroidComposeRule<ComponentActivity>()
+
+    @Test
+    fun explicitExpansionNetworkFailureShowsASnackbar() {
+        val failures =
+            kotlinx.coroutines.flow.MutableSharedFlow<MainScreenViewModel.ExpansionFailure>(
+                extraBufferCapacity = 1
+            )
+        compose.setContent {
+            TidyTheme(selectedTheme = "slate", isPlusUnlocked = false) {
+                MainScreenContent(
+                    state = MainScreenViewModel.UiState(
+                    isInitialLoading = false,
+                    isCleaned = true,
+                    originalUrl = "https://bit.ly/example",
+                    cleanedUrl = "https://bit.ly/example",
+                    canExpand = true
+                ), onSettingsClick = {}, onHistoryClick = {},
+                    actions = object : MainScreenActions {
+                        override val expansionFailures = failures
+                        override fun expandShortUrl() {
+                            failures.tryEmit(MainScreenViewModel.ExpansionFailure.Network)
+                        }
+                    })
+            }
+        }
+        compose.onNodeWithContentDescription("Expand URL").performClick()
+        compose.onNodeWithText("Could not expand URL. Check your internet connection and try again.")
+            .assertIsDisplayed()
+    }
 
     @Test
     fun homeTitleAnimatesIntoTheAppBarAfterCleaningAndBackAfterClearing() {

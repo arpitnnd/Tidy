@@ -8,6 +8,8 @@
     <string name="main_copied">Copied</string>
     <string name="main_share">Share</string>
     <string name="main_clean_new_url">Clean new URL</string>
+    <string name="main_expand_network_error">Could not expand URL. Check your internet connection and try again.</string>
+    <string name="main_expand_error">Could not expand this URL. Try again.</string>
     <string name="main_expand_url">Expand URL</string>
     <string name="main_hide_details">Hide details</string>
     <string name="main_show_details">Show details</string>

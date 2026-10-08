@@ -399,6 +399,16 @@ internal fun MainScreenContent(
         }
     }
 
+    val expansionNetworkError = stringResource(R.string.main_expand_network_error)
+    val expansionError = stringResource(R.string.main_expand_error)
+    LaunchedEffect(actions) {
+        actions.expansionFailures.collect { failure ->
+            snackbarHostState.showSnackbar(
+                if (failure == MainScreenViewModel.ExpansionFailure.Network) expansionNetworkError else expansionError
+            )
+        }
+    }
+
     // Reads the clipboard and hands it to the ViewModel, which owns the suggest/auto-clean
     // decision (see MainScreenViewModel.checkClipboardText's KDoc). Reading the clipboard
     // itself stays here because it needs a Context.
