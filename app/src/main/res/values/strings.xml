@@ -342,4 +342,8 @@
     <string name="tooltip_add_custom_param">Add custom parameter</string>
     <string name="tooltip_remove_custom_param">Remove custom parameter</string>
     <string name="tooltip_view_crash_log">View crash report log</string>
+    <plurals name="main_removed_count">
+        <item quantity="one">%d removed</item>
+        <item quantity="other">%d removed</item>
+    </plurals>
 </resources>

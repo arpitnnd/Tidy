@@ -20,7 +20,6 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -158,6 +157,8 @@ import com.tidy.app.ui.components.FeatureRow
 import com.tidy.app.ui.components.ParamDetailBottomSheet
 import com.tidy.app.ui.components.TidyModalBottomSheet
 import com.tidy.app.ui.components.TooltipWrapper
+import com.tidy.app.ui.components.StatusBadge
+import com.tidy.app.theme.cleanResultColours
 import com.tidy.app.ui.components.shimmer
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
@@ -176,7 +177,7 @@ private val BannerExitTransition = fadeOut(tween(BannerAnimDurationMs)) +
 // results Column below), rather than the tighter 12.dp used for spacing within one section.
 private val BannerGap = 16.dp
 
-private const val HomeMorphDurationMs = 480
+private const val HomeMorphDurationMs = 220
 
 private enum class HomeBottomStage {
     Input,
@@ -482,9 +483,6 @@ internal fun MainScreenContent(
             delay(32)
             showUpperLoading = state.isLoading
         } else {
-            if (showUpperLoading) {
-                delay(180)
-            }
             showUpperLoading = false
         }
     }
@@ -571,10 +569,12 @@ internal fun MainScreenContent(
         HomeBottomStage.Input
     }
     var retainedInputState by remember { mutableStateOf(state) }
+    var retainedResultState by remember { mutableStateOf(state) }
     SideEffect {
         if (bottomStage == HomeBottomStage.Input) {
             retainedInputState = state
         }
+        if (state.isCleaned) retainedResultState = state
     }
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },
@@ -950,12 +950,11 @@ internal fun MainScreenContent(
                 targetState = state.isCleaned || showUpperLoading,
                 transitionSpec = {
                     if (targetState) {
-                        (fadeIn(tween(HomeMorphDurationMs, delayMillis = 80)) +
-                                slideInVertically(tween(HomeMorphDurationMs)) { it * 3 }) togetherWith
-                                (fadeOut(tween(220)) +
-                                        slideOutVertically(tween(HomeMorphDurationMs)) { -it / 3 })
+                        (fadeIn(tween(HomeMorphDurationMs)) +
+                                slideInVertically(tween(HomeMorphDurationMs)) { it / 16 }) togetherWith
+                                fadeOut(tween(120))
                     } else {
-                        fadeIn(tween(200, delayMillis = 30)) togetherWith
+                        fadeIn(tween(160)) togetherWith
                                 fadeOut(tween(140))
                     }
                 },
@@ -963,6 +962,8 @@ internal fun MainScreenContent(
                 label = "homeContentMorph"
             ) { showResult ->
                 if (showResult) {
+                    val resultState =
+                        if (state.isCleaned || showUpperLoading) state else retainedResultState
                     Box(
                         modifier = Modifier
                             .fillMaxSize()
@@ -1071,9 +1072,9 @@ internal fun MainScreenContent(
                                                 ),
                                             verticalArrangement = Arrangement.spacedBy(14.dp)
                                         ) {
-                                            Row(
-                                                horizontalArrangement = Arrangement.SpaceBetween,
-                                                verticalAlignment = Alignment.CenterVertically,
+                                            FlowRow(
+                                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                                verticalArrangement = Arrangement.spacedBy(8.dp),
                                                 modifier = Modifier.fillMaxWidth()
                                             ) {
                                                 Text(
@@ -1083,35 +1084,19 @@ internal fun MainScreenContent(
                                                     color = MaterialTheme.colorScheme.onPrimaryContainer
                                                 )
 
-                                                val removedCount = state.removedParams.size
-                                                val badgeColor = if (removedCount > 0) {
-                                                    MaterialTheme.colorScheme.primaryContainer
-                                                } else {
-                                                    MaterialTheme.colorScheme.surfaceVariant
-                                                }
-                                                val badgeTextColor = if (removedCount > 0) {
-                                                    MaterialTheme.colorScheme.onPrimaryContainer
-                                                } else {
-                                                    MaterialTheme.colorScheme.onSurfaceVariant
-                                                }
-                                                Surface(
-                                                    shape = RoundedCornerShape(12.dp),
-                                                    color = badgeColor
-                                                ) {
-                                                    Text(
-                                                        text = if (removedCount > 0) stringResource(
-                                                            R.string.history_item_removed_count,
-                                                            removedCount
-                                                        ) else stringResource(R.string.history_item_clean),
-                                                        fontWeight = FontWeight.Bold,
-                                                        style = MaterialTheme.typography.labelSmall,
-                                                        color = badgeTextColor,
-                                                        modifier = Modifier.padding(
-                                                            horizontal = 10.dp,
-                                                            vertical = 4.dp
-                                                        )
-                                                    )
-                                                }
+                                                val removedCount = resultState.removedParams.size
+                                                val successColours = cleanResultColours()
+                                                StatusBadge(
+                                                    text = if (removedCount > 0) pluralStringResource(
+                                                        R.plurals.main_removed_count,
+                                                        removedCount,
+                                                        removedCount
+                                                    ) else stringResource(R.string.history_item_clean),
+                                                    containerColor = if (removedCount > 0) successColours.container
+                                                    else MaterialTheme.colorScheme.surfaceVariant,
+                                                    contentColor = if (removedCount > 0) successColours.content
+                                                    else MaterialTheme.colorScheme.onSurfaceVariant
+                                                )
                                             }
 
                                             Row(
@@ -1120,7 +1105,7 @@ internal fun MainScreenContent(
                                                 modifier = Modifier.fillMaxWidth()
                                             ) {
                                                 Text(
-                                                    text = state.cleanedUrl,
+                                                    text = resultState.cleanedUrl,
                                                     style = MaterialTheme.typography.bodyMedium,
                                                     fontWeight = FontWeight.SemiBold,
                                                     color = MaterialTheme.colorScheme.onPrimaryContainer,
@@ -1137,16 +1122,16 @@ internal fun MainScreenContent(
                                                             }
                                                         }
                                                 )
-                                                if (state.canExpand) {
+                                                if (resultState.canExpand) {
                                                     TooltipWrapper(tooltipText = stringResource(R.string.main_expand_url)) {
                                                         IconButton(
                                                             onClick = { actions.expandShortUrl() },
-                                                            enabled = !state.isExpanding,
+                                                            enabled = !resultState.isExpanding,
                                                             colors = IconButtonDefaults.iconButtonColors(
                                                                 contentColor = MaterialTheme.colorScheme.onPrimaryContainer
                                                             )
                                                         ) {
-                                                            if (state.isExpanding) {
+                                                            if (resultState.isExpanding) {
                                                                 CircularProgressIndicator(
                                                                     modifier = Modifier.size(20.dp),
                                                                     color = MaterialTheme.colorScheme.onPrimaryContainer,
@@ -1169,7 +1154,7 @@ internal fun MainScreenContent(
                                                             try {
                                                                 val intent = Intent(
                                                                     Intent.ACTION_VIEW,
-                                                                    state.cleanedUrl.toUri()
+                                                                    resultState.cleanedUrl.toUri()
                                                                 ).apply {
                                                                     addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                                                                 }
@@ -1261,13 +1246,13 @@ internal fun MainScreenContent(
                                                     )
                                                     Spacer(modifier = Modifier.height(2.dp))
                                                     Text(
-                                                        text = state.originalUrl,
+                                                        text = resultState.originalUrl,
                                                         style = MaterialTheme.typography.bodySmall,
                                                         color = MaterialTheme.colorScheme.onPrimaryContainer
                                                     )
                                                 }
 
-                                                if (state.expandedUrl != null) {
+                                                if (resultState.expandedUrl != null) {
                                                     Column {
                                                         Text(
                                                             text = stringResource(R.string.main_expanded_url),
@@ -1279,14 +1264,14 @@ internal fun MainScreenContent(
                                                         )
                                                         Spacer(modifier = Modifier.height(2.dp))
                                                         Text(
-                                                            text = state.expandedUrl!!,
+                                                            text = resultState.expandedUrl!!,
                                                             style = MaterialTheme.typography.bodySmall,
                                                             color = MaterialTheme.colorScheme.onPrimaryContainer
                                                         )
                                                     }
                                                 }
 
-                                                if (state.removedParams.isNotEmpty()) {
+                                                if (resultState.removedParams.isNotEmpty()) {
                                                     Column(
                                                         verticalArrangement = Arrangement.spacedBy(
                                                             6.dp
@@ -1309,7 +1294,7 @@ internal fun MainScreenContent(
                                                             ),
                                                             modifier = Modifier.fillMaxWidth()
                                                         ) {
-                                                            state.removedParams.forEach { param ->
+                                                            resultState.removedParams.forEach { param ->
                                                                 AssistChip(
                                                                     onClick = {
                                                                         paramToWhitelist = param
@@ -1321,8 +1306,8 @@ internal fun MainScreenContent(
                                                                         )
                                                                     },
                                                                     colors = AssistChipDefaults.assistChipColors(
-                                                                        containerColor = MaterialTheme.colorScheme.secondaryContainer,
-                                                                        labelColor = MaterialTheme.colorScheme.onSecondaryContainer
+                                                                        containerColor = MaterialTheme.colorScheme.errorContainer,
+                                                                        labelColor = MaterialTheme.colorScheme.onErrorContainer
                                                                     ),
                                                                     shape = RoundedCornerShape(12.dp),
                                                                     border = BorderStroke(
