@@ -6,6 +6,7 @@ interface HistoryScreenActions {
     fun dismissClearConfirmation() {}
     fun clearHistory() {}
     fun undoClearHistory() {}
+    fun discardClearUndo() {}
     suspend fun getExportJson(): String = "[]"
     fun importHistory(json: String, onResult: (Int) -> Unit) {}
     fun addDomainWhitelistedParam(domain: String, param: String) {}

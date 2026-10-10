@@ -64,6 +64,42 @@ class HistoryScreenViewModelTest {
         Dispatchers.resetMain()
     }
 
+    private suspend fun addSampleEntry() {
+        historyRepository.addEntry(
+            HistoryEntry(
+                id = "entry",
+                originalUrl = "https://example.com/?fbclid=x",
+                cleanedUrl = "https://example.com/",
+                removedParamsCount = 1,
+                domain = "example.com"
+            )
+        )
+        viewModel.uiState.first { it.history.isNotEmpty() }
+    }
+
+    @Test
+    fun clearingAndUndoingPreservesEntriesAndLifetimeStatistics() = runTest {
+        addSampleEntry()
+        settingsRepository.recordClean(1)
+        viewModel.clearHistory()
+        viewModel.uiState.first { it.history.isEmpty() }
+        assertEquals("[]", viewModel.getExportJson())
+        viewModel.undoClearHistory()
+        viewModel.uiState.first { it.history.isNotEmpty() }
+        assertEquals("entry", viewModel.uiState.value.history.single().id)
+        assertEquals(1, settingsRepository.totalCleanedCount.first())
+    }
+
+    @Test
+    fun expiredUndoCannotRestoreClearedHistory() = runTest {
+        addSampleEntry()
+        viewModel.clearHistory()
+        viewModel.uiState.first { it.history.isEmpty() }
+        viewModel.discardClearUndo()
+        viewModel.undoClearHistory()
+        assertEquals("[]", viewModel.getExportJson())
+    }
+
     @Test
     fun importingHistoryDoesNotIncrementLifetimeStats() = runTest {
         settingsRepository.recordClean(trackersBlockedCount = 2)

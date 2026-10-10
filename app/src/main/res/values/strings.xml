@@ -139,7 +139,6 @@
     <string name="history_no_history">No history yet</string>
     <string name="history_no_history_desc">Cleaned URLs will appear here</string>
     <string name="history_clear_dialog_title">Clear all history?</string>
-    <string name="history_clear_dialog_text" tools:ignore="PluralsCandidate">Permanently delete all %1$d history entries? This cannot be undone.</string>
     <string name="history_clear_all">Clear all</string>
     <string name="history_cleared_toast">History cleared</string>
     <string name="history_undo_action">Undo</string>
@@ -345,5 +344,9 @@
     <plurals name="main_removed_count">
         <item quantity="one">%d removed</item>
         <item quantity="other">%d removed</item>
+    </plurals>
+    <plurals name="history_clear_dialog_text">
+        <item quantity="one">Clear this history entry? You can undo this immediately afterwards.</item>
+        <item quantity="other">Clear all %1$d history entries? You can undo this immediately afterwards.</item>
     </plurals>
 </resources>

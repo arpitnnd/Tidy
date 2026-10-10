@@ -73,6 +73,8 @@ import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -131,6 +133,10 @@ internal fun HistoryScreenContent(
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
+    val latestActions by rememberUpdatedState(actions)
+    DisposableEffect(Unit) {
+        onDispose { latestActions.discardClearUndo() }
+    }
 
     val historyToastExported = stringResource(R.string.history_toast_exported)
     val historyToastExportFailed = stringResource(R.string.history_toast_export_failed)
@@ -426,20 +432,30 @@ internal fun HistoryScreenContent(
                 )
             },
             text = {
-                Text(stringResource(R.string.history_clear_dialog_text, state.history.size))
+                Text(
+                    pluralStringResource(
+                        R.plurals.history_clear_dialog_text,
+                        state.history.size,
+                        state.history.size
+                    )
+                )
             },
             confirmButton = {
                 Button(
                     onClick = {
                         actions.clearHistory()
                         scope.launch {
-                            val result = snackbarHostState.showSnackbar(
-                                message = historyClearedToast,
-                                actionLabel = historyUndoAction,
-                                duration = SnackbarDuration.Short
-                            )
-                            if (result == SnackbarResult.ActionPerformed) {
-                                actions.undoClearHistory()
+                            try {
+                                val result = snackbarHostState.showSnackbar(
+                                    message = historyClearedToast,
+                                    actionLabel = historyUndoAction,
+                                    duration = SnackbarDuration.Short
+                                )
+                                if (result == SnackbarResult.ActionPerformed) {
+                                    actions.undoClearHistory()
+                                }
+                            } finally {
+                                actions.discardClearUndo()
                             }
                         }
                     },

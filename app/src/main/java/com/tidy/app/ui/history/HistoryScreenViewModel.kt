@@ -65,11 +65,8 @@ class HistoryScreenViewModel(
     }
 
     override fun clearHistory() {
+        lastClearedHistory = _uiState.value.history.takeIf { it.isNotEmpty() }
         viewModelScope.launch {
-            val currentHistory = _uiState.value.history
-            if (currentHistory.isNotEmpty()) {
-                lastClearedHistory = currentHistory
-            }
             historyRepository.clearAll()
             _uiState.update { it.copy(showClearConfirmation = false) }
         }
@@ -78,12 +75,16 @@ class HistoryScreenViewModel(
     override fun undoClearHistory() {
         val backup = lastClearedHistory
         if (backup != null) {
+            lastClearedHistory = null
             viewModelScope.launch {
                 val jsonStr = kotlinx.serialization.json.Json.encodeToString(backup)
                 historyRepository.importFromJson(jsonStr)
-                lastClearedHistory = null
             }
         }
+    }
+
+    override fun discardClearUndo() {
+        lastClearedHistory = null
     }
 
     override suspend fun getExportJson(): String {
