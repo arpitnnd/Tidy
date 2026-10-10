@@ -68,7 +68,7 @@ object FlavorConfig {
         com.tidy.app.featureplus.PlusUpsellBottomSheet(
             onDismiss = onDismiss,
             launchPurchaseFlow = { act ->
-                createEntitlementManager(context).launchPurchaseFlow(act) { errorMsg ->
+                TidyApp.instance.entitlementManager.launchPurchaseFlow(act) { errorMsg ->
                     Toast.makeText(context, errorMsg, Toast.LENGTH_LONG).show()
                 }
             }
