@@ -47,7 +47,9 @@ class WideScreenInputTest {
     fun useLandscape() {
         compose.activity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
         compose.waitUntil(5_000) {
-            compose.activity.resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
+            val window = compose.activity.window.decorView
+            compose.activity.resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE &&
+                    window.width > window.height
         }
     }
 
@@ -71,6 +73,8 @@ class WideScreenInputTest {
         val action = compose.onNodeWithContentDescription("Clean URL")
         compose.onNodeWithText("Enter a URL, such as example.com").assertDoesNotExist()
         action.assertIsEnabled()
+        field.assertIsDisplayed()
+        action.assertIsDisplayed()
         val actionOffset =
             action.fetchSemanticsNode().boundsInRoot.top - field.fetchSemanticsNode().boundsInRoot.top
         action.performClick()
