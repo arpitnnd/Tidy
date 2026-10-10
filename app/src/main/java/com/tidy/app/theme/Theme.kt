@@ -102,7 +102,10 @@ fun TidyTheme(
         }
 
         else -> {
-            com.tidy.app.FlavorConfig.getPremiumColorScheme(selectedTheme, darkTheme)
+            (if (isPlusUnlocked) com.tidy.app.FlavorConfig.getPremiumColorScheme(
+                selectedTheme,
+                darkTheme
+            ) else null)
                 ?: (if (darkTheme) DarkColorScheme else LightColorScheme)
         }
     }
