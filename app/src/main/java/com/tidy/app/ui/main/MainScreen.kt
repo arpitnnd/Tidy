@@ -191,7 +191,7 @@ private enum class HomeBottomStage {
 )
 @Composable
 fun MainScreen(
-    sharedUrl: String?,
+    sharedText: String?,
     crashReportText: String?,
     onSettingsClick: () -> Unit,
     onHistoryClick: () -> Unit,
@@ -214,7 +214,7 @@ fun MainScreen(
     val trackerDescriptions by settings.trackerDescriptions.collectAsStateWithLifecycle(initialValue = emptyMap())
     MainScreenContent(
         state = state,
-        sharedUrl = sharedUrl,
+        sharedText = sharedText,
         crashReportText = crashReportText,
         onSettingsClick = onSettingsClick,
         onHistoryClick = onHistoryClick,
@@ -262,7 +262,7 @@ internal fun MainScreenContent(
     modifier: Modifier = Modifier,
     actions: MainScreenActions = object : MainScreenActions {},
     preferences: MainScreenPreferences = MainScreenPreferences(),
-    sharedUrl: String? = null,
+    sharedText: String? = null,
     crashReportText: String? = null,
     showPlusUpsell: Boolean = false
 ) {
@@ -312,27 +312,33 @@ internal fun MainScreenContent(
         hasShownCrashSheetThisSession = true
     }
 
-    // Clean URL if shared through Android intent. hasHandledThisSharedUrl is rememberSaveable
-    // (keyed on sharedUrl) so it survives Settings/History disposing and recomposing this
+    // Clean URL if shared through Android intent. hasHandledThisSharedText is rememberSaveable
+    // (keyed on sharedText) so it survives Settings/History disposing and recomposing this
     // NavKey entry (without re-cleaning the same shared URL every round-trip) while a
     // genuinely new share still gets its own fresh Main(url) entry and its own fresh flag.
-    var hasHandledThisSharedUrl by rememberSaveable(sharedUrl) { mutableStateOf(false) }
-    LaunchedEffect(sharedUrl) {
-        if (sharedUrl != null && !hasHandledThisSharedUrl) {
-            hasHandledThisSharedUrl = true
-            actions.cleanUrl(sharedUrl, isShared = true)
+    var hasHandledThisSharedText by rememberSaveable(sharedText) { mutableStateOf(false) }
+    LaunchedEffect(sharedText) {
+        if (sharedText != null && !hasHandledThisSharedText) {
+            hasHandledThisSharedText = true
+            actions.cleanUrl(sharedText, isShared = true)
         }
     }
 
-    // Debounced manual input auto-clean
+    // Recheck current state after debouncing; programmatic cleans own their input.
+    val latestState by rememberUpdatedState(state)
     LaunchedEffect(state.inputUrl, state.autoCleanOnInput) {
-        if (state.autoCleanOnInput && state.inputUrl.isNotEmpty()) {
-            val trimmed = state.inputUrl.trim()
-            if (UrlDetection.looksLikeUrl(trimmed) && trimmed != state.originalUrl && trimmed != state.cleanedUrl && trimmed != state.expandedUrl) {
-                delay(400.milliseconds)
-                if (trimmed != state.originalUrl && trimmed != state.cleanedUrl && trimmed != state.expandedUrl) {
-                    actions.cleanUrl(trimmed)
-                }
+        val input = state.inputUrl.trim()
+        if (state.autoCleanOnInput && !state.isLoading && !state.isExpanding &&
+            state.sourceSharedText == null && UrlDetection.looksLikeUrl(input) &&
+            input != state.originalUrl && input != state.cleanedUrl && input != state.expandedUrl
+        ) {
+            delay(400.milliseconds)
+            val current = latestState
+            if (current.autoCleanOnInput && !current.isLoading && !current.isExpanding &&
+                current.sourceSharedText == null && current.inputUrl.trim() == input &&
+                input != current.originalUrl && input != current.cleanedUrl && input != current.expandedUrl
+            ) {
+                actions.cleanUrl(input)
             }
         }
     }
@@ -355,7 +361,7 @@ internal fun MainScreenContent(
                 is MainScreenViewModel.AutomationAction.CopyAndClose -> event.sourceClipText
             }
             val currentClip = try {
-                clipboard.primaryClip?.getItemAt(0)?.text?.toString()?.trim()
+                clipboard.primaryClip?.getItemAt(0)?.text?.toString()
             } catch (e: Exception) {
                 null
             }
@@ -389,7 +395,7 @@ internal fun MainScreenContent(
                 is MainScreenViewModel.AutomationAction.CopyAndShare -> {
                     // Deliberately a plain, predictable share sheet: if it lists Tidy
                     // itself and the user picks it again, that's expected.
-                    actions.shareUrl(context)
+                    actions.shareText(context, newClipText)
                 }
 
                 is MainScreenViewModel.AutomationAction.CopyAndClose -> {

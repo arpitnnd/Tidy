@@ -142,6 +142,123 @@ class MainScreenViewModelTest {
     }
 
     @Test
+    fun sharedMessagePreservesContextAndOnlyPersistsTheFirstUrl() = runTest {
+        val message =
+            "  See (example.com/page?utm_source=private),\nthen https://other.org/?fbclid=keep!  "
+        viewModel.cleanUrl(message, isShared = true)
+        viewModel.uiState.first { !it.isLoading }
+        val state = viewModel.uiState.value
+        assertEquals("https://example.com/page?utm_source=private", state.originalUrl)
+        assertEquals(
+            "  See (https://example.com/page),\nthen https://other.org/?fbclid=keep!  ",
+            state.outputText
+        )
+        historyRepository.loadHistory()
+        val entry = historyRepository.historyFlow.value.single()
+        assertEquals(state.originalUrl, entry.originalUrl)
+        assertEquals(state.cleanedUrl, entry.cleanedUrl)
+        assertFalse(historyRepository.exportToJson().contains("See"))
+    }
+
+    @Test
+    fun sharedMessageSurvivesRuleRefreshAndExpansion() = runTest {
+        val original = "example.com/page?fbclid=private"
+        val message = "Read $original, please."
+        viewModel.cleanUrl(message, isShared = true)
+        viewModel.addDomainWhitelistedParam("example.com", "fbclid")
+        assertEquals("Read https://$original, please.", viewModel.uiState.value.outputText)
+        viewModel.cleanUrl(
+            "https://example.com/expanded",
+            originalShortUrl = "https://$original",
+            addToHistory = false
+        )
+        assertEquals(
+            "Read https://example.com/expanded, please.",
+            viewModel.uiState.value.outputText
+        )
+        assertFalse(viewModel.uiState.value.canExpand)
+    }
+
+    @Test
+    fun repeatedSharedMessagesReplaceContextAndManualInputClearsIt() = runTest {
+        viewModel.cleanUrl("First https://example.com/?fbclid=1", isShared = true)
+        viewModel.cleanUrl("Second https://example.com/?fbclid=1", isShared = true)
+        assertEquals("Second https://example.com", viewModel.uiState.value.outputText)
+        viewModel.onUrlInput("https://other.org/?fbclid=2")
+        assertEquals(null, viewModel.uiState.value.sourceSharedText)
+        viewModel.cleanUrl("https://other.org/?fbclid=2")
+        assertEquals(viewModel.uiState.value.cleanedUrl, viewModel.uiState.value.outputText)
+        viewModel.clear()
+        assertEquals("", viewModel.uiState.value.outputText)
+    }
+
+    @Test
+    fun clearingWithClipboardCheckDiscardsSharedMessage() = runTest {
+        viewModel.cleanUrl("Private https://example.com/?fbclid=1", isShared = true)
+        viewModel.clearAndCheckClipboard(null)
+        assertEquals(null, viewModel.uiState.value.sourceSharedText)
+        assertEquals("", viewModel.uiState.value.outputText)
+    }
+
+    @Test
+    fun successfulExpansionDisablesFurtherExpansionEvenWithoutARedirect() = runTest {
+        viewModel.viewModelScope.coroutineContext[Job]?.cancelAndJoin()
+        var requests = 0
+        viewModel =
+            MainScreenViewModel(settingsRepository, historyRepository, resolveUrl = { url, _ ->
+                requests++
+                url
+            })
+        viewModel.cleanUrl("https://example.com/page")
+        viewModel.expandShortUrl()
+        viewModel.uiState.first { it.expandedUrl != null && !it.isLoading }
+        assertFalse(viewModel.uiState.value.canExpand)
+        viewModel.expandShortUrl()
+        assertEquals(1, requests)
+        historyRepository.loadHistory()
+        assertEquals(1, historyRepository.historyFlow.value.size)
+    }
+
+    @Test
+    fun failedExpansionCanBeRetried() = runTest {
+        viewModel.viewModelScope.coroutineContext[Job]?.cancelAndJoin()
+        var requests = 0
+        viewModel =
+            MainScreenViewModel(settingsRepository, historyRepository, resolveUrl = { url, _ ->
+                if (requests++ == 0) throw java.io.IOException()
+                url
+            })
+        viewModel.cleanUrl("https://example.com/page")
+        val failure =
+            async(start = CoroutineStart.UNDISPATCHED) { viewModel.expansionFailures.first() }
+        viewModel.expandShortUrl()
+        assertEquals(MainScreenViewModel.ExpansionFailure.Network, failure.await())
+        assertTrue(viewModel.uiState.value.canExpand)
+        viewModel.expandShortUrl()
+        assertFalse(viewModel.uiState.value.canExpand)
+        assertEquals(2, requests)
+    }
+
+    @Test
+    fun clearingOrCleaningAnotherUrlCancelsPendingExpansion() = runTest {
+        viewModel.viewModelScope.coroutineContext[Job]?.cancelAndJoin()
+        val resolution = kotlinx.coroutines.CompletableDeferred<String>()
+        viewModel = MainScreenViewModel(
+            settingsRepository,
+            historyRepository,
+            resolveUrl = { _, _ -> resolution.await() })
+        viewModel.cleanUrl("https://example.com/page")
+        viewModel.expandShortUrl()
+        assertTrue(viewModel.uiState.value.isExpanding)
+        viewModel.clear()
+        resolution.complete("https://stale.example.org/")
+        assertFalse(viewModel.uiState.value.isCleaned)
+        assertEquals("", viewModel.uiState.value.cleanedUrl)
+        viewModel.cleanUrl("https://other.example.org/page")
+        assertEquals("https://other.example.org/page", viewModel.uiState.value.cleanedUrl)
+    }
+
+    @Test
     fun testMarkFirstLaunchDone() = runTest {
         viewModel.markFirstLaunchDone()
 

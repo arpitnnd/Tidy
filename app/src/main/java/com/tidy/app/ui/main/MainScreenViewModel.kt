@@ -28,22 +28,20 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.launch
 import kotlin.time.Duration.Companion.seconds
 
 class MainScreenViewModel(
     private val settingsRepository: SettingsRepository = TidyApp.instance.settingsRepository,
     private val historyRepository: HistoryRepository = TidyApp.instance.historyRepository,
-    private val urlCleaner: UrlCleaner = UrlCleaner()
+    private val urlCleaner: UrlCleaner = UrlCleaner(),
+    private val resolveUrl: suspend (String, Boolean) -> String = UrlExpander::resolve
 ) : ViewModel(), MainScreenActions {
 
     sealed interface AutomationAction {
-        // sourceClipText, when non-null, is the full clipboard text an automatic clean
-        // ran against, used to splice cleanedUrl back into it rather than overwriting
-        // the whole clipboard and losing any text the user had around the link. Null for
-        // paths that don't originate from the clipboard (a share intent, the bulk-clean
-        // card, manual input) or from an explicit user tap, where replacing the clipboard
-        // with just the cleaned URL is the expected, requested outcome.
+        // Source text retains the message around the first URL for incoming shares
+        // and automatic clipboard cleans. Manual input and bulk cleaning use URL-only output.
         data class Copy(val cleanedUrl: String, val sourceClipText: String? = null) :
             AutomationAction
 
@@ -68,12 +66,14 @@ class MainScreenViewModel(
     private var lastAutoCleanedClipText: String? = null
 
     private var cleanJob: Job? = null
+    private var expansionJob: Job? = null
 
     data class UiState(
         val inputUrl: String = "",
         val originalUrl: String = "",
         val expandedUrl: String? = null,
         val cleanedUrl: String = "",
+        val sourceSharedText: String? = null,
         val removedParams: List<String> = emptyList(),
         val isCleaned: Boolean = false,
         val copySuccess: Boolean = false,
@@ -94,7 +94,14 @@ class MainScreenViewModel(
         val clipboardSuggestionUrl: String? = null,
         val bulkClipboardUrls: List<String>? = null,
         val suggestionCopiesOnClean: Boolean = false
-    )
+    ) {
+        val outputText: String
+            get() = sourceSharedText?.let { source ->
+                UrlDetection.findFirstUrl(source)?.let { detected ->
+                    UrlDetection.spliceUrl(source, detected, cleanedUrl)
+                }
+            } ?: cleanedUrl
+    }
 
     private val _uiState = MutableStateFlow(UiState())
     val uiState: StateFlow<UiState> = _uiState.asStateFlow()
@@ -166,6 +173,7 @@ class MainScreenViewModel(
                     )
             it.copy(
                 inputUrl = url,
+                sourceSharedText = if (url == it.inputUrl) it.sourceSharedText else null,
                 isCleaned = if (isSame) it.isCleaned else false,
                 clipboardSuggestionUrl = if (matchesCandidate) null else it.clipboardSuggestionUrl
             )
@@ -182,10 +190,11 @@ class MainScreenViewModel(
         forceRefresh: Boolean
     ) {
         if (url.isBlank()) return
-        val trimmed = UrlDetection.normalize(url)
+        val detected = if (isShared) UrlDetection.findFirstUrl(url) ?: return else url
+        val trimmed = UrlDetection.normalize(detected)
 
         val currentState = _uiState.value
-        if (!forceRefresh && currentState.isCleaned && currentState.cleanedUrl.isNotEmpty() && currentState.originalUrl == trimmed && !isShared && !copyResultToClipboard) {
+        if (!forceRefresh && originalShortUrl == null && currentState.isCleaned && currentState.cleanedUrl.isNotEmpty() && currentState.originalUrl == trimmed && !isShared && !copyResultToClipboard) {
             // Dismiss any clipboard suggestion immediately when a URL is submitted even if already cleaned.
             _uiState.update {
                 it.copy(
@@ -197,6 +206,10 @@ class MainScreenViewModel(
         }
 
         cleanJob?.cancel()
+        expansionJob?.cancel()
+        val sourceSharedText = if (isShared) url else if (!addToHistory) {
+            currentState.sourceSharedText
+        } else null
         // Enter loading without stripping the clipboard suggestion banner yet. Keeping the
         // suggestion intact during transient cleaning prevents an intermediate layout where the
         // banner collapses before the cleaned actions row enters, avoiding a rapid mid-flight snap.
@@ -204,6 +217,8 @@ class MainScreenViewModel(
             it.copy(
                 inputUrl = trimmed,
                 isLoading = true,
+                isExpanding = false,
+                sourceSharedText = sourceSharedText,
                 isCleaned = false
             )
         }
@@ -220,7 +235,7 @@ class MainScreenViewModel(
 
                 val didAutoExpand = isShort && autoExpand
                 val resolvedUrl = if (didAutoExpand) {
-                    UrlExpander.resolve(trimmed)
+                    resolveUrl(trimmed, false)
                 } else {
                     trimmed
                 }
@@ -292,13 +307,19 @@ class MainScreenViewModel(
                         _automationEvents.tryEmit(
                             when (outcome) {
                                 ShareAutomationOutcome.COPY ->
-                                    AutomationAction.Copy(result.cleanedUrl)
+                                    AutomationAction.Copy(result.cleanedUrl, sourceSharedText)
 
                                 ShareAutomationOutcome.COPY_AND_SHARE ->
-                                    AutomationAction.CopyAndShare(result.cleanedUrl)
+                                    AutomationAction.CopyAndShare(
+                                        result.cleanedUrl,
+                                        sourceSharedText
+                                    )
 
                                 ShareAutomationOutcome.COPY_AND_CLOSE ->
-                                    AutomationAction.CopyAndClose(result.cleanedUrl)
+                                    AutomationAction.CopyAndClose(
+                                        result.cleanedUrl,
+                                        sourceSharedText
+                                    )
                             }
                         )
                     }
@@ -442,12 +463,18 @@ class MainScreenViewModel(
     }
 
     override fun expandShortUrl() {
-        val original = _uiState.value.originalUrl
-        if (original.isEmpty()) return
-        viewModelScope.launch {
+        val state = _uiState.value
+        val original = state.originalUrl
+        if (original.isEmpty() || !state.canExpand || state.isExpanding || state.isLoading) return
+        expansionJob = viewModelScope.launch {
             _uiState.update { it.copy(isExpanding = true) }
             try {
-                val resolvedUrl = UrlExpander.resolve(original, reportFailure = true)
+                val resolvedUrl = resolveUrl(original, true)
+                ensureActive()
+                if (resolvedUrl == original) {
+                    _uiState.update { it.copy(canExpand = false, expandedUrl = resolvedUrl) }
+                    return@launch
+                }
                 // addToHistory = false: the short link's own clean already added an entry
                 // and incremented analytics when it was first displayed; expanding it
                 // further must update that same result, not add a second row for one link.
@@ -459,7 +486,7 @@ class MainScreenViewModel(
             } catch (_: Exception) {
                 _expansionFailures.emit(ExpansionFailure.Other)
             } finally {
-                _uiState.update { it.copy(isExpanding = false) }
+                if (isActive) _uiState.update { it.copy(isExpanding = false) }
             }
         }
     }
@@ -504,12 +531,14 @@ class MainScreenViewModel(
 
     fun clear() {
         cleanJob?.cancel()
+        expansionJob?.cancel()
         _uiState.update {
             it.copy(
                 inputUrl = "",
                 originalUrl = "",
                 expandedUrl = null,
                 cleanedUrl = "",
+                sourceSharedText = null,
                 removedParams = emptyList(),
                 isCleaned = false,
                 copySuccess = false,
@@ -527,6 +556,7 @@ class MainScreenViewModel(
      */
     override suspend fun clearAndCheckClipboard(text: String?) {
         cleanJob?.cancel()
+        expansionJob?.cancel()
         if (!settingsRepository.checkClipboardForLinks.first() || text == null) {
             _uiState.update {
                 it.copy(
@@ -534,6 +564,7 @@ class MainScreenViewModel(
                     originalUrl = "",
                     expandedUrl = null,
                     cleanedUrl = "",
+                    sourceSharedText = null,
                     removedParams = emptyList(),
                     isCleaned = false,
                     copySuccess = false,
@@ -556,6 +587,7 @@ class MainScreenViewModel(
                         originalUrl = "",
                         expandedUrl = null,
                         cleanedUrl = "",
+                        sourceSharedText = null,
                         removedParams = emptyList(),
                         isCleaned = false,
                         copySuccess = false,
@@ -577,6 +609,7 @@ class MainScreenViewModel(
                             originalUrl = "",
                             expandedUrl = null,
                             cleanedUrl = "",
+                            sourceSharedText = null,
                             removedParams = emptyList(),
                             isCleaned = false,
                             copySuccess = false,
@@ -596,6 +629,7 @@ class MainScreenViewModel(
                                     originalUrl = "",
                                     expandedUrl = null,
                                     cleanedUrl = "",
+                                    sourceSharedText = null,
                                     removedParams = emptyList(),
                                     isCleaned = false,
                                     copySuccess = false,
@@ -623,6 +657,7 @@ class MainScreenViewModel(
                                     originalUrl = "",
                                     expandedUrl = null,
                                     cleanedUrl = "",
+                                    sourceSharedText = null,
                                     removedParams = emptyList(),
                                     isCleaned = false,
                                     copySuccess = false,
@@ -643,6 +678,7 @@ class MainScreenViewModel(
                                     originalUrl = "",
                                     expandedUrl = null,
                                     cleanedUrl = "",
+                                    sourceSharedText = null,
                                     removedParams = emptyList(),
                                     isCleaned = false,
                                     copySuccess = false,
@@ -666,6 +702,7 @@ class MainScreenViewModel(
                         originalUrl = "",
                         expandedUrl = null,
                         cleanedUrl = "",
+                        sourceSharedText = null,
                         removedParams = emptyList(),
                         isCleaned = false,
                         copySuccess = false,
@@ -681,7 +718,7 @@ class MainScreenViewModel(
     }
 
     override fun copyToClipboard(context: Context) {
-        val cleaned = _uiState.value.cleanedUrl
+        val cleaned = _uiState.value.outputText
         if (cleaned.isNotEmpty()) {
             val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
             val clip = ClipData.newPlainText(
@@ -698,11 +735,14 @@ class MainScreenViewModel(
     }
 
     override fun shareUrl(context: Context) {
-        val cleaned = _uiState.value.cleanedUrl
-        if (cleaned.isNotEmpty()) {
+        shareText(context, _uiState.value.outputText)
+    }
+
+    override fun shareText(context: Context, text: String) {
+        if (text.isNotEmpty()) {
             val sendIntent: Intent = Intent().apply {
                 action = Intent.ACTION_SEND
-                putExtra(Intent.EXTRA_TEXT, cleaned)
+                putExtra(Intent.EXTRA_TEXT, text)
                 type = "text/plain"
             }
             val shareIntent = Intent.createChooser(sendIntent, null).apply {

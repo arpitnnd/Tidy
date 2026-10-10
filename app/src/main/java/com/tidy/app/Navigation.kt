@@ -16,14 +16,14 @@ import kotlinx.coroutines.flow.SharedFlow
 
 @Composable
 fun MainNavigation(
-    initialUrl: String?,
-    sharedUrls: SharedFlow<String>,
+    initialSharedText: String?,
+    sharedMessages: SharedFlow<String>,
     plusUpsellRequests: SharedFlow<Unit>,
     crashReportText: String?,
     showPlusUpsell: Boolean = false
 ) {
     val backStack = rememberNavBackStack(
-        Main(sharedUrl = initialUrl, showPlusUpsell = showPlusUpsell)
+        Main(sharedText = initialSharedText, showPlusUpsell = showPlusUpsell)
     )
 
     // Strictly increasing for the composition's lifetime (rememberSaveable survives
@@ -32,9 +32,9 @@ fun MainNavigation(
     // shareSequence KDoc).
     var nextShareSequence by rememberSaveable { mutableIntStateOf(1) }
 
-    LaunchedEffect(sharedUrls) {
-        sharedUrls.collect { url ->
-            backStack.add(Main(sharedUrl = url, shareSequence = nextShareSequence))
+    LaunchedEffect(sharedMessages) {
+        sharedMessages.collect { url ->
+            backStack.add(Main(sharedText = url, shareSequence = nextShareSequence))
             nextShareSequence++
         }
     }
@@ -58,7 +58,7 @@ fun MainNavigation(
             entryProvider {
                 entry<Main> { key ->
                     MainScreen(
-                        sharedUrl = key.sharedUrl,
+                        sharedText = key.sharedText,
                         crashReportText = crashReportText,
                         onSettingsClick = { backStack.add(Settings) },
                         onHistoryClick = { backStack.add(History) },

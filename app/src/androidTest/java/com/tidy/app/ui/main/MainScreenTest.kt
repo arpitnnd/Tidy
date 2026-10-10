@@ -34,7 +34,7 @@ class MainScreenTest {
         composeTestRule.setContent {
             TidyTheme {
                 MainScreen(
-                    sharedUrl = null,
+                    sharedText = null,
                     crashReportText = null,
                     onSettingsClick = {},
                     onHistoryClick = {}

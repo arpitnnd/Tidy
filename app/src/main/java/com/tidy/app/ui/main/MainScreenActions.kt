@@ -32,4 +32,5 @@ interface MainScreenActions {
     suspend fun clearAndCheckClipboard(text: String?) {}
     fun copyToClipboard(context: Context) {}
     fun shareUrl(context: Context) {}
+    fun shareText(context: Context, text: String) {}
 }
