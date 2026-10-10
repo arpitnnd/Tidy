@@ -8,6 +8,7 @@ package com.tidy.app.data
  * scheme are accepted, and false positives are preferred over missing real links.
  */
 object UrlDetection {
+    private val tokens = Regex("\\S+")
 
     /** Returns true if [text] plausibly is (or contains, as a single token) a link. */
     fun looksLikeUrl(text: String): Boolean {
@@ -35,9 +36,41 @@ object UrlDetection {
 
     /** Extracts every URL-looking token from free-form [text], in order. */
     fun findAllUrls(text: String): List<String> {
-        return text.split(' ', '\n', '\t', '\r')
-            .map { it.trim().trimEnd(',', ';', ')', ']', '>', '"', '\'') }
+        return tokens.findAll(text)
+            .map { it.value.trimStart('(', '[', '<', '"', '\'') }
+            .map { token ->
+                var parentheses = 0
+                var brackets = 0
+                for (character in token) {
+                    when (character) {
+                        '(' -> parentheses++
+                        ')' -> parentheses--
+                        '[' -> brackets++
+                        ']' -> brackets--
+                    }
+                }
+                // Walk mixed wrappers once, retaining balanced brackets inside the URL.
+                var end = token.length
+                while (end > 0) {
+                    when (token[end - 1]) {
+                        '.', ',', ';', '!', '>', '"', '\'' -> end--
+                        ')' -> if (parentheses < 0) {
+                            parentheses++
+                            end--
+                        } else break
+
+                        ']' -> if (brackets < 0) {
+                            brackets++
+                            end--
+                        } else break
+
+                        else -> break
+                    }
+                }
+                token.substring(0, end)
+            }
             .filter { it.isNotEmpty() && looksLikeUrl(it) }
+            .toList()
     }
 
     /** Extracts the first URL-looking token from free-form [text], or null. */
