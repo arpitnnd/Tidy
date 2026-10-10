@@ -6,6 +6,10 @@ All notable changes to Tidy will be documented in this file.
 
 ### Improvements
 
+- Cleaned results use a readable removal-count badge and muted removed-parameter colours. The
+  badge wraps at large text sizes, and result transitions keep their content visible.
+- Parameter details give the persistent Always keep action a quieter treatment. About uses
+  the same section-heading hierarchy as Settings.
 - Settings controls expose checked, selected and expanded states to accessibility services.
   Theme choices have one action per row, and section headings support heading navigation.
 - Locked options and off-state switches have clearer contrast. Tier cards stack at larger text
@@ -20,6 +24,13 @@ All notable changes to Tidy will be documented in this file.
 
 ### Bug fixes
 
+- Copy and Share preserve the text around a URL received from another app. Only the first
+  detected URL is replaced; later URLs remain unchanged, and History stores only URLs.
+- Successful expansion disables its action even when the URL stays unchanged. Failed requests
+  remain retryable, and clearing or replacing the input prevents stale expansion results.
+- Fresh installations use bundled rules without an automatic first-session network request.
+- History's clear confirmation describes its existing Undo correctly. Temporary recovery data
+  is discarded when the undo prompt ends or History is closed.
 - Expanded History entries keep their state when scrolled out of view and back.
 - Explicit URL expansion shows feedback when a network failure prevents it.
 - Home input and result controls stay clear of camera cutouts in landscape.

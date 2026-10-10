@@ -51,9 +51,10 @@ You stay in charge of the rules, not just the outcome:
   stripping it everywhere else. Add your own rules where the defaults
   don't fit.
 - **A record, entirely yours.** The Privacy Dashboard counts URLs
-  cleaned, trackers blocked, and bandwidth saved, with unlimited
+  cleaned, trackers blocked, and estimated bandwidth saved, with unlimited
   history, per-entry open/copy actions, and full JSON backup and
-  restore. It never leaves your phone unless you export it yourself.
+  restore. Saved history stays on your phone unless you export it or opt in to Android's
+  system backup.
 
 ### Without even opening the app
 

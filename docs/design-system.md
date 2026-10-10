@@ -175,6 +175,9 @@ Material controls use their native component APIs. Passive status labels use
 Material 3 `Badge` with semantic theme colours and the native shape and typography.
 Its text adds 4 dp horizontal and 2 dp vertical padding to the native inset. Labels stay on one
 line; wrapping headers move the whole badge below the heading when necessary. Action and selection chips retain their native Material semantics.
+Home uses a lightly theme-tinted green success pair for removal counts, with text as the state
+label. Removed-parameter action chips use Material error-container colours. The result heading
+wraps its badge as a complete item when text is enlarged.
 Typography and motion retain the existing Material roles and local transition definitions.
 
 ## Adaptive layouts
@@ -231,6 +234,13 @@ transition, which has its own fade and size timings.
 Keep a result actionable as soon as it is available. Preserve meaningful content throughout
 entry and exit, and check transitions with system animations disabled. Errors and zero-removal
 results must remain understandable without motion or colour cues.
+Home retains the departing result during Clear and reveals completed content without a
+completion-spinner delay. Successful expansion becomes unavailable, including unchanged results;
+failures preserve retry. A new clean or Clear cancels a pending expansion.
+
+The shared parameter sheet stacks its actions at full width. Report issue uses an outlined
+button and Always keep uses a quieter text button, reflecting the persistent exception it creates.
+About uses external Project section headings aligned with the Settings hierarchy.
 
 Enable input actions when their required fields are non-blank, and validate on submission.
 Invalid submissions use native Material text-field error styling and supportingText. Input
