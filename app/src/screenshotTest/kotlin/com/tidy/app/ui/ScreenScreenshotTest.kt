@@ -127,6 +127,23 @@ fun HomeThemes(@PreviewParameter(ThemePreviewProvider::class) theme: String) {
 @PreviewTest
 @ThemePreviews
 @Composable
+fun HomeResultThemes(@PreviewParameter(ThemePreviewProvider::class) theme: String) {
+    ScreenshotTheme(theme) {
+        MainScreenContent(
+            state = MainScreenViewModel.UiState(
+                originalUrl = "https://example.com/article?fbclid=share",
+                cleanedUrl = "https://example.com/article",
+                removedParams = listOf("fbclid"),
+                isCleaned = true, isInitialLoading = false
+            ),
+            onSettingsClick = {}, onHistoryClick = {}
+        )
+    }
+}
+
+@PreviewTest
+@ThemePreviews
+@Composable
 fun HistoryThemes(@PreviewParameter(ThemePreviewProvider::class) theme: String) {
     ScreenshotTheme(theme) {
         HistoryScreenContent(state = historyState(), onBackClick = {})
