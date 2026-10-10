@@ -49,7 +49,7 @@ import com.tidy.app.BuildConfig
 import com.tidy.app.R
 import com.tidy.app.theme.TidyCardTokens
 import com.tidy.app.ui.components.AppIconBox
-import com.tidy.app.ui.components.CardSectionLabel
+import com.tidy.app.ui.components.ScreenSectionHeader
 import com.tidy.app.ui.components.ClickableLinkRow
 import com.tidy.app.ui.components.CrashReportBottomSheet
 import com.tidy.app.ui.components.SettingCard
@@ -186,19 +186,15 @@ fun AboutScreen(
                 }
 
                 // Links Card
+                ScreenSectionHeader(
+                    text = stringResource(R.string.about_links),
+                    modifier = Modifier.fillMaxWidth().padding(start = 4.dp)
+                )
                 SettingCard {
                     Column(
                         modifier = Modifier.padding(TidyCardTokens.contentPadding),
                         verticalArrangement = Arrangement.spacedBy(4.dp)
                     ) {
-                        CardSectionLabel(
-                            text = stringResource(R.string.about_links),
-                            modifier = Modifier.padding(
-                                horizontal = TidyCardTokens.rowHorizontalPadding,
-                                vertical = 4.dp
-                            )
-                        )
-
                         TooltipWrapper(tooltipText = stringResource(R.string.tooltip_open)) {
                             ClickableLinkRow(
                                 label = stringResource(R.string.about_link_github),

@@ -250,7 +250,7 @@
     <string name="about_title">About Tidy</string>
     <string name="about_values_statement">Cleaned entirely offline on your device. You\'re in control with custom rules, history, and backups. No ads, ever.</string>
     <string name="about_license_desc">Apache License 2.0</string>
-    <string name="about_links">Links</string>
+    <string name="about_links">Project</string>
     <string name="about_link_github">GitHub repository</string>
     <string name="about_link_issues">Open Issues</string>
     <string name="about_link_releases">GitHub Releases</string>
