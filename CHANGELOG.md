@@ -28,6 +28,8 @@ All notable changes to Tidy will be documented in this file.
 
 ### Bug fixes
 
+- Clipboard checks wait for window focus when returning to Tidy, so Android does not deny
+  the read before suggestions or automatic cleaning can run.
 - Copy and Share preserve the text around a URL received from another app. Only the first
   detected URL is replaced; later URLs remain unchanged, and History stores only URLs.
 - Successful expansion disables its action even when the URL stays unchanged. Failed requests
