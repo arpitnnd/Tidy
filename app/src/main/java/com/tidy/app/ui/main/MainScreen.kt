@@ -118,6 +118,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.ExperimentalMediaQueryApi
@@ -131,6 +132,7 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -160,6 +162,7 @@ import com.tidy.app.ui.components.TooltipWrapper
 import com.tidy.app.ui.components.StatusBadge
 import com.tidy.app.theme.cleanResultColours
 import com.tidy.app.ui.components.shimmer
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -440,16 +443,24 @@ internal fun MainScreenContent(
     // distinguishes "just returned" from "genuinely resumed"; both call this the same way.
     // That's deliberate: checkClipboardText's own dedup (comparing against what's already
     // displayed) is what keeps this predictable, not a guess at the lifecycle event.
-    DisposableEffect(lifecycleOwner) {
+    val windowInfo = LocalWindowInfo.current
+    DisposableEffect(lifecycleOwner, windowInfo) {
+        var clipboardCheckJob: Job? = null
         val observer = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_RESUME) {
-                scope.launch {
+                clipboardCheckJob?.cancel()
+                clipboardCheckJob = scope.launch {
+                    // Android can resume the activity before granting clipboard access.
+                    snapshotFlow { windowInfo.isWindowFocused }.first { it }
                     checkClipboard()
                 }
+            } else if (event == Lifecycle.Event.ON_PAUSE) {
+                clipboardCheckJob?.cancel()
             }
         }
         lifecycleOwner.lifecycle.addObserver(observer)
         onDispose {
+            clipboardCheckJob?.cancel()
             lifecycleOwner.lifecycle.removeObserver(observer)
         }
     }
