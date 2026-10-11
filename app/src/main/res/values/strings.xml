@@ -249,6 +249,11 @@
     <string name="about_title">About Tidy</string>
     <string name="about_values_statement">Cleaned entirely offline on your device. You\'re in control with custom rules, history, and backups. No ads, ever.</string>
     <string name="about_license_desc">Apache License 2.0</string>
+    <string name="about_privacy_legal">Privacy and legal</string>
+    <string name="about_privacy_policy">Privacy policy</string>
+    <string name="about_terms_of_use">Terms of use</string>
+    <string name="privacy_policy_url" translatable="false">https://arpitnnd.github.io/Tidy/privacy/</string>
+    <string name="terms_of_use_url" translatable="false">https://arpitnnd.github.io/Tidy/terms/</string>
     <string name="about_links">Project</string>
     <string name="about_link_github">GitHub repository</string>
     <string name="about_link_issues">Open Issues</string>

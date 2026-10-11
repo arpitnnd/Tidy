@@ -5,7 +5,11 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import com.tidy.designsystem.shape
 import com.tidy.designsystem.size
 
+import android.content.ActivityNotFoundException
 import android.content.Intent
+import androidx.browser.customtabs.CustomTabColorSchemeParams
+import androidx.browser.customtabs.CustomTabsClient
+import androidx.browser.customtabs.CustomTabsIntent
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -39,6 +43,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.luminance
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -67,6 +73,8 @@ fun AboutScreen(
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
+    val privacyPolicyUrl = stringResource(R.string.privacy_policy_url)
+    val termsOfUseUrl = stringResource(R.string.terms_of_use_url)
 
     // Pre-resolve string resources to prevent querying resources in lambda callbacks (fixing LocalContextGetResourceValueCall lint error)
     val toastNoLinkApp = stringResource(R.string.toast_no_link_app)
@@ -74,6 +82,30 @@ fun AboutScreen(
     val crashToastBrowserError = stringResource(R.string.crash_toast_browser_error)
     val toastCouldNotShare = stringResource(R.string.toast_could_not_share)
     val toastCrashDeleted = stringResource(R.string.toast_crash_deleted)
+    val documentToolbarColour = MaterialTheme.colorScheme.surface
+    val documentColourScheme = if (documentToolbarColour.luminance() < 0.5f) {
+        CustomTabsIntent.COLOR_SCHEME_DARK
+    } else {
+        CustomTabsIntent.COLOR_SCHEME_LIGHT
+    }
+
+    val openDocument: (String) -> Unit = { url ->
+        try {
+            CustomTabsIntent.Builder()
+                .setShowTitle(true)
+                .setColorScheme(documentColourScheme)
+                .setDefaultColorSchemeParams(
+                    CustomTabColorSchemeParams.Builder()
+                        .setToolbarColor(documentToolbarColour.toArgb())
+                        .build()
+                )
+                .build()
+                .apply { intent.setPackage(CustomTabsClient.getPackageName(context, null)) }
+                .launchUrl(context, url.toUri())
+        } catch (_: ActivityNotFoundException) {
+            scope.launch { snackbarHostState.showSnackbar(toastNoLinkApp) }
+        }
+    }
 
     var currentCrashReportText by remember {
         mutableStateOf(
@@ -163,22 +195,32 @@ fun AboutScreen(
 
                 Spacer(modifier = Modifier.height(12.dp))
 
-                // Licensing Card
+                ScreenSectionHeader(
+                    text = stringResource(R.string.about_privacy_legal),
+                    modifier = Modifier.fillMaxWidth().padding(start = 4.dp)
+                )
                 SettingCard {
-                    Column(modifier = Modifier.padding(TidyCardTokens.contentPadding)) {
+                    Column(
+                        modifier = Modifier.padding(TidyCardTokens.contentPadding),
+                        verticalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        TooltipWrapper(tooltipText = stringResource(R.string.tooltip_open)) {
+                            ClickableLinkRow(
+                                label = stringResource(R.string.about_privacy_policy),
+                                onClick = { openDocument(privacyPolicyUrl) }
+                            )
+                        }
+                        TooltipWrapper(tooltipText = stringResource(R.string.tooltip_open)) {
+                            ClickableLinkRow(
+                                label = stringResource(R.string.about_terms_of_use),
+                                onClick = { openDocument(termsOfUseUrl) }
+                            )
+                        }
                         TooltipWrapper(tooltipText = stringResource(R.string.tooltip_open)) {
                             ClickableLinkRow(
                                 label = stringResource(R.string.about_license_desc),
                                 onClick = {
-                                    try {
-                                        val intent = Intent(
-                                            Intent.ACTION_VIEW,
-                                            "https://github.com/arpitnnd/Tidy/blob/main/LICENSE".toUri()
-                                        ).apply { addFlags(Intent.FLAG_ACTIVITY_NEW_TASK) }
-                                        context.startActivity(intent)
-                                    } catch (e: Exception) {
-                                        scope.launch { snackbarHostState.showSnackbar(toastNoLinkApp) }
-                                    }
+                                    openDocument("https://github.com/arpitnnd/Tidy/blob/main/LICENSE")
                                 }
                             )
                         }
