@@ -35,6 +35,9 @@ ever sent anywhere else.
 
 ## What it does
 
+Read Tidy's [Privacy policy](https://arpitnnd.github.io/Tidy/privacy/) and
+[Terms of use](https://arpitnnd.github.io/Tidy/terms/).
+
 Share a link to Tidy, or paste one in, and it comes back clean: tracking
 parameters gone, short links (`bit.ly`, `t.co`) unwound to where they
 actually lead, `m.`/`mobile.` subdomains dropped. It cleans automatically

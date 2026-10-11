@@ -4,6 +4,10 @@ All notable changes to Tidy will be documented in this file.
 
 ## [Unreleased]
 
+### New
+
+- About opens Tidy's Privacy policy, Terms of use and software licence in Custom Tabs.
+
 ### Improvements
 
 - Cleaned results use a readable removal-count badge and muted removed-parameter colours. The
