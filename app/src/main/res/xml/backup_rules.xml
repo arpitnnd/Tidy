@@ -1,6 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <full-backup-content>
-    <include domain="file" path="." />
-    <include domain="sharedpref" path="." />
-    <exclude domain="file" path="crash_reports" />
+    <include
+        domain="file"
+        path="history.json" />
+    <include
+        domain="file"
+        path="TidyURLApp.preferences_pb" />
+    <include
+        domain="sharedpref"
+        path="tidy_backup_prefs.xml" />
 </full-backup-content>
