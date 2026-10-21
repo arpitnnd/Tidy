@@ -62,11 +62,8 @@ object UrlExpander {
             val maxHops = 5
             var hop = 0
             val timeoutMs = 3000
-            // Only a completed HTTP exchange (a final response, or a redirect this loop
-            // deliberately stops following) is trustworthy enough to cache. An exception
-            // (timeout, no connection, offline) must not be cached: it isn't "resolved to
-            // itself", it's "not resolved at all yet", and caching it would poison this URL
-            // for the rest of the process's lifetime the first time it's tried offline.
+            // Cache completed responses only. Caching a network failure would prevent
+            // this URL from being retried until the process restarts.
             var succeeded = false
 
             while (hop < maxHops) {

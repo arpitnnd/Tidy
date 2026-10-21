@@ -59,9 +59,8 @@ data class TierCard<T>(
 )
 
 /**
- * An adaptive group of selectable cards (icon, title, one-line subtitle),
- * with the selected card highlighted by a primary border — the battery-mode-selector
- * pattern. Cards stack when width or font scaling makes a row too narrow.
+ * Selectable tier cards with a primary border around the current choice.
+ * Cards stack when width or font scaling makes a row too narrow; subtitles can wrap.
  * Locked cards retain readable content and show a lock badge.
  */
 @Composable
