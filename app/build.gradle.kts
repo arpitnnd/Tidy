@@ -155,7 +155,7 @@ tasks.register("renameArtifacts") {
     doLast {
         val dateStr = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"))
 
-        // 1. Rename AABs
+        // Keep AGP's declared bundle output for incremental builds and IDE metadata.
         val bundleDir = File(targetBuildDir, "outputs/bundle")
         if (bundleDir.exists()) {
             bundleDir.walkTopDown().forEach { file ->
@@ -165,9 +165,8 @@ tasks.register("renameArtifacts") {
                         if (path.contains("foss")) "foss" else if (path.contains("play")) "play" else ""
                     val newName = "Tidy-${flavor}-v${targetVersionCode}-${dateStr}.aab"
                     val destFile = File(file.parentFile, newName)
-                    if (file.renameTo(destFile)) {
-                        println("Renamed bundle: ${file.name} -> $newName")
-                    }
+                    file.copyTo(destFile, overwrite = true)
+                    logger.lifecycle("Copied bundle: ${file.name} -> $newName")
                 }
             }
         }
