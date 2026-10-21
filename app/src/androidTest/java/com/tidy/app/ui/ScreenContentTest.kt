@@ -25,6 +25,7 @@ import com.tidy.app.ui.history.HistoryScreenContent
 import com.tidy.app.ui.history.HistoryScreenViewModel
 import com.tidy.app.ui.main.MainScreenActions
 import com.tidy.app.ui.main.MainScreenContent
+import com.tidy.app.ui.main.MainScreenPreferences
 import com.tidy.app.ui.main.MainScreenViewModel
 import com.tidy.app.ui.settings.SettingsScreenContent
 import com.tidy.app.ui.settings.SettingsScreenViewModel
@@ -48,12 +49,12 @@ class ScreenContentTest {
             TidyTheme(selectedTheme = "slate", isPlusUnlocked = false) {
                 MainScreenContent(
                     state = MainScreenViewModel.UiState(
-                    isInitialLoading = false,
-                    isCleaned = true,
-                    originalUrl = "https://bit.ly/example",
-                    cleanedUrl = "https://bit.ly/example",
-                    canExpand = true
-                ), onSettingsClick = {}, onHistoryClick = {},
+                        isInitialLoading = false,
+                        isCleaned = true,
+                        originalUrl = "https://bit.ly/example",
+                        cleanedUrl = "https://bit.ly/example",
+                        canExpand = true
+                    ), onSettingsClick = {}, onHistoryClick = {},
                     actions = object : MainScreenActions {
                         override val expansionFailures = failures
                         override fun expandShortUrl() {
@@ -143,6 +144,53 @@ class ScreenContentTest {
         compose.onNodeWithText("Copy").performClick()
         compose.onNodeWithText("Share").performClick()
         compose.runOnIdle { assertEquals(listOf("copy", "share"), actions) }
+    }
+
+    @Test
+    fun removedUtmExplanationIsAvailableFromHome() {
+        compose.setContent {
+            TidyTheme(selectedTheme = "slate", isPlusUnlocked = false) {
+                MainScreenContent(
+                    state = MainScreenViewModel.UiState(
+                        isInitialLoading = false, isCleaned = true,
+                        originalUrl = "https://example.com/?UTM_SOURCE=share",
+                        cleanedUrl = "https://example.com/", removedParams = listOf("UTM_SOURCE")
+                    ),
+                    onSettingsClick = {}, onHistoryClick = {},
+                    preferences = MainScreenPreferences(
+                        trackerDescriptions = mapOf("utm_*" to "Campaign explanation")
+                    )
+                )
+            }
+        }
+        compose.onNodeWithText("Show details").performScrollTo().performClick()
+        compose.onNodeWithText("UTM_SOURCE").performScrollTo().performClick()
+        compose.onNodeWithText("Campaign explanation").assertIsDisplayed()
+    }
+
+    @Test
+    fun removedUtmExplanationIsAvailableFromHistory() {
+        compose.setContent {
+            TidyTheme(selectedTheme = "slate", isPlusUnlocked = false) {
+                HistoryScreenContent(
+                    state = HistoryScreenViewModel.UiState(
+                        isInitialLoading = false,
+                        trackerDescriptions = mapOf("utm_*" to "Campaign explanation"),
+                        history = listOf(
+                            HistoryEntry(
+                                id = "entry", timestamp = 1791244800000L,
+                                originalUrl = "https://example.com/?UTM_SOURCE=share",
+                                cleanedUrl = "https://example.com/", removedParamsCount = 1,
+                                domain = "example.com"
+                            )
+                        )
+                    ), onBackClick = {}
+                )
+            }
+        }
+        compose.onNodeWithText("example.com").performScrollTo().performClick()
+        compose.onNodeWithText("UTM_SOURCE").performScrollTo().performClick()
+        compose.onNodeWithText("Campaign explanation").assertIsDisplayed()
     }
 
     @Test

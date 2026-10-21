@@ -201,6 +201,20 @@ class SettingsRepositoryTest {
     }
 
     @Test
+    fun removedUtmParametersHaveExplanations() = runTest {
+        val result = UrlCleaner().clean(
+            "https://example.com/?utm_source=newsletter&UTM_MEDIUM=email&utm_custom=campaign"
+        )
+        val descriptions = repository.trackerDescriptions.first()
+        val expected = descriptions.getValue("utm_*")
+
+        assertEquals(3, result.removedParams.size)
+        result.removedParams.forEach { param ->
+            assertEquals(expected, descriptions.trackerDescriptionFor(param))
+        }
+    }
+
+    @Test
     fun trackersFlowFallsBackToDefaultOnInvalidStoredJson() = runTest {
         repository.setBlocklistJson("not valid json")
 

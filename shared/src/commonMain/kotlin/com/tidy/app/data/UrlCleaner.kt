@@ -239,17 +239,6 @@ class UrlCleaner {
         return temp.trim().lowercase()
     }
 
-    private fun matchParamPattern(key: String, pattern: String): Boolean {
-        val cleanPattern = pattern.trim().lowercase()
-        if (cleanPattern.isEmpty()) return false
-        if (cleanPattern.contains('*')) {
-            val parts = cleanPattern.split('*').map { Regex.escape(it) }
-            val regex = Regex("^" + parts.joinToString(".*") + "$")
-            return key.matches(regex)
-        }
-        return key.equals(cleanPattern, ignoreCase = true)
-    }
-
     private fun matchDomainPattern(host: String, domainPattern: String): Boolean {
         val cleanDomain = domainPattern.trim().lowercase()
         if (cleanDomain.isEmpty()) return false
@@ -261,4 +250,15 @@ class UrlCleaner {
         }
         return host == cleanDomain || host.endsWith(".$cleanDomain")
     }
+}
+
+internal fun matchParamPattern(key: String, pattern: String): Boolean {
+    val cleanPattern = pattern.trim().lowercase()
+    if (cleanPattern.isEmpty()) return false
+    if (cleanPattern.contains('*')) {
+        val parts = cleanPattern.split('*').map { Regex.escape(it) }
+        val regex = Regex("^" + parts.joinToString(".*") + "$")
+        return key.matches(regex)
+    }
+    return key.equals(cleanPattern, ignoreCase = true)
 }

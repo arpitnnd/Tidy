@@ -153,6 +153,7 @@ import com.tidy.app.TidyApp
 import com.tidy.app.data.HistoryRepository
 import com.tidy.app.data.UrlCleaner
 import com.tidy.app.data.UrlDetection
+import com.tidy.app.data.trackerDescriptionFor
 import com.tidy.app.ui.components.ArrowsOutward
 import com.tidy.app.ui.components.CrashReportBottomSheet
 import com.tidy.app.ui.components.FeatureRow
@@ -1613,7 +1614,8 @@ internal fun MainScreenContent(
         val param = paramToWhitelist!!
         val domain = HistoryRepository.extractDomain(state.originalUrl)
         val description =
-            trackerDescriptions[param] ?: stringResource(R.string.details_no_explanation)
+            trackerDescriptions.trackerDescriptionFor(param)
+                ?: stringResource(R.string.details_no_explanation)
 
         ParamDetailBottomSheet(
             param = param,

@@ -100,6 +100,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.tidy.app.R
 import com.tidy.app.ui.components.StatusBadge
 import com.tidy.app.data.HistoryEntry
+import com.tidy.app.data.trackerDescriptionFor
 import com.tidy.app.ui.components.ParamDetailBottomSheet
 import com.tidy.app.ui.components.ScreenSectionHeader
 import com.tidy.app.ui.components.TidyTopAppBar
@@ -885,7 +886,7 @@ private fun HistoryItem(
 
     if (selectedParam != null) {
         val param = selectedParam!!
-        val desc = trackerDescriptions[param.lowercase().trim()]
+        val desc = trackerDescriptions.trackerDescriptionFor(param)
             ?: stringResource(R.string.details_no_explanation)
         ParamDetailBottomSheet(
             param = param,
