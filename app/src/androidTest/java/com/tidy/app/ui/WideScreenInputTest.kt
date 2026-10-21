@@ -2,7 +2,10 @@ package com.tidy.app.ui
 
 import android.content.pm.ActivityInfo
 import android.content.res.Configuration
+import android.view.WindowManager
 import androidx.activity.ComponentActivity
+import androidx.activity.enableEdgeToEdge
+import androidx.test.espresso.Espresso.closeSoftKeyboard
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -45,7 +48,12 @@ class WideScreenInputTest {
 
     @Before
     fun useLandscape() {
-        compose.activity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
+        // Match MainActivity's edge-to-edge layout and IME resizing.
+        compose.activityRule.scenario.onActivity { activity ->
+            activity.enableEdgeToEdge()
+            activity.window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE)
+            activity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
+        }
         compose.waitUntil(5_000) {
             val window = compose.activity.window.decorView
             compose.activity.resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE &&
@@ -70,6 +78,7 @@ class WideScreenInputTest {
         }
         val field = compose.onNode(hasSetTextAction())
         field.performTextReplacement("not a URL")
+        closeSoftKeyboard()
         val action = compose.onNodeWithContentDescription("Clean URL")
         compose.onNodeWithText("Enter a URL, such as example.com").assertDoesNotExist()
         action.assertIsEnabled()
@@ -109,6 +118,7 @@ class WideScreenInputTest {
         compose.onNodeWithText("Domains to skip entirely").performScrollTo().performClick()
         val field = compose.onNode(hasSetTextAction())
         field.performScrollTo().performTextReplacement("not a domain")
+        closeSoftKeyboard()
         compose.onNodeWithText("Enter a domain, such as example.com", useUnmergedTree = true)
             .assertDoesNotExist()
         val action = compose.onNodeWithContentDescription("Add domain")
