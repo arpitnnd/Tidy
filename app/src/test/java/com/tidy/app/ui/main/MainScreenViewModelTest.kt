@@ -102,9 +102,7 @@ class MainScreenViewModelTest {
         assertEquals(4, state.totalTrackersBlocked)
 
         // History is saved on Dispatchers.IO after the result is published.
-        viewModel.uiState.first { !it.isLoading }
-        historyRepository.loadHistory()
-        val history = historyRepository.historyFlow.value
+        val history = historyRepository.historyFlow.first { it.isNotEmpty() }
         assertEquals(1, history.size)
         assertEquals("https://example.com/page", history[0].cleanedUrl)
         assertEquals("example.com", history[0].domain)
@@ -153,8 +151,7 @@ class MainScreenViewModelTest {
             "  See (https://example.com/page),\nthen https://other.org/?fbclid=keep!  ",
             state.outputText
         )
-        historyRepository.loadHistory()
-        val entry = historyRepository.historyFlow.value.single()
+        val entry = historyRepository.historyFlow.first { it.isNotEmpty() }.single()
         assertEquals(state.originalUrl, entry.originalUrl)
         assertEquals(state.cleanedUrl, entry.cleanedUrl)
         assertFalse(historyRepository.exportToJson().contains("See"))
@@ -215,8 +212,7 @@ class MainScreenViewModelTest {
         assertFalse(viewModel.uiState.value.canExpand)
         viewModel.expandShortUrl()
         assertEquals(1, requests)
-        historyRepository.loadHistory()
-        assertEquals(1, historyRepository.historyFlow.value.size)
+        assertEquals(1, historyRepository.historyFlow.first { it.isNotEmpty() }.size)
     }
 
     @Test
@@ -399,8 +395,7 @@ class MainScreenViewModelTest {
         // (connection refused) and returns the URL unchanged: no real network needed.
         val unreachable = "http://127.0.0.1:1/"
         viewModel.cleanUrl(unreachable)
-        historyRepository.loadHistory()
-        assertEquals(1, historyRepository.historyFlow.value.size)
+        assertEquals(1, historyRepository.historyFlow.first { it.isNotEmpty() }.size)
 
         val cleanedBeforeExpansion = viewModel.uiState.value.cleanedUrl
         val failure =
