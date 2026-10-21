@@ -46,6 +46,7 @@ available from About.
 - Home input and result controls stay clear of camera cutouts in landscape.
 - Complete backups remain shareable through the system chooser. Exports use a dedicated directory,
   keeping unrelated internal app files outside the sharing provider roots.
+- Opt-in Android backups restore History, rules and settings, with diagnostics and purchase caches excluded.
 
 ### Internal
 
