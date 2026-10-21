@@ -4,6 +4,9 @@ All notable changes to Tidy will be documented in this file.
 
 ## [Unreleased]
 
+Clearer results, more accessible controls and reliable sharing, with privacy and legal documents
+available from About.
+
 ### New
 
 - About opens Tidy's Privacy policy, Terms of use and software licence in Custom Tabs.
@@ -28,6 +31,7 @@ All notable changes to Tidy will be documented in this file.
 
 ### Bug fixes
 
+- Removed UTM and other pattern-matched parameters show their explanations in Home and History.
 - Clipboard checks wait for window focus when returning to Tidy, so Android does not deny
   the read before suggestions or automatic cleaning can run.
 - Copy and Share preserve the text around a URL received from another app. Only the first
