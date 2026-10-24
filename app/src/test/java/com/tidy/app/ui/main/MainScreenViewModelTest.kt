@@ -402,8 +402,8 @@ class MainScreenViewModelTest {
             async(start = CoroutineStart.UNDISPATCHED) { viewModel.expansionFailures.first() }
         viewModel.expandShortUrl()
         assertEquals(MainScreenViewModel.ExpansionFailure.Network, failure.await())
-        assertFalse(viewModel.uiState.value.isExpanding)
-        assertEquals(cleanedBeforeExpansion, viewModel.uiState.value.cleanedUrl)
+        val settled = viewModel.uiState.first { !it.isExpanding }
+        assertEquals(cleanedBeforeExpansion, settled.cleanedUrl)
         historyRepository.loadHistory()
         assertEquals(1, historyRepository.historyFlow.value.size)
     }
