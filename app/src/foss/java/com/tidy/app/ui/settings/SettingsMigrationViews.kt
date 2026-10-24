@@ -174,7 +174,7 @@ object SettingsMigrationViews {
                                 tint = if (isAvailable) {
                                     MaterialTheme.colorScheme.primary
                                 } else {
-                                    MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
+                                    MaterialTheme.colorScheme.onSurfaceVariant
                                 },
                                 modifier = Modifier.size(24.dp)
                             )
@@ -187,7 +187,7 @@ object SettingsMigrationViews {
                             tint = if (isAvailable) {
                                 MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
                             } else {
-                                MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
+                                MaterialTheme.colorScheme.onSurfaceVariant
                             }
                         )
                     }
@@ -303,7 +303,7 @@ object SettingsMigrationViews {
                     color = if (isAvailable) {
                         MaterialTheme.colorScheme.onPrimaryContainer
                     } else {
-                        MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
+                        MaterialTheme.colorScheme.onSurface
                     }
                 )
                 if (!isAvailable) {
@@ -321,7 +321,7 @@ object SettingsMigrationViews {
                 color = if (isAvailable) {
                     MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
                 } else {
-                    MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.38f)
+                    MaterialTheme.colorScheme.onSurfaceVariant
                 }
             )
         }
