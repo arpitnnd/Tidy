@@ -24,6 +24,8 @@ Light mode uses a muted slate canvas (`#CBD5E1`) with lighter off-white surfaces
 The canvas and neutral surface roles stay consistent across accent palettes, including Material
 You. App bars and launch backgrounds follow the canvas; cards and sheets use opaque surfaces.
 Accent colours continue to identify actions and emphasised containers.
+Nested neutral surfaces use a separate shade from cards. Dark palettes also separate the canvas,
+cards and raised containers, including wallpaper palettes whose original surface matches the canvas.
 
 The normal `TidyTheme` entry point observes app settings and entitlement state. The overload
 accepting `selectedTheme`, `isPlusUnlocked` and `darkTheme` renders explicit state in previews.
@@ -139,6 +141,7 @@ SettingCard {
 The Settings toggle pattern makes the whole row the action target and gives its `Switch`
 `onCheckedChange = null`. A locked row routes its tap to the Tidy+ prompt. Locked tier cards
 keep their lock badge and use the same prompt; a lock indicates an available upgrade action.
+The Get Tidy+ row keeps readable text and icons when labelled Coming soon because it still opens a sheet.
 
 ## Compose Styles
 
@@ -182,9 +185,14 @@ Material controls use their native component APIs. Passive status labels use
 Material 3 `Badge` with semantic theme colours and the native shape and typography.
 Its text adds 4 dp horizontal and 2 dp vertical padding to the native inset. Labels stay on one
 line; wrapping headers move the whole badge below the heading when necessary. Action and selection chips retain their native Material semantics.
-Home uses a lightly theme-tinted green success pair for removal counts, with text as the state
-label. Removed-parameter action chips use Material error-container colours. The result heading
-wraps its badge as a complete item when text is enlarged.
+Home and History use [CleanStatusBadge](../app/src/main/java/com/tidy/app/ui/components/CleanStatusBadge.kt)
+for green success statuses, including both "Clean" and counts such as "2 cleaned". Removed
+parameter actions use the shared `RemovedParameterChip` with muted red colours. Both components
+use muted semantic pairs independent of accent theme, with dim opaque fills in dark mode and
+readable text. Both use unoutlined capsules. Status badges remain compact and passive;
+parameter chips retain the larger native touch target and add a small information icon to
+signal that they open an explanation. The icon is decorative within the single chip action.
+The result heading wraps its badge as a complete item when text is enlarged.
 Typography and motion retain the existing Material roles and local transition definitions.
 
 ## Adaptive layouts

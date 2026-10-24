@@ -15,8 +15,8 @@ available from About.
 
 - Light mode uses a muted slate background with lighter off-white cards. Content surfaces are
   opaque in both modes, and the launch background matches the app.
-- Cleaned results use a readable removal-count badge and muted removed-parameter colours. The
-  badge wraps at large text sizes, and result transitions keep their content visible.
+- Home and History use muted green clean-status badges and red parameter chips with an information icon.
+  Badges wrap at large text sizes, and result transitions keep their content visible.
 - Parameter details give the persistent Always keep action a quieter treatment. About uses
   the same section-heading hierarchy as Settings.
 - Settings controls expose checked, selected and expanded states to accessibility services.
@@ -29,11 +29,13 @@ available from About.
   stay on one line and ellipsise where necessary.
 - URL and rule inputs show validation feedback after submission, with actions aligned beside
   the fields.
+- Settings and clipboard prompts use shorter, clearer text. Backup settings explain consent and earlier backups.
 - Scrollable screens accept swipes from their side margins while keeping content centred.
 
 ### Bug fixes
 
 - History actions wrap at larger text sizes, keeping Copy original, Copy and Open readable.
+- The Get Tidy+ row stays readable while showing Coming soon.
 - Removed UTM and other pattern-matched parameters show their explanations in Home and History.
 - Clipboard checks wait for window focus when returning to Tidy, so Android does not deny
   the read before suggestions or automatic cleaning can run.
