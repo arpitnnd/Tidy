@@ -20,6 +20,11 @@ Tidy's Android app. Use it when adding a screen or changing an existing interact
 schemes defined in [Color.kt](../app/src/main/java/com/tidy/app/theme/Color.kt).
 Read colour roles from the active theme so components also work with alternative schemes.
 
+Light mode uses a muted slate canvas (`#CBD5E1`) with lighter off-white surfaces (`#F1F5F9`).
+The canvas and neutral surface roles stay consistent across accent palettes, including Material
+You. App bars and launch backgrounds follow the canvas; cards and sheets use opaque surfaces.
+Accent colours continue to identify actions and emphasised containers.
+
 The normal `TidyTheme` entry point observes app settings and entitlement state. The overload
 accepting `selectedTheme`, `isPlusUnlocked` and `darkTheme` renders explicit state in previews.
 Both supply the Material palette to `TidyStyleTheme`, so Styles follow live theme changes.
@@ -33,9 +38,11 @@ Both supply the Material palette to `TidyStyleTheme`, so Styles follow live them
 | `errorContainer`, `onErrorContainer` | Error or destructive-action containers and their foreground content. |
 | `outline`, `outlineVariant` | Borders and separators. |
 
-`SettingCard` uses `surfaceVariant` at 40% alpha; its rows use `onSurface` for titles and
-`onSurfaceVariant` for supporting text. Check contrast against the rendered background when
-using translucent fills or reduced text opacity.
+`SettingCard`, History cards and statistics cards use opaque `surface` backgrounds in both
+light and dark mode. Their rows use `onSurface` for titles and `onSurfaceVariant` for supporting
+text. Banners and selected controls use opaque semantic containers. Decorative tints are
+composited over a known surface before drawing; borders, text and transition effects may
+still vary their opacity. Check contrast against each rendered background.
 
 [Type.kt](../app/src/main/java/com/tidy/app/theme/Type.kt) configures `bodyLarge` with the
 platform default font, normal weight, 16 sp size, 24 sp line height and 0.5 sp letter spacing.

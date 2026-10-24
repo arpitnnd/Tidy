@@ -13,6 +13,8 @@ available from About.
 
 ### Improvements
 
+- Light mode uses a muted slate background with lighter off-white cards. Content surfaces are
+  opaque in both modes, and the launch background matches the app.
 - Cleaned results use a readable removal-count badge and muted removed-parameter colours. The
   badge wraps at large text sizes, and result transitions keep their content visible.
 - Parameter details give the persistent Always keep action a quieter treatment. About uses
