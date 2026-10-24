@@ -253,10 +253,14 @@ results must remain understandable without motion or colour cues.
 Home retains the departing result during Clear and reveals completed content without a
 completion-spinner delay. Successful expansion becomes unavailable, including unchanged results;
 failures preserve retry. A new clean or Clear cancels a pending expansion.
+The Home title and icon share the theme's primary colour in both header positions.
+Loading and cleaned results use one flat, opaque Material surface with an outline-variant border.
 
 The shared parameter sheet stacks its actions at full width. Report issue uses an outlined
 button and Always keep uses a quieter text button, reflecting the persistent exception it creates.
 About uses external Project section headings aligned with the Settings hierarchy.
+Settings section titles have 16 dp top padding beyond the screen's 20 dp item spacing.
+About's Project heading has 8 dp top padding to separate the two groups.
 
 Enable input actions when their required fields are non-blank, and validate on submission.
 Invalid submissions use native Material text-field error styling and supportingText. Input
