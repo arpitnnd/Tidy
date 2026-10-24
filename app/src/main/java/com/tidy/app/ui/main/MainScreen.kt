@@ -146,6 +146,7 @@ import com.tidy.app.data.HistoryRepository
 import com.tidy.app.data.UrlCleaner
 import com.tidy.app.data.UrlDetection
 import com.tidy.app.data.trackerDescriptionFor
+import com.tidy.app.theme.TidyCardTokens
 import com.tidy.app.ui.components.ArrowsOutward
 import com.tidy.app.ui.components.CleanStatusBadge
 import com.tidy.app.ui.components.CrashReportBottomSheet
@@ -983,11 +984,10 @@ internal fun MainScreenContent(
                         Column(
                             modifier = Modifier
                                 .widthIn(max = 650.dp)
-                                .fillMaxWidth(),
+                                .fillMaxWidth()
+                                .padding(top = TidyCardTokens.screenTopSpacing),
                             verticalArrangement = Arrangement.spacedBy(16.dp)
                         ) {
-                            Spacer(modifier = Modifier.height(12.dp))
-
                             val showCleanedContent = !showUpperLoading &&
                                     (state.isCleaned || (!state.isLoading && lastResultWasCleaned))
                             Box(
@@ -1169,14 +1169,6 @@ internal fun MainScreenContent(
                                                 verticalAlignment = Alignment.CenterVertically,
                                                 horizontalArrangement = Arrangement.spacedBy(8.dp)
                                             ) {
-                                                Icon(
-                                                    imageVector = if (showDetails) Icons.Filled.KeyboardArrowUp else Icons.Filled.KeyboardArrowDown,
-                                                    contentDescription = null,
-                                                    modifier = Modifier.size(24.dp),
-                                                    tint = MaterialTheme.colorScheme.onPrimaryContainer.copy(
-                                                        alpha = 0.8f
-                                                    )
-                                                )
                                                 Text(
                                                     text = if (showDetails) stringResource(R.string.main_hide_details) else stringResource(
                                                         R.string.main_show_details
@@ -1185,7 +1177,16 @@ internal fun MainScreenContent(
                                                     color = MaterialTheme.colorScheme.onPrimaryContainer.copy(
                                                         alpha = 0.8f
                                                     ),
-                                                    fontWeight = FontWeight.Bold
+                                                    fontWeight = FontWeight.Bold,
+                                                    modifier = Modifier.weight(1f)
+                                                )
+                                                Icon(
+                                                    imageVector = if (showDetails) Icons.Filled.KeyboardArrowUp else Icons.Filled.KeyboardArrowDown,
+                                                    contentDescription = null,
+                                                    modifier = Modifier.size(24.dp),
+                                                    tint = MaterialTheme.colorScheme.onPrimaryContainer.copy(
+                                                        alpha = 0.8f
+                                                    )
                                                 )
                                             }
                                         }
@@ -1201,6 +1202,7 @@ internal fun MainScreenContent(
                                                     .fillMaxWidth()
                                                     .padding(
                                                         start = 20.dp,
+                                                        top = 12.dp,
                                                         end = 20.dp,
                                                         bottom = 20.dp
                                                     )
@@ -1214,7 +1216,7 @@ internal fun MainScreenContent(
                                                         ),
                                                         fontWeight = FontWeight.Bold
                                                     )
-                                                    Spacer(modifier = Modifier.height(2.dp))
+                                                    Spacer(modifier = Modifier.height(8.dp))
                                                     Text(
                                                         text = resultState.originalUrl,
                                                         style = MaterialTheme.typography.bodySmall,
@@ -1232,7 +1234,7 @@ internal fun MainScreenContent(
                                                             ),
                                                             fontWeight = FontWeight.Bold
                                                         )
-                                                        Spacer(modifier = Modifier.height(2.dp))
+                                                        Spacer(modifier = Modifier.height(8.dp))
                                                         Text(
                                                             text = resultState.expandedUrl!!,
                                                             style = MaterialTheme.typography.bodySmall,
@@ -1244,7 +1246,8 @@ internal fun MainScreenContent(
                                                 if (resultState.removedParams.isNotEmpty()) {
                                                     Column(
                                                         verticalArrangement = Arrangement.spacedBy(
-                                                            6.dp
+                                                            // Chips reserve another 8.dp above their visible surface.
+                                                            4.dp
                                                         )
                                                     ) {
                                                         Text(
@@ -1327,10 +1330,10 @@ internal fun MainScreenContent(
                                         .padding(horizontal = 8.dp),
                                     config = FlexBoxConfig {
                                         wrap(FlexWrap.Wrap)
-                                        justifyContent(FlexJustifyContent.SpaceEvenly)
+                                        justifyContent(FlexJustifyContent.Center)
                                         alignItems(FlexAlignItems.Center)
-                                        columnGap(12.dp)
-                                        rowGap(8.dp)
+                                        columnGap(20.dp)
+                                        rowGap(16.dp)
                                     }
                                 ) {
                                     CompactFeatureRow(

@@ -33,6 +33,7 @@ import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.tidy.app.R
+import com.tidy.app.theme.TidyCardTokens
 
 /**
  * A full-width clickable row used as a collapsible section header in settings cards.
@@ -83,7 +84,7 @@ fun ExpandableSettingRow(
                 fontWeight = FontWeight.SemiBold,
                 color = MaterialTheme.colorScheme.onSurface
             )
-            Spacer(modifier = Modifier.height(2.dp))
+            Spacer(modifier = Modifier.height(TidyCardTokens.rowTitleSpacing))
             Text(
                 text = summary,
                 style = MaterialTheme.typography.bodySmall,

@@ -2,9 +2,12 @@ package com.tidy.designsystem
 
 import androidx.compose.ui.unit.dp
 
-/** Dimensions for Settings and About cards and their aligned content. */
+/** Dimensions for cards and their aligned content. */
 object TidyCardTokens {
     val cornerRadius = 24.dp
+
+    /** Gap from the app bar to a screen's first card. */
+    val screenTopSpacing = 28.dp
 
     /** Padding applied by the card's content container. */
     val contentPadding = 12.dp
@@ -14,4 +17,5 @@ object TidyCardTokens {
     /** Shared inset for row contents, expanded sections, headings and dividers. */
     val rowHorizontalPadding = 8.dp
     val rowVerticalPadding = 12.dp
+    val rowTitleSpacing = 4.dp
 }
