@@ -115,7 +115,7 @@ class WideScreenInputTest {
                 )
             }
         }
-        compose.onNodeWithText("Domains to skip entirely").performScrollTo().performClick()
+        compose.onNodeWithText("Ignored domains").performScrollTo().performClick()
         val field = compose.onNode(hasSetTextAction())
         field.performScrollTo().performTextReplacement("not a domain")
         closeSoftKeyboard()

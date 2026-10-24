@@ -270,7 +270,7 @@ class ScreenContentTest {
                 )
             }
         }
-        compose.onNodeWithText("Domains to skip entirely").performClick()
+        compose.onNodeWithText("Ignored domains").performClick()
         compose.onNodeWithText("example.com").assertIsDisplayed()
     }
 }

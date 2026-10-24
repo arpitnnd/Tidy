@@ -36,14 +36,14 @@
 
     <string name="dialog_cancel">Cancel</string>
 
-    <string name="banner_found_clipboard">Found URL in clipboard</string>
+    <string name="banner_found_clipboard">URL found in clipboard</string>
     <string name="banner_paste_clean">Clean</string>
     <string name="banner_clipboard_callout_title">Check clipboard on launch?</string>
-    <string name="banner_clipboard_callout_desc">Tidy will look for a link each time you open it.</string>
+    <string name="banner_clipboard_callout_desc">Look for a URL each time you open Tidy.</string>
     <string name="banner_clipboard_callout_enable">Enable</string>
     <string name="banner_clipboard_callout_dismiss">Dismiss</string>
     <string name="banner_clipboard_enabled_title">Clipboard checking enabled</string>
-    <string name="banner_clipboard_enabled_desc">Customise how Tidy responds to links from Settings, any time.</string>
+    <string name="banner_clipboard_enabled_desc">Open Settings to choose what happens when Tidy finds a URL.</string>
     <string name="banner_view_settings">View settings</string>
     <string name="banner_later">Later</string>
     <string name="button_clean_url">Clean URL</string>
@@ -60,7 +60,7 @@
     <!-- Settings Screen -->
     <string name="settings_title">Settings</string>
     <string name="settings_back_desc">Back</string>
-    <string name="settings_bypass_list">Domains to skip entirely</string>
+    <string name="settings_bypass_list">Ignored domains</string>
     <string name="settings_no_domains_bypassed">No domains skipped</string>
     <plurals name="settings_domains_bypassed">
         <item quantity="one">%1$d domain skipped</item>
@@ -70,59 +70,59 @@
     <string name="settings_expand">Expand</string>
     <string name="settings_expanded">Expanded</string>
     <string name="settings_collapsed">Collapsed</string>
-    <string name="settings_bypass_desc">URLs from these domains will skip cleaning, preserving all parameters</string>
+    <string name="settings_bypass_desc">Keep URLs from these domains unchanged.</string>
     <string name="settings_add_domain_desc">Add domain</string>
     <string name="settings_no_domains_bypassed_text">No domains skipped</string>
     <string name="settings_placeholder_domain">google.com</string>
 
     <string name="settings_custom_params_title">Custom blocklist</string>
-    <string name="settings_custom_params_desc">Specify custom parameters to strip in addition to standard tracking tags</string>
+    <string name="settings_custom_params_desc">Remove these parameters as well as those in the default blocklist.</string>
     <string name="settings_placeholder_param">ref_code</string>
     <string name="settings_add_param_desc">Add custom parameter</string>
     <string name="settings_no_custom_params_text">No custom parameters added</string>
 
     <string name="settings_automation">Automation</string>
-    <string name="settings_auto_expand_title">Expand short links automatically</string>
-    <string name="settings_auto_expand_desc">Unwraps links like bit.ly or t.co before cleaning, so trackers hidden behind them get caught too.</string>
+    <string name="settings_auto_expand_title">Expand short URLs automatically</string>
+    <string name="settings_auto_expand_desc">Follow short URLs such as bit.ly or t.co before cleaning. Needs an internet connection.</string>
     <string name="settings_auto_clean_input_title">Auto-clean typed URLs</string>
-    <string name="settings_auto_clean_input_desc">Clean URLs automatically as you type or paste without clicking clean</string>
-    <string name="settings_remove_mobile_subdomains_title">Remove \"m.\" from links</string>
-    <string name="settings_remove_mobile_subdomains_desc">Some links use an old mobile-only address. The regular version opens the same page everywhere, so Tidy uses that instead.</string>
+    <string name="settings_auto_clean_input_desc">Clean as you type or paste, without tapping Clean.</string>
+    <string name="settings_remove_mobile_subdomains_title">Remove \"m.\" from URLs</string>
+    <string name="settings_remove_mobile_subdomains_desc">Use example.com instead of m.example.com or mobile.example.com.</string>
     <string name="settings_drop_trailing_slash_title">Drop trailing slash from URLs</string>
-    <string name="settings_drop_trailing_slash_desc">Removes a trailing / from the cleaned URL (e.g. example.com/page/ becomes example.com/page).</string>
+    <string name="settings_drop_trailing_slash_desc">Remove the final / so example.com/page/ becomes example.com/page.</string>
 
     <string name="settings_check_clipboard_title">Check clipboard on launch</string>
-    <string name="settings_check_clipboard_desc">Looks for a link on your clipboard when you open Tidy.</string>
-    <string name="settings_clipboard_tier_heading">If a link is found on clipboard</string>
+    <string name="settings_check_clipboard_desc">Look for a URL in your clipboard when you open Tidy.</string>
+    <string name="settings_clipboard_tier_heading">When a URL is found</string>
     <string name="tier_suggest_title">Suggest</string>
     <string name="tier_suggest_subtitle">Review before copying</string>
     <string name="tier_suggest_copy_title">Suggest\n&amp; copy</string>
     <string name="tier_suggest_copy_subtitle">One tap does both</string>
     <string name="tier_auto_clean_title">Auto-clean</string>
     <string name="tier_auto_clean_subtitle">No tapping needed</string>
-    <string name="settings_share_tier_heading">When you share a link to Tidy</string>
+    <string name="settings_share_tier_heading">When you share a URL to Tidy</string>
     <string name="tier_clean_title">Clean</string>
-    <string name="tier_clean_subtitle">Shows the clean link in Tidy</string>
+    <string name="tier_clean_subtitle">Show the cleaned URL</string>
     <string name="tier_clean_copy_title">Clean &amp; copy</string>
-    <string name="tier_clean_copy_subtitle">Copies it, ready to paste</string>
+    <string name="tier_clean_copy_subtitle">Copy it, ready to paste</string>
     <string name="tier_clean_copy_share_title">Clean, copy\n&amp; share</string>
-    <string name="tier_clean_copy_share_subtitle">Continues sharing it for you</string>
+    <string name="tier_clean_copy_share_subtitle">Open the share sheet</string>
     <string name="settings_close_instead_title">Close Tidy instead of sharing</string>
-    <string name="settings_close_instead_desc">Copies the clean link and closes Tidy, without opening the share sheet again.</string>
+    <string name="settings_close_instead_desc">After copying, return to the previous app without opening the share sheet.</string>
     <string name="settings_clean_any_app_title">Clean from any app</string>
-    <string name="settings_clean_any_app_desc">Select a link in any app and choose \"Clean with Tidy\" from the menu that pops up.</string>
+    <string name="settings_clean_any_app_desc">In apps with text-selection actions, select a URL and choose \"Clean with Tidy\".</string>
 
     <string name="settings_data_backup_title">Data &amp; backup</string>
     <string name="settings_allow_system_backup_title">Back up app data</string>
-    <string name="settings_allow_system_backup_desc">Off by default. When on, your Tidy data (history, rules, and other settings) can be included in Android\'s system backup (e.g. Google account or ADB backup) so it survives a reinstall.</string>
+    <string name="settings_allow_system_backup_desc">Off by default. Allow Android to back up your history, rules and settings. Earlier backups remain when you turn this off.</string>
 
-    <string name="settings_param_whitelist_title">Domain parameter whitelist</string>
+    <string name="settings_param_whitelist_title">Whitelisted parameters</string>
     <string name="settings_no_params_whitelisted">No parameters whitelisted</string>
     <plurals name="settings_params_whitelisted">
         <item quantity="one">%1$d parameter whitelisted</item>
         <item quantity="other">%1$d parameters whitelisted</item>
     </plurals>
-    <string name="settings_param_whitelist_desc">Allow specific tracking parameters for particular domains (e.g. keeping \'v\' on youtube.com)</string>
+    <string name="settings_param_whitelist_desc">Keep specific parameters on the domains you choose, such as \'utm_source\' on example.com.</string>
     <string name="settings_placeholder_whitelist_param">v</string>
     <string name="settings_add_param_whitelist_desc">Add parameter whitelist</string>
     <string name="settings_no_params_whitelisted_text">No parameters whitelisted for domains</string>
@@ -207,7 +207,7 @@
 
     <!-- Diagnostics & Crashes -->
     <string name="settings_crash_log_title">Latest crash report</string>
-    <string name="settings_crash_log_desc">Inspect, share, or delete the last recorded application crash</string>
+    <string name="settings_crash_log_desc">View, share or delete the latest saved crash report.</string>
     <string name="dialog_delete">Delete</string>
     <string name="dialog_share">Share</string>
     <string name="toast_crash_deleted">Crash report deleted</string>
@@ -258,7 +258,7 @@
     <string name="about_link_github">GitHub repository</string>
     <string name="about_link_issues">Open Issues</string>
     <string name="about_link_releases">GitHub Releases</string>
-    <string name="settings_about_desc">Version info, licence, links, and diagnostics</string>
+    <string name="settings_about_desc">Version, licence, privacy and project details</string>
 
     <!-- Premium Themes -->
     <string name="theme_sage_slate">Sage Slate (Default)</string>
