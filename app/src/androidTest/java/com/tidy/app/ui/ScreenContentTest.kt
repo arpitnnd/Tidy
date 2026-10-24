@@ -5,11 +5,15 @@ import androidx.activity.ComponentActivity
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.width
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toPixelMap
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.captureToImage
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
@@ -18,6 +22,10 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
+import androidx.compose.ui.test.performSemanticsAction
+import androidx.compose.ui.text.TextLayoutResult
+import androidx.compose.ui.unit.Density
+import androidx.compose.ui.unit.dp
 import com.tidy.app.data.HistoryEntry
 import com.tidy.app.theme.TidyTheme
 import com.tidy.app.ui.components.TidyTopAppBar
@@ -191,6 +199,42 @@ class ScreenContentTest {
         compose.onNodeWithText("example.com").performScrollTo().performClick()
         compose.onNodeWithText("UTM_SOURCE").performScrollTo().performClick()
         compose.onNodeWithText("Campaign explanation").assertIsDisplayed()
+    }
+
+    @Test
+    fun historyActionsStayReadableAtDoubleTextSize() {
+        compose.setContent {
+            val density = LocalDensity.current.density
+            CompositionLocalProvider(LocalDensity provides Density(density, 2f)) {
+                TidyTheme(selectedTheme = "slate", isPlusUnlocked = false) {
+                    Box(Modifier.width(320.dp)) {
+                        HistoryScreenContent(
+                            state = HistoryScreenViewModel.UiState(
+                                isInitialLoading = false,
+                                history = listOf(
+                                    HistoryEntry(
+                                        id = "entry", timestamp = 1791244800000L,
+                                        originalUrl = "https://example.com/?utm_source=share",
+                                        cleanedUrl = "https://example.com/", removedParamsCount = 1,
+                                        domain = "example.com"
+                                    )
+                                )
+                            ), onBackClick = {}
+                        )
+                    }
+                }
+            }
+        }
+        compose.onNodeWithText("example.com").performScrollTo().performClick()
+        listOf("Copy original", "Copy", "Open").forEach { label ->
+            val layouts = mutableListOf<TextLayoutResult>()
+            compose.onNodeWithText(label, useUnmergedTree = true)
+                .performScrollTo()
+                .assertIsDisplayed()
+                .performSemanticsAction(SemanticsActions.GetTextLayoutResult) { it(layouts) }
+            assertEquals("$label must remain on one line", 1, layouts.single().lineCount)
+            assertTrue("$label must fit its action", !layouts.single().hasVisualOverflow)
+        }
     }
 
     @Test

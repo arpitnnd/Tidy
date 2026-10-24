@@ -772,9 +772,14 @@ private fun HistoryItem(
                             }
                         }
                     }
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        modifier = Modifier.fillMaxWidth()
+                    FlexBox(
+                        modifier = Modifier.fillMaxWidth(),
+                        config = FlexBoxConfig {
+                            wrap(FlexWrap.Wrap)
+                            alignItems(FlexAlignItems.Center)
+                            columnGap(8.dp)
+                            rowGap(4.dp)
+                        }
                     ) {
                         // Copy Original Button
                         TooltipWrapper(tooltipText = stringResource(R.string.tooltip_copy_original)) {
