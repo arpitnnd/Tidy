@@ -210,6 +210,8 @@ class WideScreenInputTest {
                 )
             }
         }
+        // In short windows, the dashboard can keep the first entry outside composition.
+        compose.onNode(hasScrollAction()).performScrollToIndex(4)
         val first = compose.onNodeWithText("https://example.com/0")
         first.performScrollTo().performClick()
         compose.onNodeWithText("Original URL").performScrollTo().assertIsDisplayed()
