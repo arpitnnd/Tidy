@@ -77,6 +77,7 @@ import com.tidy.app.ui.components.AppIconBox
 import com.tidy.app.ui.components.FeatureRow
 import com.tidy.app.ui.components.StatusBadge
 import com.tidy.app.ui.components.TidyModalBottomSheet
+import com.tidy.designsystem.hasLightSurfaces
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -309,7 +310,12 @@ object SettingsMigrationViews {
                 if (!isAvailable) {
                     StatusBadge(
                         text = stringResource(R.string.settings_coming_soon_badge),
-                        containerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
+                        containerColor = if (MaterialTheme.colorScheme.hasLightSurfaces) {
+                            MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.18f)
+                                .compositeOver(MaterialTheme.colorScheme.surfaceVariant)
+                        } else {
+                            MaterialTheme.colorScheme.surfaceContainerLowest
+                        },
                         contentColor = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
