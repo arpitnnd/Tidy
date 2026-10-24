@@ -15,6 +15,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.font.FontWeight
 import com.tidy.app.R
+import com.tidy.designsystem.hasLightSurfaces
 
 /**
  * The standard Tidy top app bar. Provides a Material surface background with a bold title
@@ -57,7 +58,10 @@ fun TidyTopAppBar(
             }
         },
         actions = { actions() },
-        colors = TopAppBarDefaults.topAppBarColors(),
+        colors = if (MaterialTheme.colorScheme.hasLightSurfaces) TopAppBarDefaults.topAppBarColors(
+            containerColor = MaterialTheme.colorScheme.background,
+            scrolledContainerColor = MaterialTheme.colorScheme.background
+        ) else TopAppBarDefaults.topAppBarColors(),
         modifier = modifier
     )
 }

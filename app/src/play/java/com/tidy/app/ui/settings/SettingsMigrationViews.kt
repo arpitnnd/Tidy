@@ -54,9 +54,9 @@ object SettingsMigrationViews {
             shape = RoundedCornerShape(20.dp),
             colors = CardDefaults.cardColors(
                 containerColor = if (isUnlocked) {
-                    MaterialTheme.colorScheme.primary.copy(alpha = 0.05f)
+                    MaterialTheme.colorScheme.surface
                 } else {
-                    MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f)
+                    MaterialTheme.colorScheme.primaryContainer
                 }
             ),
             modifier = Modifier.fillMaxWidth()

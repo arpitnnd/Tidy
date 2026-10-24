@@ -28,7 +28,7 @@ import androidx.compose.ui.unit.dp
 import com.tidy.designsystem.TidyStyleTheme
 import com.tidy.designsystem.background
 import com.tidy.designsystem.size
-import org.junit.Assert.assertNotEquals
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
@@ -57,12 +57,14 @@ class StylesAdaptiveTest {
     }
 
     @Test
-    fun staticStylesFollowLivePaletteChanges() {
+    fun cardsStayOpaqueAcrossLivePaletteChanges() {
         val dark = mutableStateOf(false)
+        val lightPalette = lightColorScheme(surface = Color(0xFFF1F5F9))
+        val darkPalette = darkColorScheme(surface = Color(0xFF1B1C1E))
         compose.setContent {
-            MaterialTheme(colorScheme = if (dark.value) darkColorScheme() else lightColorScheme()) {
+            MaterialTheme(colorScheme = if (dark.value) darkPalette else lightPalette) {
                 TidyStyleTheme {
-                    Box(Modifier.background(Color.White)) {
+                    Box(Modifier.background(Color.Magenta)) {
                         SettingCard(
                             modifier = Modifier.testTag("card"),
                             style = CommonStyle { size(88.dp) }
@@ -72,10 +74,14 @@ class StylesAdaptiveTest {
             }
         }
         val lightPixels = compose.onNodeWithTag("card").captureToImage().toPixelMap()
+        assertEquals(
+            lightPalette.surface,
+            lightPixels[lightPixels.width / 2, lightPixels.height / 2]
+        )
         compose.runOnIdle { dark.value = true }
         val darkPixels = compose.onNodeWithTag("card").captureToImage().toPixelMap()
-        assertNotEquals(
-            lightPixels[lightPixels.width / 2, lightPixels.height / 2],
+        assertEquals(
+            darkPalette.surface,
             darkPixels[darkPixels.width / 2, darkPixels.height / 2]
         )
     }

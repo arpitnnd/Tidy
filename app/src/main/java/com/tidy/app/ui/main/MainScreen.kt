@@ -4,6 +4,7 @@ import androidx.compose.foundation.style.CommonStyle
 import com.tidy.designsystem.TidyComponentStyles
 import com.tidy.designsystem.TidyStyle
 import com.tidy.designsystem.TidyStyledCard
+import com.tidy.designsystem.hasLightSurfaces
 
 import android.content.ClipboardManager
 import android.content.Context
@@ -126,6 +127,7 @@ import androidx.compose.ui.derivedMediaQuery
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.lerp as lerpColor
 import androidx.compose.ui.input.nestedscroll.nestedScroll
@@ -924,6 +926,7 @@ internal fun MainScreenContent(
                         .clip(RoundedCornerShape(22.dp))
                         .background(
                             MaterialTheme.colorScheme.primaryContainer.copy(alpha = logoBgAlpha)
+                                .compositeOver(MaterialTheme.colorScheme.background)
                         ),
                     contentAlignment = Alignment.Center
                 ) {
@@ -999,18 +1002,25 @@ internal fun MainScreenContent(
                                 animationSpec = tween(360),
                                 label = "resultSurfaceReveal"
                             )
-                            val loadingContainerColor =
-                                MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+                            val lightSurfaces = MaterialTheme.colorScheme.hasLightSurfaces
+                            val loadingContainerColor = if (lightSurfaces) {
+                                MaterialTheme.colorScheme.surface
+                            } else {
+                                MaterialTheme.colorScheme.surfaceVariant
+                            }
                             val gradientBrush = Brush.linearGradient(
-                                colors = listOf(
+                                colors = if (lightSurfaces) listOf(
+                                    MaterialTheme.colorScheme.surface,
+                                    MaterialTheme.colorScheme.surface
+                                ) else listOf(
                                     lerpColor(
                                         loadingContainerColor,
-                                        MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.8f),
+                                        MaterialTheme.colorScheme.primaryContainer,
                                         resultReveal
                                     ),
                                     lerpColor(
                                         loadingContainerColor,
-                                        MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.5f),
+                                        MaterialTheme.colorScheme.tertiaryContainer,
                                         resultReveal
                                     )
                                 )
@@ -1433,9 +1443,7 @@ internal fun MainScreenContent(
                                         Surface(
                                             onClick = onHistoryClick,
                                             shape = RoundedCornerShape(12.dp),
-                                            color = MaterialTheme.colorScheme.surfaceVariant.copy(
-                                                alpha = 0.4f
-                                            )
+                                            color = MaterialTheme.colorScheme.surfaceVariant
                                         ) {
                                             Text(
                                                 text = stringResource(
@@ -1520,7 +1528,7 @@ internal fun MainScreenContent(
                         modifier = Modifier
                             .size(48.dp)
                             .clip(RoundedCornerShape(12.dp))
-                            .background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f)),
+                            .background(MaterialTheme.colorScheme.primaryContainer),
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
@@ -1749,7 +1757,10 @@ private fun ClipboardActionBanner(
                 modifier = Modifier
                     .size(40.dp)
                     .clip(RoundedCornerShape(12.dp))
-                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)),
+                    .background(
+                        MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)
+                            .compositeOver(MaterialTheme.colorScheme.surface)
+                    ),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
@@ -1822,7 +1833,10 @@ private fun ClipboardCalloutBanner(
                     modifier = Modifier
                         .size(40.dp)
                         .clip(RoundedCornerShape(12.dp))
-                        .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)),
+                        .background(
+                            MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)
+                                .compositeOver(MaterialTheme.colorScheme.surface)
+                        ),
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
@@ -1905,7 +1919,10 @@ private fun ClipboardEnabledSuccessBanner(
                     modifier = Modifier
                         .size(40.dp)
                         .clip(RoundedCornerShape(12.dp))
-                        .background(MaterialTheme.colorScheme.tertiary.copy(alpha = 0.15f)),
+                        .background(
+                            MaterialTheme.colorScheme.tertiary.copy(alpha = 0.15f)
+                                .compositeOver(MaterialTheme.colorScheme.surface)
+                        ),
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(

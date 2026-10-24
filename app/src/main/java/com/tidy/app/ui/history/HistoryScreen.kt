@@ -85,6 +85,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.LocalContext
@@ -367,7 +368,7 @@ internal fun HistoryScreenContent(
                         Card(
                             shape = RoundedCornerShape(16.dp),
                             colors = CardDefaults.cardColors(
-                                containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
+                                containerColor = MaterialTheme.colorScheme.surfaceVariant
                             ),
                             modifier = Modifier.fillMaxWidth()
                         ) {
@@ -496,7 +497,9 @@ private fun StatsCard(
                 modifier = Modifier
                     .size(40.dp)
                     .clip(RoundedCornerShape(12.dp))
-                    .background(color.copy(alpha = 0.15f)),
+                    .background(
+                        color.copy(alpha = 0.15f).compositeOver(MaterialTheme.colorScheme.surface)
+                    ),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
@@ -553,7 +556,10 @@ private fun BandwidthCard(
                 modifier = Modifier
                     .size(40.dp)
                     .clip(RoundedCornerShape(12.dp))
-                    .background(MaterialTheme.colorScheme.tertiary.copy(alpha = 0.15f)),
+                    .background(
+                        MaterialTheme.colorScheme.tertiary.copy(alpha = 0.15f)
+                            .compositeOver(MaterialTheme.colorScheme.surface)
+                    ),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(

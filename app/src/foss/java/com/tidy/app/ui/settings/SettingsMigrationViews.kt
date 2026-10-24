@@ -58,6 +58,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
@@ -141,9 +142,9 @@ object SettingsMigrationViews {
                 shape = RoundedCornerShape(20.dp),
                 colors = CardDefaults.cardColors(
                     containerColor = if (isAvailable) {
-                        MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f)
+                        MaterialTheme.colorScheme.primaryContainer
                     } else {
-                        MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.38f)
+                        MaterialTheme.colorScheme.surfaceVariant
                     }
                 ),
                 modifier = Modifier.fillMaxWidth()
@@ -159,9 +160,10 @@ object SettingsMigrationViews {
                                 .clip(RoundedCornerShape(12.dp))
                                 .background(
                                     if (isAvailable) {
-                                        MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
+                                        MaterialTheme.colorScheme.primaryContainer
                                     } else {
                                         MaterialTheme.colorScheme.onSurface.copy(alpha = 0.06f)
+                                            .compositeOver(MaterialTheme.colorScheme.surface)
                                     }
                                 ),
                             contentAlignment = Alignment.Center
@@ -488,7 +490,7 @@ object SettingsMigrationViews {
                                 // Ideology Card: One-time fee vs recurring subscription
                                 Surface(
                                     shape = RoundedCornerShape(16.dp),
-                                    color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.35f),
+                                    color = MaterialTheme.colorScheme.secondaryContainer,
                                     border = androidx.compose.foundation.BorderStroke(
                                         width = 1.dp,
                                         color = MaterialTheme.colorScheme.secondary.copy(alpha = 0.15f)
@@ -580,9 +582,7 @@ object SettingsMigrationViews {
                                     Card(
                                         shape = RoundedCornerShape(12.dp),
                                         colors = CardDefaults.cardColors(
-                                            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(
-                                                alpha = 0.5f
-                                            )
+                                            containerColor = MaterialTheme.colorScheme.surfaceVariant
                                         ),
                                         modifier = Modifier.fillMaxWidth()
                                     ) {

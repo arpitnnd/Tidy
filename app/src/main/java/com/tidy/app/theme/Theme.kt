@@ -1,6 +1,7 @@
 package com.tidy.app.theme
 
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
@@ -60,6 +61,24 @@ private val LightColorScheme = lightColorScheme(
     outline = TidyLightOutline
 )
 
+/** Keep light-mode canvas and surface brightness consistent across accent palettes. */
+private fun ColorScheme.withMutedLightSurfaces() = copy(
+    background = TidyLightBackground,
+    onBackground = TidyLightOnBackground,
+    surface = TidyLightSurface,
+    onSurface = TidyLightOnSurface,
+    surfaceVariant = TidyLightSurfaceVariant,
+    onSurfaceVariant = TidyLightOnSurfaceVariant,
+    surfaceDim = TidyLightBackground,
+    surfaceBright = TidyLightSurface,
+    surfaceContainerLowest = TidyLightSurface,
+    surfaceContainerLow = TidyLightSurface,
+    surfaceContainer = TidyLightPrimaryContainer,
+    surfaceContainerHigh = TidyLightPrimaryContainer,
+    surfaceContainerHighest = TidyLightPrimaryContainer,
+    surfaceTint = TidyLightSurface
+)
+
 @Composable
 fun TidyTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
@@ -111,7 +130,7 @@ fun TidyTheme(
     }
 
     MaterialTheme(
-        colorScheme = colorScheme,
+        colorScheme = if (darkTheme) colorScheme else colorScheme.withMutedLightSurfaces(),
         typography = Typography
     ) {
         TidyStyleTheme(content)
