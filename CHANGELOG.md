@@ -61,6 +61,7 @@ available from About.
 - Updated Kotlin, Gradle, Android Gradle Plugin and Compose dependencies, and added native AGP
   screenshot test suites.
 - Aligned Java and Kotlin bytecode targets and CI builds on Java 25.
+- Added deployment for the privacy and terms website from its maintained source.
 
 ## [1.3.0]
 
