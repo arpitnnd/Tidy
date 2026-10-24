@@ -70,7 +70,7 @@ full-width shape and background. Its caller provides the content layout, padding
 The card is a passive group; actions belong to its rows.
 
 [TidyCardTokens](../app/src/main/java/com/tidy/app/theme/DesignTokens.kt) defines dimensions
-for Settings and About cards:
+for card layouts and aligned content:
 
 | Token | Value | Use |
 | --- | --- | --- |
@@ -80,6 +80,8 @@ for Settings and About cards:
 | `rowCornerRadius` | 12 dp | Rounded outline of interactive rows. |
 | `rowHorizontalPadding` | 8 dp | Row content inset and alignment of headings, expanded content and dividers. |
 | `rowVerticalPadding` | 12 dp | Top and bottom padding of standard action rows. |
+| `rowTitleSpacing` | 4 dp | Gap between a setting title and its description. |
+| `screenTopSpacing` | 28 dp | Gap below the app bar before Home's result card or Settings' first card. |
 
 A standard row's content starts 20 dp from the card edge: 12 dp of card content padding plus
 8 dp of row padding. Clip the row before applying `clickable`, then apply its content padding,
@@ -255,12 +257,18 @@ completion-spinner delay. Successful expansion becomes unavailable, including un
 failures preserve retry. A new clean or Clear cancels a pending expansion.
 The Home title and icon share the theme's primary colour in both header positions.
 Loading and cleaned results use one flat, opaque Material surface with an outline-variant border.
+The details toggle uses a trailing chevron and one full-width touch target.
+Expanded details start 12 dp below that target, keeping the ripple clear of the Original URL label.
+Detail labels use matching visible gaps above URL text and parameter chips, including the chips' touch-target padding.
+Home trust labels form a centred group, with 20 dp column gaps and 16 dp row gaps when they wrap.
 
 The shared parameter sheet stacks its actions at full width. Report issue uses an outlined
 button and Always keep uses a quieter text button, reflecting the persistent exception it creates.
 About uses external Project section headings aligned with the Settings hierarchy.
-Settings section titles have 16 dp top padding beyond the screen's 20 dp item spacing.
+Settings section titles have a 24 dp gap above and a 16 dp gap below, using 8 dp top padding and 16 dp item spacing.
 About's Project heading has 8 dp top padding to separate the two groups.
+Home's result card and Settings' first card share a 28 dp gap below the app bar, including above Get Tidy+.
+The Coming soon badge uses a distinct opaque neutral fill against its card, with readable secondary text.
 
 Enable input actions when their required fields are non-blank, and validate on submission.
 Invalid submissions use native Material text-field error styling and supportingText. Input

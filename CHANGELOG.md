@@ -15,7 +15,8 @@ available from About.
 
 - Light mode uses a muted slate background with lighter off-white cards. Content surfaces are
   opaque in both modes, and the launch background matches the app.
-- Home's title matches the theme accent. Result cards use a flat surface, and Settings and About headings have more space.
+- Home's title matches the theme accent. Result cards use a flat surface, with clearer spacing around expanded details.
+- Settings titles and descriptions have more space. Section headings and Home trust labels have clearer gaps.
 - Home and History use muted green clean-status badges and red parameter chips with an information icon.
   Badges wrap at large text sizes, and result transitions keep their content visible.
 - Parameter details give the persistent Always keep action a quieter treatment. About uses
