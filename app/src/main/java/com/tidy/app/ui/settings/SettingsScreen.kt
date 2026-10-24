@@ -189,7 +189,7 @@ internal fun SettingsScreenContent(
 
                 ScreenSectionHeader(
                     text = stringResource(R.string.rules_title),
-                    modifier = Modifier.padding(start = 4.dp, top = 8.dp)
+                    modifier = Modifier.padding(start = 4.dp, top = 16.dp)
                 )
 
                 var isBypassListExpanded by remember { mutableStateOf(false) }
@@ -876,7 +876,7 @@ internal fun SettingsScreenContent(
                 // Appearance Theme Selector
                 ScreenSectionHeader(
                     text = stringResource(R.string.settings_theme_title),
-                    modifier = Modifier.padding(start = 4.dp, top = 8.dp)
+                    modifier = Modifier.padding(start = 4.dp, top = 16.dp)
                 )
 
                 SettingCard {
@@ -969,7 +969,7 @@ internal fun SettingsScreenContent(
 
                 ScreenSectionHeader(
                     text = stringResource(R.string.settings_automation),
-                    modifier = Modifier.padding(start = 4.dp, top = 8.dp)
+                    modifier = Modifier.padding(start = 4.dp, top = 16.dp)
                 )
 
                 // Clipboard checking: master toggle + tiered selector
@@ -1176,7 +1176,7 @@ internal fun SettingsScreenContent(
                 // Data & Backup Section
                 ScreenSectionHeader(
                     text = stringResource(R.string.settings_data_backup_title),
-                    modifier = Modifier.padding(start = 4.dp, top = 8.dp)
+                    modifier = Modifier.padding(start = 4.dp, top = 16.dp)
                 )
 
                 SettingCard {
@@ -1225,7 +1225,7 @@ internal fun SettingsScreenContent(
                 // About Section
                 ScreenSectionHeader(
                     text = stringResource(R.string.settings_about_title),
-                    modifier = Modifier.padding(start = 4.dp, top = 8.dp)
+                    modifier = Modifier.padding(start = 4.dp, top = 16.dp)
                 )
 
                 SettingCard {

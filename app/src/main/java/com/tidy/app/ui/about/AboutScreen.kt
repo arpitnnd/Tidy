@@ -230,7 +230,7 @@ fun AboutScreen(
                 // Links Card
                 ScreenSectionHeader(
                     text = stringResource(R.string.about_links),
-                    modifier = Modifier.fillMaxWidth().padding(start = 4.dp)
+                    modifier = Modifier.fillMaxWidth().padding(start = 4.dp, top = 8.dp)
                 )
                 SettingCard {
                     Column(
