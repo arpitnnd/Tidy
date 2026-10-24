@@ -194,6 +194,7 @@ Typography and motion retain the existing Material roles and local transition de
 - History uses `LazyVerticalGrid` with a 320 dp minimum cell width, increased for larger text.
   Its content is bounded to 1000 dp; summary sections and headers span all columns. Entry details
   expand inside their cards, and parameter inspection uses the shared `ParamDetailBottomSheet`.
+  Copy original, Copy and Open wrap as complete actions when their labels need more room.
   Expanding one entry increases its grid row height, leaving space below shorter neighbours
   and moving subsequent rows down.
 - The FOSS upgrade prompt stacks its icon header above full-width content when available

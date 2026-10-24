@@ -33,6 +33,7 @@ available from About.
 
 ### Bug fixes
 
+- History actions wrap at larger text sizes, keeping Copy original, Copy and Open readable.
 - Removed UTM and other pattern-matched parameters show their explanations in Home and History.
 - Clipboard checks wait for window focus when returning to Tidy, so Android does not deny
   the read before suggestions or automatic cleaning can run.
