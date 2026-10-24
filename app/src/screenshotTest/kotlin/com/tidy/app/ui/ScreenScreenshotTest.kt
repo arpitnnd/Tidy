@@ -1,18 +1,29 @@
 package com.tidy.app.ui
 
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.ExperimentalMediaQueryApi
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.LocalUiMediaScope
 import androidx.compose.ui.UiMediaScope
 import androidx.compose.ui.platform.LocalConfiguration
-import androidx.compose.ui.unit.dp
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.tooling.preview.PreviewParameterProvider
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import com.android.tools.screenshot.PreviewTest
 import com.tidy.app.data.HistoryEntry
 import com.tidy.app.theme.TidyTheme
+import com.tidy.app.ui.components.CleanStatusBadge
+import com.tidy.app.ui.components.RemovedParameterChip
 import com.tidy.app.ui.history.HistoryScreenContent
 import com.tidy.app.ui.history.HistoryScreenViewModel
 import com.tidy.app.ui.main.MainScreenContent
@@ -103,6 +114,10 @@ class ThemePreviewProvider : PreviewParameterProvider<String> {
     override val values = sequenceOf("forest", "ocean", "velvet", "dynamic")
 }
 
+class ResultThemePreviewProvider : PreviewParameterProvider<String> {
+    override val values = sequenceOf("slate", "forest", "ocean", "velvet", "dynamic")
+}
+
 @Preview(name = "Light", widthDp = 400, heightDp = 500)
 @Preview(
     name = "Dark",
@@ -127,7 +142,7 @@ fun HomeThemes(@PreviewParameter(ThemePreviewProvider::class) theme: String) {
 @PreviewTest
 @ThemePreviews
 @Composable
-fun HomeResultThemes(@PreviewParameter(ThemePreviewProvider::class) theme: String) {
+fun HomeResultThemes(@PreviewParameter(ResultThemePreviewProvider::class) theme: String) {
     ScreenshotTheme(theme) {
         MainScreenContent(
             state = MainScreenViewModel.UiState(
@@ -144,7 +159,80 @@ fun HomeResultThemes(@PreviewParameter(ThemePreviewProvider::class) theme: Strin
 @PreviewTest
 @ThemePreviews
 @Composable
+fun HomeCleanThemes(@PreviewParameter(ResultThemePreviewProvider::class) theme: String) {
+    ScreenshotTheme(theme) {
+        MainScreenContent(
+            state = MainScreenViewModel.UiState(
+                originalUrl = "https://example.com/article",
+                cleanedUrl = "https://example.com/article",
+                isCleaned = true, isInitialLoading = false
+            ),
+            onSettingsClick = {}, onHistoryClick = {}
+        )
+    }
+}
+
+@OptIn(ExperimentalLayoutApi::class)
+@PreviewTest
+@ThemePreviews
+@Preview(name = "Large text light", widthDp = 400, heightDp = 1000, fontScale = 2f)
+@Preview(
+    name = "Large text dark", widthDp = 400, heightDp = 1000, fontScale = 2f,
+    uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES
+)
+@Composable
+fun CleaningColoursThemes(@PreviewParameter(ResultThemePreviewProvider::class) theme: String) {
+    ScreenshotTheme(theme) {
+        Surface(color = MaterialTheme.colorScheme.background) {
+            Column(
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+                modifier = Modifier.padding(16.dp)
+            ) {
+                val scheme = MaterialTheme.colorScheme
+                for (parent in listOf(
+                    scheme.surface,
+                    scheme.primaryContainer,
+                    scheme.tertiaryContainer
+                )) {
+                    Surface(color = parent, shape = MaterialTheme.shapes.large) {
+                        Column(
+                            modifier = Modifier.fillMaxWidth().padding(16.dp),
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                CleanStatusBadge(0)
+                                CleanStatusBadge(2)
+                            }
+                            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                RemovedParameterChip("utm_source", onClick = {})
+                                RemovedParameterChip("fbclid", onClick = {})
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@PreviewTest
+@ThemePreviews
+@Composable
 fun HistoryThemes(@PreviewParameter(ThemePreviewProvider::class) theme: String) {
+    ScreenshotTheme(theme) {
+        HistoryScreenContent(state = historyState(), onBackClick = {})
+    }
+}
+
+@PreviewTest
+@Preview(name = "Light", widthDp = 400, heightDp = 800)
+@Preview(
+    name = "Dark", widthDp = 400, heightDp = 800,
+    uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES
+)
+@Preview(name = "Large text", widthDp = 400, heightDp = 1000, fontScale = 1.5f)
+@Composable
+fun HistoryStatusThemes(@PreviewParameter(ResultThemePreviewProvider::class) theme: String) {
     ScreenshotTheme(theme) {
         HistoryScreenContent(state = historyState(), onBackClick = {})
     }
@@ -165,7 +253,9 @@ fun SettingsThemes(@PreviewParameter(ThemePreviewProvider::class) theme: String)
 private fun historyState() = HistoryScreenViewModel.UiState(
     history = listOf(
         historyEntry("article", "example.com", "/article"),
-        historyEntry("guide", "developer.android.com", "/guide"),
+        historyEntry("guide", "developer.android.com", "/guide").copy(
+            originalUrl = "https://developer.android.com/guide", removedParamsCount = 0
+        ),
         historyEntry("project", "github.com", "/example/project"),
         historyEntry("long", "example.org", "/a-long-article-title-to-check-wrapping")
     ),

@@ -6,6 +6,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.lerp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.tidy.designsystem.TidyStyleTheme
 
@@ -61,23 +63,41 @@ private val LightColorScheme = lightColorScheme(
     outline = TidyLightOutline
 )
 
-/** Keep light-mode canvas and surface brightness consistent across accent palettes. */
-private fun ColorScheme.withMutedLightSurfaces() = copy(
-    background = TidyLightBackground,
-    onBackground = TidyLightOnBackground,
-    surface = TidyLightSurface,
-    onSurface = TidyLightOnSurface,
-    surfaceVariant = TidyLightSurfaceVariant,
-    onSurfaceVariant = TidyLightOnSurfaceVariant,
-    surfaceDim = TidyLightBackground,
-    surfaceBright = TidyLightSurface,
-    surfaceContainerLowest = TidyLightSurface,
-    surfaceContainerLow = TidyLightSurface,
-    surfaceContainer = TidyLightPrimaryContainer,
-    surfaceContainerHigh = TidyLightPrimaryContainer,
-    surfaceContainerHighest = TidyLightPrimaryContainer,
-    surfaceTint = TidyLightSurface
-)
+/** Separate canvas, cards and nested controls without changing the palette's accent roles. */
+internal fun ColorScheme.withTidySurfaces(darkTheme: Boolean): ColorScheme {
+    if (darkTheme) {
+        fun raised(amount: Float) = lerp(background, onBackground, amount)
+        val card = raised(0.08f)
+        return copy(
+            surface = card,
+            surfaceVariant = raised(0.18f),
+            surfaceDim = background,
+            surfaceBright = raised(0.23f),
+            surfaceContainerLowest = raised(0.02f),
+            surfaceContainerLow = raised(0.05f),
+            surfaceContainer = card,
+            surfaceContainerHigh = raised(0.13f),
+            surfaceContainerHighest = raised(0.20f),
+            surfaceTint = card
+        )
+    }
+    return copy(
+        background = TidyLightBackground,
+        onBackground = TidyLightOnBackground,
+        surface = TidyLightSurface,
+        onSurface = TidyLightOnSurface,
+        surfaceVariant = TidyLightSurfaceVariant,
+        onSurfaceVariant = TidyLightOnSurfaceVariant,
+        surfaceDim = TidyLightBackground,
+        surfaceBright = TidyLightSurface,
+        surfaceContainerLowest = Color(0xFFF8FAFC),
+        surfaceContainerLow = TidyLightSurface,
+        surfaceContainer = Color(0xFFE7EDF5),
+        surfaceContainerHigh = TidyLightSurfaceVariant,
+        surfaceContainerHighest = Color(0xFFD2DCE8),
+        surfaceTint = TidyLightSurface
+    )
+}
 
 @Composable
 fun TidyTheme(
@@ -130,7 +150,7 @@ fun TidyTheme(
     }
 
     MaterialTheme(
-        colorScheme = if (darkTheme) colorScheme else colorScheme.withMutedLightSurfaces(),
+        colorScheme = colorScheme.withTidySurfaces(darkTheme),
         typography = Typography
     ) {
         TidyStyleTheme(content)

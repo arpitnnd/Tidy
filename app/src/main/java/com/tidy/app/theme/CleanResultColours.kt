@@ -1,28 +1,23 @@
 package com.tidy.app.theme
 
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.runtime.Composable
+import androidx.compose.material3.ColorScheme
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.lerp
-import androidx.compose.ui.graphics.luminance
+import com.tidy.designsystem.hasLightSurfaces
 
 data class CleanResultColours(val container: Color, val content: Color)
 
-/** A restrained green success pair, lightly tinted by the current theme. */
-@Composable
-fun cleanResultColours(): CleanResultColours {
-    val scheme = MaterialTheme.colorScheme
-    val dark = scheme.surface.luminance() < 0.5f
-    return CleanResultColours(
-        container = lerp(
-            if (dark) Color(0xFF163B25) else Color(0xFFDDEBDF),
-            scheme.primaryContainer,
-            0.15f
-        ),
-        content = lerp(
-            if (dark) Color(0xFFDDEBDF) else Color(0xFF163B25),
-            scheme.onPrimaryContainer,
-            0.15f
-        )
-    )
-}
+/** Cleaning is always a green success, including results with parameters cleaned. */
+fun ColorScheme.cleanResultColours(): CleanResultColours =
+    if (hasLightSurfaces) {
+        CleanResultColours(Color(0xFFDDE6DF), Color(0xFF36533E))
+    } else {
+        CleanResultColours(Color(0xFF24392B), Color(0xFFA9BCAF))
+    }
+
+/** Removed parameter chips use a separate muted red, with dim fills in dark mode. */
+fun ColorScheme.removedParameterColours(): CleanResultColours =
+    if (hasLightSurfaces) {
+        CleanResultColours(Color(0xFFEBDDDD), Color(0xFF704A48))
+    } else {
+        CleanResultColours(Color(0xFF3E2C2D), Color(0xFFC4A6A4))
+    }

@@ -1,11 +1,5 @@
 package com.tidy.app.ui.main
 
-import androidx.compose.foundation.style.CommonStyle
-import com.tidy.designsystem.TidyComponentStyles
-import com.tidy.designsystem.TidyStyle
-import com.tidy.designsystem.TidyStyledCard
-import com.tidy.designsystem.hasLightSurfaces
-
 import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
@@ -22,47 +16,42 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.togetherWith
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.TransformOrigin
-import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
-import androidx.compose.ui.input.nestedscroll.NestedScrollSource
-import androidx.compose.ui.unit.Velocity
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.FlexAlignItems
 import androidx.compose.foundation.layout.FlexBox
 import androidx.compose.foundation.layout.FlexBoxConfig
-import androidx.compose.foundation.layout.FlexWrap
 import androidx.compose.foundation.layout.FlexJustifyContent
-import androidx.compose.foundation.layout.FlexAlignItems
+import androidx.compose.foundation.layout.FlexWrap
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.displayCutout
-import androidx.compose.foundation.layout.navigationBars
-import androidx.compose.foundation.layout.only
-import androidx.compose.foundation.layout.union
-import androidx.compose.foundation.layout.windowInsetsPadding
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.union
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.style.CommonStyle
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
@@ -81,8 +70,6 @@ import androidx.compose.material.icons.outlined.CloudOff
 import androidx.compose.material.icons.outlined.ContentPaste
 import androidx.compose.material.icons.outlined.History
 import androidx.compose.material.icons.outlined.Tune
-import androidx.compose.material3.AssistChip
-import androidx.compose.material3.AssistChipDefaults
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -121,15 +108,18 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.ExperimentalMediaQueryApi
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.derivedMediaQuery
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.graphics.lerp as lerpColor
+import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
+import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
@@ -142,6 +132,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Velocity
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import androidx.lifecycle.Lifecycle
@@ -157,19 +148,24 @@ import com.tidy.app.data.UrlCleaner
 import com.tidy.app.data.UrlDetection
 import com.tidy.app.data.trackerDescriptionFor
 import com.tidy.app.ui.components.ArrowsOutward
+import com.tidy.app.ui.components.CleanStatusBadge
 import com.tidy.app.ui.components.CrashReportBottomSheet
 import com.tidy.app.ui.components.FeatureRow
 import com.tidy.app.ui.components.ParamDetailBottomSheet
+import com.tidy.app.ui.components.RemovedParameterChip
 import com.tidy.app.ui.components.TidyModalBottomSheet
 import com.tidy.app.ui.components.TooltipWrapper
-import com.tidy.app.ui.components.StatusBadge
-import com.tidy.app.theme.cleanResultColours
 import com.tidy.app.ui.components.shimmer
+import com.tidy.designsystem.TidyComponentStyles
+import com.tidy.designsystem.TidyStyle
+import com.tidy.designsystem.TidyStyledCard
+import com.tidy.designsystem.hasLightSurfaces
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlin.time.Duration.Companion.milliseconds
+import androidx.compose.ui.graphics.lerp as lerpColor
 
 // Shared by every bottom-container banner (clipboard suggestion, callout, enabled-success)
 // so their fade and size animations run on identical timing and never drift out of sync.
@@ -1106,19 +1102,7 @@ internal fun MainScreenContent(
                                                     color = MaterialTheme.colorScheme.onPrimaryContainer
                                                 )
 
-                                                val removedCount = resultState.removedParams.size
-                                                val successColours = cleanResultColours()
-                                                StatusBadge(
-                                                    text = if (removedCount > 0) pluralStringResource(
-                                                        R.plurals.main_removed_count,
-                                                        removedCount,
-                                                        removedCount
-                                                    ) else stringResource(R.string.history_item_clean),
-                                                    containerColor = if (removedCount > 0) successColours.container
-                                                    else MaterialTheme.colorScheme.surfaceVariant,
-                                                    contentColor = if (removedCount > 0) successColours.content
-                                                    else MaterialTheme.colorScheme.onSurfaceVariant
-                                                )
+                                                CleanStatusBadge(resultState.removedParams.size)
                                             }
 
                                             Row(
@@ -1317,27 +1301,11 @@ internal fun MainScreenContent(
                                                             modifier = Modifier.fillMaxWidth()
                                                         ) {
                                                             resultState.removedParams.forEach { param ->
-                                                                AssistChip(
+                                                                RemovedParameterChip(
+                                                                    parameter = param,
                                                                     onClick = {
                                                                         paramToWhitelist = param
-                                                                    },
-                                                                    label = {
-                                                                        Text(
-                                                                            param,
-                                                                            style = MaterialTheme.typography.bodySmall
-                                                                        )
-                                                                    },
-                                                                    colors = AssistChipDefaults.assistChipColors(
-                                                                        containerColor = MaterialTheme.colorScheme.errorContainer,
-                                                                        labelColor = MaterialTheme.colorScheme.onErrorContainer
-                                                                    ),
-                                                                    shape = RoundedCornerShape(12.dp),
-                                                                    border = BorderStroke(
-                                                                        width = 1.dp,
-                                                                        color = MaterialTheme.colorScheme.outline.copy(
-                                                                            alpha = 0.3f
-                                                                        )
-                                                                    )
+                                                                    }
                                                                 )
                                                             }
                                                         }

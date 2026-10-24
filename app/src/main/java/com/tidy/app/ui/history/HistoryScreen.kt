@@ -1,23 +1,16 @@
 package com.tidy.app.ui.history
 
-import androidx.compose.foundation.style.CommonStyle
-import com.tidy.designsystem.TidyComponentStyles
-import com.tidy.designsystem.TidyStyle
-import com.tidy.designsystem.TidyStyledCard
-
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
-import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlexAlignItems
@@ -25,11 +18,12 @@ import androidx.compose.foundation.layout.FlexBox
 import androidx.compose.foundation.layout.FlexBoxConfig
 import androidx.compose.foundation.layout.FlexWrap
 import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.foundation.layout.calculateStartPadding
-import androidx.compose.foundation.layout.calculateEndPadding
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.calculateEndPadding
+import androidx.compose.foundation.layout.calculateStartPadding
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -37,12 +31,12 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
-import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.style.CommonStyle
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.OpenInNew
 import androidx.compose.material.icons.filled.ContentCopy
@@ -54,8 +48,6 @@ import androidx.compose.material.icons.outlined.Link
 import androidx.compose.material.icons.outlined.Shield
 import androidx.compose.material.icons.outlined.Speed
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.AssistChip
-import androidx.compose.material3.AssistChipDefaults
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -74,12 +66,12 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -87,10 +79,11 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -99,14 +92,18 @@ import androidx.core.net.toUri
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.tidy.app.R
-import com.tidy.app.ui.components.StatusBadge
 import com.tidy.app.data.HistoryEntry
 import com.tidy.app.data.trackerDescriptionFor
+import com.tidy.app.ui.components.CleanStatusBadge
 import com.tidy.app.ui.components.ParamDetailBottomSheet
+import com.tidy.app.ui.components.RemovedParameterChip
 import com.tidy.app.ui.components.ScreenSectionHeader
 import com.tidy.app.ui.components.TidyTopAppBar
 import com.tidy.app.ui.components.TooltipWrapper
 import com.tidy.app.ui.components.shimmer
+import com.tidy.designsystem.TidyComponentStyles
+import com.tidy.designsystem.TidyStyle
+import com.tidy.designsystem.TidyStyledCard
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -637,26 +634,7 @@ private fun HistoryItem(
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
-                StatusBadge(
-                    text = if (entry.removedParamsCount > 0) {
-                        stringResource(
-                            R.string.history_item_removed_count,
-                            entry.removedParamsCount
-                        )
-                    } else {
-                        stringResource(R.string.history_item_clean)
-                    },
-                    containerColor = if (entry.removedParamsCount > 0) {
-                        MaterialTheme.colorScheme.primaryContainer
-                    } else {
-                        MaterialTheme.colorScheme.surfaceContainerHighest
-                    },
-                    contentColor = if (entry.removedParamsCount > 0) {
-                        MaterialTheme.colorScheme.onPrimaryContainer
-                    } else {
-                        MaterialTheme.colorScheme.onSurfaceVariant
-                    }
-                )
+                CleanStatusBadge(entry.removedParamsCount)
             }
 
             Text(
@@ -751,23 +729,9 @@ private fun HistoryItem(
                             modifier = Modifier.fillMaxWidth()
                         ) {
                             removedParams.forEach { param ->
-                                AssistChip(
-                                    onClick = { selectedParam = param },
-                                    label = {
-                                        Text(
-                                            param,
-                                            style = MaterialTheme.typography.bodySmall
-                                        )
-                                    },
-                                    colors = AssistChipDefaults.assistChipColors(
-                                        containerColor = MaterialTheme.colorScheme.secondaryContainer,
-                                        labelColor = MaterialTheme.colorScheme.onSecondaryContainer
-                                    ),
-                                    shape = RoundedCornerShape(12.dp),
-                                    border = BorderStroke(
-                                        width = 1.dp,
-                                        color = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
-                                    )
+                                RemovedParameterChip(
+                                    parameter = param,
+                                    onClick = { selectedParam = param }
                                 )
                             }
                         }
