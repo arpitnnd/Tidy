@@ -113,7 +113,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.derivedMediaQuery
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.compositeOver
@@ -159,13 +158,11 @@ import com.tidy.app.ui.components.shimmer
 import com.tidy.designsystem.TidyComponentStyles
 import com.tidy.designsystem.TidyStyle
 import com.tidy.designsystem.TidyStyledCard
-import com.tidy.designsystem.hasLightSurfaces
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlin.time.Duration.Companion.milliseconds
-import androidx.compose.ui.graphics.lerp as lerpColor
 
 // Shared by every bottom-container banner (clipboard suggestion, callout, enabled-success)
 // so their fade and size animations run on identical timing and never drift out of sync.
@@ -939,7 +936,7 @@ internal fun MainScreenContent(
                     text = stringResource(R.string.welcome_title),
                     style = MaterialTheme.typography.headlineMedium,
                     fontWeight = FontWeight.ExtraBold,
-                    color = MaterialTheme.colorScheme.onBackground,
+                    color = MaterialTheme.colorScheme.primary,
                     modifier = Modifier
                         .onGloballyPositioned { coordinates ->
                             titleWidthPx = coordinates.size.width
@@ -993,47 +990,14 @@ internal fun MainScreenContent(
 
                             val showCleanedContent = !showUpperLoading &&
                                     (state.isCleaned || (!state.isLoading && lastResultWasCleaned))
-                            val resultReveal by animateFloatAsState(
-                                targetValue = if (showCleanedContent) 1f else 0f,
-                                animationSpec = tween(360),
-                                label = "resultSurfaceReveal"
-                            )
-                            val lightSurfaces = MaterialTheme.colorScheme.hasLightSurfaces
-                            val loadingContainerColor = if (lightSurfaces) {
-                                MaterialTheme.colorScheme.surface
-                            } else {
-                                MaterialTheme.colorScheme.surfaceVariant
-                            }
-                            val gradientBrush = Brush.linearGradient(
-                                colors = if (lightSurfaces) listOf(
-                                    MaterialTheme.colorScheme.surface,
-                                    MaterialTheme.colorScheme.surface
-                                ) else listOf(
-                                    lerpColor(
-                                        loadingContainerColor,
-                                        MaterialTheme.colorScheme.primaryContainer,
-                                        resultReveal
-                                    ),
-                                    lerpColor(
-                                        loadingContainerColor,
-                                        MaterialTheme.colorScheme.tertiaryContainer,
-                                        resultReveal
-                                    )
-                                )
-                            )
-
                             Box(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .clip(RoundedCornerShape(24.dp))
-                                    .background(gradientBrush)
+                                    .background(MaterialTheme.colorScheme.surface)
                                     .border(
                                         width = 1.dp,
-                                        color = lerpColor(
-                                            MaterialTheme.colorScheme.outline.copy(alpha = 0.15f),
-                                            MaterialTheme.colorScheme.primary.copy(alpha = 0.2f),
-                                            resultReveal
-                                        ),
+                                        color = MaterialTheme.colorScheme.outlineVariant,
                                         shape = RoundedCornerShape(24.dp)
                                     )
                             ) {
