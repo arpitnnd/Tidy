@@ -4,56 +4,68 @@ All notable changes to Tidy will be documented in this file.
 
 ## [Unreleased]
 
-Clearer results, more accessible controls and reliable sharing, with privacy and legal documents
-available from About.
+## [1.4.0]
+
+Tidy 1.4.0 refreshes the everyday experience of cleaning and sharing links. A new light palette,
+clearer results and layouts that adapt to your screen make Home, History and Settings easier to use.
+Controls are easier to navigate with a screen reader, and larger text stays readable without crowding
+controls. Sharing keeps the words around your links intact, and clipboard cleaning responds more
+reliably.
 
 ### New
 
-- About opens Tidy's Privacy policy, Terms of use and software licence in Custom Tabs.
+- You can open Tidy's privacy policy, terms of use and software licence from About.
 
 ### Improvements
 
-- Light mode uses a muted slate background with lighter off-white cards. Content surfaces are
-  opaque in both modes, and the launch background matches the app.
-- Home's title matches the theme accent. Result cards use a flat surface, with clearer spacing around expanded details.
-- Settings titles and descriptions have more space. Section headings and Home trust labels have clearer gaps.
-- Home and History use muted green clean-status badges and red parameter chips with an information icon.
-  Badges wrap at large text sizes, and result transitions keep their content visible.
-- Parameter details give the persistent Always keep action a quieter treatment. About uses
-  the same section-heading hierarchy as Settings.
-- Settings controls expose checked, selected and expanded states to accessibility services.
-  Theme choices have one action per row, and section headings support heading navigation.
-- Locked options and off-state switches have clearer contrast. Tier cards stack at larger text
-  sizes or narrow widths, and section headings use a consistent semibold weight.
-- History arranges records in multiple columns in wider windows. Home uses less hero space in
-  short windows, and its trust labels wrap when space is limited.
-- Screen app bars use a solid Material surface so scrolling content stays behind them. Titles
-  stay on one line and ellipsise where necessary.
-- URL and rule inputs show validation feedback after submission, with actions aligned beside
-  the fields.
-- Settings and clipboard prompts use shorter, clearer text. Backup settings explain consent and earlier backups.
+- Light mode uses a muted slate background with lighter off-white cards. Content surfaces are opaque
+  in both modes, and the launch background matches the app.
+- Home's title uses the theme colour. Result cards have a flat background and more space around
+  expanded details.
+- Settings titles, descriptions and section headings have more space. Privacy labels on Home also
+  have clearer gaps.
+- Home and History use muted green status badges. Removed parameters appear in red with an
+  information icon. Badges wrap at large text sizes, and results stay visible during animations.
+- Parameter details give the explanation more emphasis than the Always keep action. About section
+  headings now match Settings.
+- Screen readers announce whether Settings controls are on, selected or expanded. Theme rows have
+  a single action, and section headings make navigation easier.
+- Locked options and switches in the off state have clearer contrast. Automation choices stack at
+  larger text sizes or in narrow windows.
+- History arranges records in multiple columns in wider windows. Home uses a smaller header in short
+  windows, and its privacy labels wrap when space is limited.
+- Screen headers have solid backgrounds that hide scrolling content beneath them. Long titles stay
+  on one line and end with an ellipsis.
+- Link and rule fields explain invalid input after submission. Actions sit beside the fields.
+- Settings and clipboard prompts use shorter, clearer text. Backup settings explain what you agree
+  to and what happens to earlier backups.
 - Scrollable screens accept swipes from their side margins while keeping content centred.
 
 ### Bug fixes
 
+- History keeps its previous data if a save fails. Clear and Undo report failures instead of
+  claiming success, and saved timestamps remain stable after reload.
+- Tidy+ text-selection cleaning preserves surrounding punctuation and repeated links.
 - History actions wrap at larger text sizes, keeping Copy original, Copy and Open readable.
 - The Get Tidy+ row stays readable while showing Coming soon.
 - Removed UTM and other pattern-matched parameters show their explanations in Home and History.
-- Clipboard checks wait for window focus when returning to Tidy, so Android does not deny
-  the read before suggestions or automatic cleaning can run.
-- Copy and Share preserve the text around a URL received from another app. Only the first
-  detected URL is replaced; later URLs remain unchanged, and History stores only URLs.
-- Successful expansion disables its action even when the URL stays unchanged. Failed requests
-  remain retryable, and clearing or replacing the input prevents stale expansion results.
+- Clipboard suggestions and automatic cleaning work more reliably when you return to Tidy.
+- Copy and Share preserve text around a link received from another app, including punctuation and
+  email addresses. Only the first detected link is replaced. Later links remain unchanged, and
+  History stores only links.
+- After successful expansion, the expansion action is disabled even if the link stays unchanged.
+  Failed requests can be retried. Clearing or replacing the input prevents old expansion results
+  from appearing.
 - Fresh installations use bundled rules without an automatic first-session network request.
-- History's clear confirmation describes its existing Undo correctly. Temporary recovery data
-  is discarded when the undo prompt ends or History is closed.
+- The confirmation before clearing History explains when you can undo it. Cleared entries are
+  discarded when the undo prompt ends or you leave History.
 - Expanded History entries keep their state when scrolled out of view and back.
-- Explicit URL expansion shows feedback when a network failure prevents it.
+- Manually expanding a link shows an error if the network request fails.
 - Home input and result controls stay clear of camera cutouts in landscape.
-- Complete backups remain shareable through the system chooser. Exports use a dedicated directory,
-  keeping unrelated internal app files outside the sharing provider roots.
-- Opt-in Android backups restore History, rules and settings, with diagnostics and purchase caches excluded.
+- You can share complete backups through Android's share menu. Backup sharing can only access
+  exported backups, keeping other app files private.
+- If you enable Android backups, they restore History, rules and settings. Diagnostic files and
+  temporary purchase data stay out of these backups.
 
 ### Internal
 
@@ -62,6 +74,9 @@ available from About.
   screenshot test suites.
 - Aligned Java and Kotlin bytecode targets and CI builds on Java 25.
 - Added deployment for the privacy and terms website from its maintained source.
+- Play bundle exports keep the original build output, so repeat builds and Android Studio can still
+  find it.
+- Tidy+ checkout uses the active billing connection, and all premium themes check purchase status.
 
 ## [1.3.0]
 
