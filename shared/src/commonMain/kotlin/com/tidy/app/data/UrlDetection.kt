@@ -35,10 +35,15 @@ object UrlDetection {
     }
 
     /** Extracts every URL-looking token from free-form [text], in order. */
-    fun findAllUrls(text: String): List<String> {
+    fun findAllUrls(text: String): List<String> = findUrlMatches(text).map { it.url }.toList()
+
+    private data class UrlMatch(val url: String, val start: Int)
+
+    private fun findUrlMatches(text: String): Sequence<UrlMatch> {
         return tokens.findAll(text)
-            .map { it.value.trimStart('(', '[', '<', '"', '\'') }
-            .map { token ->
+            .map { match ->
+                val token = match.value.trimStart('(', '[', '<', '"', '\'')
+                val start = match.range.first + match.value.length - token.length
                 var parentheses = 0
                 var brackets = 0
                 for (character in token) {
@@ -67,16 +72,15 @@ object UrlDetection {
                         else -> break
                     }
                 }
-                token.substring(0, end)
+                UrlMatch(token.substring(0, end), start)
             }
-            .filter { it.isNotEmpty() && looksLikeUrl(it) }
-            .toList()
+            .filter { it.url.isNotEmpty() && looksLikeUrl(it.url) }
     }
 
     /** Extracts the first URL-looking token from free-form [text], or null. */
     fun findFirstUrl(text: String?): String? {
         if (text == null) return null
-        return findAllUrls(text).firstOrNull()
+        return findUrlMatches(text).firstOrNull()?.url
     }
 
     /** Prefixes https:// when [url] has no scheme, so it can be cleaned or opened. */
@@ -92,15 +96,12 @@ object UrlDetection {
     }
 
     /**
-     * Replaces the first occurrence of [oldUrl] within [text] with [newUrl], leaving any
-     * surrounding text untouched, e.g. turning "here's the file <link> enjoy" into
-     * "here's the file <cleaned link> enjoy" instead of discarding "here's the file"/
-     * "enjoy" entirely. Falls back to returning [newUrl] alone if [oldUrl] can't be found
-     * verbatim in [text] (e.g. detection trimmed trailing punctuation around it).
+     * Replaces the first detected URL equal to [oldUrl], preserving surrounding text.
+     * Uses the detected position so matching text inside an email or another URL stays unchanged.
+     * Returns [newUrl] alone if no detected URL matches.
      */
     fun spliceUrl(text: String, oldUrl: String, newUrl: String): String {
-        val index = text.indexOf(oldUrl)
-        if (index == -1) return newUrl
+        val index = findUrlMatches(text).firstOrNull { it.url == oldUrl }?.start ?: return newUrl
         return text.substring(0, index) + newUrl + text.substring(index + oldUrl.length)
     }
 }

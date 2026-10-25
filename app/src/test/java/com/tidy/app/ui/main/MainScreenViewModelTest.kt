@@ -158,6 +158,16 @@ class MainScreenViewModelTest {
     }
 
     @Test
+    fun sharedMessagePreservesAnEmailBeforeTheDetectedUrl() = runTest {
+        viewModel.cleanUrl("Email user@example.com then visit (example.com).", isShared = true)
+        viewModel.uiState.first { !it.isLoading }
+        assertEquals(
+            "Email user@example.com then visit (https://example.com).",
+            viewModel.uiState.value.outputText
+        )
+    }
+
+    @Test
     fun sharedMessageSurvivesRuleRefreshAndExpansion() = runTest {
         val original = "example.com/page?fbclid=private"
         val message = "Read $original, please."

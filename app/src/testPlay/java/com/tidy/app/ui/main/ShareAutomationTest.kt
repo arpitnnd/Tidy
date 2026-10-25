@@ -58,7 +58,8 @@ class ShareAutomationTest {
             HistoryRepository(testFile = File(folder.root, "history.json"))
         )
         try {
-            val message = "  Read https://example.com/page?fbclid=private, please.  "
+            val message =
+                "  Email user@example.com/page?fbclid=private then read (example.com/page?fbclid=private), please.  "
             for ((tier, close, expected) in listOf(
                 Triple(
                     ShareCleanTier.CLEAN_AND_COPY,
@@ -90,7 +91,7 @@ class ShareAutomationTest {
                 }
                 assertEquals(message, source)
                 assertEquals(
-                    "  Read https://example.com/page, please.  ",
+                    "  Email user@example.com/page?fbclid=private then read (https://example.com/page), please.  ",
                     viewModel.uiState.value.outputText
                 )
                 assertEquals(

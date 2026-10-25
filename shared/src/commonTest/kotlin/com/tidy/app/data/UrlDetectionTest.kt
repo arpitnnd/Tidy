@@ -117,6 +117,36 @@ class UrlDetectionTest {
     }
 
     @Test
+    fun splicingUsesTheDetectedPositionAfterAnEmail() {
+        val source = "Email user@example.com then visit [(example.com)], then example.com"
+        assertEquals(
+            "Email user@example.com then visit [(https://example.com)], then example.com",
+            UrlDetection.spliceUrl(
+                source,
+                UrlDetection.findFirstUrl(source)!!,
+                "https://example.com"
+            )
+        )
+    }
+
+    @Test
+    fun splicingDoesNotReplacePartOfAnotherUrl() {
+        val source = "https://other.org/example.com then example.com"
+        assertEquals(
+            "https://other.org/example.com then https://example.com",
+            UrlDetection.spliceUrl(source, "example.com", "https://example.com")
+        )
+    }
+
+    @Test
+    fun splicingFallsBackWhenOnlyAnEmailContainsTheUrl() {
+        assertEquals(
+            "https://example.com",
+            UrlDetection.spliceUrl("Email user@example.com", "example.com", "https://example.com")
+        )
+    }
+
+    @Test
     fun normalizeAddsSchemeOnlyWhenMissing() {
         assertEquals("https://example.com", UrlDetection.normalize("example.com"))
         assertEquals("https://example.com", UrlDetection.normalize("  example.com "))
