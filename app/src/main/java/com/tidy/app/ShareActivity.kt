@@ -11,7 +11,11 @@ class ShareActivity : Activity() {
         super.onCreate(savedInstanceState)
         try {
             if (intent.action == Intent.ACTION_SEND && intent.type == "text/plain") {
-                val sharedText = intent.getStringExtra(Intent.EXTRA_TEXT) ?: return
+                val sharedText = try {
+                    intent.getCharSequenceExtra(Intent.EXTRA_TEXT)?.toString()
+                } catch (_: RuntimeException) {
+                    null
+                } ?: return
                 startActivity(Intent(this, MainActivity::class.java).apply {
                     action = Intent.ACTION_SEND
                     type = "text/plain"

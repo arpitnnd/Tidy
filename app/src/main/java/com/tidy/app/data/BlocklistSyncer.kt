@@ -39,6 +39,9 @@ object BlocklistSyncer {
         force: Boolean = false
     ): SyncResult = syncMutex.withLock {
         withContext(Dispatchers.IO) {
+            if (!force && !settingsRepository.firstLaunchDone.first()) {
+                return@withContext SyncResult.Skipped
+            }
             val lastSuccessfulCheck = settingsRepository.blocklistLastSuccessfulCheckTime.first()
             val now = System.currentTimeMillis()
 

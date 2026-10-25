@@ -3,12 +3,19 @@
 
     <uses-permission android:name="android.permission.INTERNET" />
 
+    <queries>
+        <intent>
+            <action android:name="android.support.customtabs.action.CustomTabsService" />
+        </intent>
+    </queries>
+
     <application
         android:name=".TidyApp"
         android:allowBackup="true"
         android:backupAgent=".data.TidyBackupAgent"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
+        android:fullBackupOnly="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
@@ -43,7 +50,7 @@
             android:name=".data.TidyTileService"
             android:exported="true"
             android:icon="@drawable/ic_launcher_monochrome"
-            android:label="Tidy Clipboard"
+            android:label="@string/clipboard_tile_label"
             android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">
             <intent-filter>
                 <action android:name="android.service.quicksettings.action.QS_TILE" />

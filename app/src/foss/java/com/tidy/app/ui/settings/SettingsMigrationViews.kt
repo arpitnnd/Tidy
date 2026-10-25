@@ -1,13 +1,18 @@
 package com.tidy.app.ui.settings
 
 import android.content.Intent
-import android.net.Uri
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlexAlignItems
+import androidx.compose.foundation.layout.FlexBox
+import androidx.compose.foundation.layout.FlexBoxConfig
+import androidx.compose.foundation.layout.FlexWrap
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -53,9 +58,11 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -68,7 +75,12 @@ import com.tidy.app.TidyApp
 import com.tidy.app.data.PlusFeature
 import com.tidy.app.ui.components.AppIconBox
 import com.tidy.app.ui.components.FeatureRow
+import com.tidy.app.ui.components.StatusBadge
 import com.tidy.app.ui.components.TidyModalBottomSheet
+import com.tidy.designsystem.hasLightSurfaces
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import kotlinx.coroutines.launch
 import java.io.File
 
@@ -84,7 +96,6 @@ object SettingsMigrationViews {
         )
 
         var showFollowup by remember { mutableStateOf(false) }
-        var showComingSoonSheet by remember { mutableStateOf(false) }
 
         LaunchedEffect(Unit) {
             val playInstalled = try {
@@ -99,6 +110,24 @@ object SettingsMigrationViews {
             showFollowup = playInstalled && isBackupOld && !dismissed
         }
 
+        val scope = rememberCoroutineScope()
+        UpgradePromptRow(onUpgradeClick, showFollowup) {
+            scope.launch {
+                settingsRepository.setMigrationFollowupDismissed(true)
+                showFollowup = false
+            }
+        }
+    }
+
+    @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
+    @Composable
+    fun UpgradePromptRow(
+        onUpgradeClick: () -> Unit,
+        showFollowup: Boolean,
+        onDismissFollowup: () -> Unit = {}
+    ) {
+        val context = LocalContext.current
+        var showComingSoonSheet by remember { mutableStateOf(false) }
         val isAvailable = com.tidy.app.BuildConfig.TIDY_PLUS_AVAILABLE
 
         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -114,91 +143,83 @@ object SettingsMigrationViews {
                 shape = RoundedCornerShape(20.dp),
                 colors = CardDefaults.cardColors(
                     containerColor = if (isAvailable) {
-                        MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f)
+                        MaterialTheme.colorScheme.primaryContainer
                     } else {
-                        MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.38f)
+                        MaterialTheme.colorScheme.surfaceVariant
                     }
                 ),
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Row(
-                    modifier = Modifier
-                        .padding(16.dp)
-                        .fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(16.dp)
+                BoxWithConstraints(
+                    modifier = Modifier.padding(16.dp).fillMaxWidth()
                 ) {
-                    Box(
-                        modifier = Modifier
-                            .size(48.dp)
-                            .clip(RoundedCornerShape(12.dp))
-                            .background(
-                                if (isAvailable) {
-                                    MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
+                    val stackContent = maxWidth / LocalDensity.current.fontScale < 160.dp
+                    val leadingIcon: @Composable () -> Unit = {
+                        Box(
+                            modifier = Modifier
+                                .size(48.dp)
+                                .clip(RoundedCornerShape(12.dp))
+                                .background(
+                                    if (isAvailable) {
+                                        MaterialTheme.colorScheme.primaryContainer
+                                    } else {
+                                        MaterialTheme.colorScheme.onSurface.copy(alpha = 0.06f)
+                                            .compositeOver(MaterialTheme.colorScheme.surface)
+                                    }
+                                ),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.Filled.Star,
+                                contentDescription = null,
+                                tint = if (isAvailable) {
+                                    MaterialTheme.colorScheme.primary
                                 } else {
-                                    MaterialTheme.colorScheme.onSurface.copy(alpha = 0.06f)
-                                }
-                            ),
-                        contentAlignment = Alignment.Center
-                    ) {
+                                    MaterialTheme.colorScheme.onSurfaceVariant
+                                },
+                                modifier = Modifier.size(24.dp)
+                            )
+                        }
+                    }
+                    val trailingIcon: @Composable () -> Unit = {
                         Icon(
-                            imageVector = Icons.Filled.Star,
+                            imageVector = Icons.Filled.ChevronRight,
                             contentDescription = null,
                             tint = if (isAvailable) {
-                                MaterialTheme.colorScheme.primary
+                                MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
                             } else {
-                                MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
-                            },
-                            modifier = Modifier.size(24.dp)
+                                MaterialTheme.colorScheme.onSurfaceVariant
+                            }
                         )
                     }
-
-                    Column(modifier = Modifier.weight(1f)) {
+                    if (stackContent) {
+                        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                leadingIcon()
+                                trailingIcon()
+                            }
+                            UpgradePromptText(isAvailable)
+                        }
+                    } else {
                         Row(
+                            modifier = Modifier.fillMaxWidth(),
                             verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            horizontalArrangement = Arrangement.spacedBy(16.dp)
                         ) {
-                            Text(
-                                text = stringResource(R.string.settings_tidy_plus_get_title),
-                                style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.Bold,
-                                color = if (isAvailable) {
-                                    MaterialTheme.colorScheme.onPrimaryContainer
-                                } else {
-                                    MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
-                                }
-                            )
-                            if (!isAvailable) {
-                                ComingSoonBadge()
-                            }
+                            leadingIcon()
+                            UpgradePromptText(isAvailable, Modifier.weight(1f))
+                            trailingIcon()
                         }
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Text(
-                            text = stringResource(R.string.settings_tidy_plus_upgrade_desc),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = if (isAvailable) {
-                                MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
-                            } else {
-                                MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.38f)
-                            }
-                        )
                     }
-
-                    Icon(
-                        imageVector = Icons.Filled.ChevronRight,
-                        contentDescription = null,
-                        tint = if (isAvailable) {
-                            MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
-                        } else {
-                            MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
-                        }
-                    )
                 }
             }
 
             // Optional Follow-up Banner
             AnimatedVisibility(visible = showFollowup) {
-                val scope = rememberCoroutineScope()
                 Card(
                     shape = RoundedCornerShape(16.dp),
                     colors = CardDefaults.cardColors(
@@ -245,10 +266,7 @@ object SettingsMigrationViews {
                             )
                         }
                         IconButton(onClick = {
-                            scope.launch {
-                                settingsRepository.setMigrationFollowupDismissed(true)
-                                showFollowup = false
-                            }
+                            onDismissFollowup()
                         }) {
                             Icon(
                                 imageVector = Icons.Filled.Close,
@@ -266,18 +284,51 @@ object SettingsMigrationViews {
         }
     }
 
+    @OptIn(ExperimentalLayoutApi::class)
     @Composable
-    private fun ComingSoonBadge() {
-        Surface(
-            shape = RoundedCornerShape(12.dp),
-            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f)
-        ) {
+    private fun UpgradePromptText(isAvailable: Boolean, modifier: Modifier = Modifier) {
+        Column(modifier = modifier) {
+            FlexBox(
+                modifier = Modifier.fillMaxWidth(),
+                config = FlexBoxConfig {
+                    wrap(FlexWrap.Wrap)
+                    alignItems(FlexAlignItems.Center)
+                    columnGap(8.dp)
+                    rowGap(4.dp)
+                }
+            ) {
+                Text(
+                    text = stringResource(R.string.settings_tidy_plus_get_title),
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = if (isAvailable) {
+                        MaterialTheme.colorScheme.onPrimaryContainer
+                    } else {
+                        MaterialTheme.colorScheme.onSurface
+                    }
+                )
+                if (!isAvailable) {
+                    StatusBadge(
+                        text = stringResource(R.string.settings_coming_soon_badge),
+                        containerColor = if (MaterialTheme.colorScheme.hasLightSurfaces) {
+                            MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.18f)
+                                .compositeOver(MaterialTheme.colorScheme.surfaceVariant)
+                        } else {
+                            MaterialTheme.colorScheme.surfaceContainerLowest
+                        },
+                        contentColor = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+            Spacer(modifier = Modifier.height(4.dp))
             Text(
-                text = stringResource(R.string.settings_coming_soon_badge),
-                style = MaterialTheme.typography.labelSmall,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
-                modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
+                text = stringResource(R.string.settings_tidy_plus_upgrade_desc),
+                style = MaterialTheme.typography.bodySmall,
+                color = if (isAvailable) {
+                    MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
+                } else {
+                    MaterialTheme.colorScheme.onSurfaceVariant
+                }
             )
         }
     }
@@ -365,10 +416,7 @@ object SettingsMigrationViews {
                             item {
                                 // Icon / Logo Box (matching Welcome Intro design)
                                 AppIconBox(
-                                    icon = Icons.Outlined.CleaningServices,
-                                    boxSize = 48.dp,
-                                    iconSize = 24.dp,
-                                    cornerRadius = 12.dp
+                                    icon = Icons.Outlined.CleaningServices
                                 )
                             }
 
@@ -448,7 +496,7 @@ object SettingsMigrationViews {
                                 // Ideology Card: One-time fee vs recurring subscription
                                 Surface(
                                     shape = RoundedCornerShape(16.dp),
-                                    color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.35f),
+                                    color = MaterialTheme.colorScheme.secondaryContainer,
                                     border = androidx.compose.foundation.BorderStroke(
                                         width = 1.dp,
                                         color = MaterialTheme.colorScheme.secondary.copy(alpha = 0.15f)
@@ -540,9 +588,7 @@ object SettingsMigrationViews {
                                     Card(
                                         shape = RoundedCornerShape(12.dp),
                                         colors = CardDefaults.cardColors(
-                                            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(
-                                                alpha = 0.5f
-                                            )
+                                            containerColor = MaterialTheme.colorScheme.surfaceVariant
                                         ),
                                         modifier = Modifier.fillMaxWidth()
                                     ) {
@@ -562,22 +608,49 @@ object SettingsMigrationViews {
                                 item {
                                     Button(
                                         onClick = {
-                                            val uri = FileProvider.getUriForFile(
-                                                context,
-                                                "${context.packageName}.fileprovider",
-                                                file
-                                            )
-                                            val shareIntent = Intent(Intent.ACTION_SEND).apply {
-                                                type = "application/json"
-                                                putExtra(Intent.EXTRA_STREAM, uri)
-                                                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                                            scope.launch {
+                                                try {
+                                                    val sharedFile = withContext(Dispatchers.IO) {
+                                                        val sharingDirectory = File(
+                                                            context.cacheDir, "migration_backups"
+                                                        ).apply { mkdirs() }
+                                                        val sharedFile =
+                                                            File(
+                                                                sharingDirectory,
+                                                                "TidyBackup.json"
+                                                            )
+                                                        file.copyTo(sharedFile, overwrite = true)
+                                                        sharedFile
+                                                    }
+                                                    val uri = FileProvider.getUriForFile(
+                                                        context,
+                                                        "${context.packageName}.fileprovider",
+                                                        sharedFile
+                                                    )
+                                                    val shareIntent =
+                                                        Intent(Intent.ACTION_SEND).apply {
+                                                            type = "application/json"
+                                                            putExtra(Intent.EXTRA_STREAM, uri)
+                                                            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                                                        }
+                                                    context.startActivity(
+                                                        Intent.createChooser(
+                                                            shareIntent,
+                                                            shareChooserTitle
+                                                        )
+                                                    )
+                                                } catch (e: CancellationException) {
+                                                    throw e
+                                                } catch (e: Exception) {
+                                                    snackbarHostState.showSnackbar(
+                                                        backupFailedTemplate.format(
+                                                            com.tidy.app.data.errorDetail(
+                                                                e.message
+                                                            )
+                                                        )
+                                                    )
+                                                }
                                             }
-                                            context.startActivity(
-                                                Intent.createChooser(
-                                                    shareIntent,
-                                                    shareChooserTitle
-                                                )
-                                            )
                                         },
                                         modifier = Modifier.fillMaxWidth(),
                                         shape = RoundedCornerShape(16.dp),
@@ -605,7 +678,8 @@ object SettingsMigrationViews {
                                             context.startActivity(playIntent)
                                         } catch (e: Exception) {
                                             val webIntent = Intent(Intent.ACTION_VIEW).apply {
-                                                data = "https://play.google.com/store/apps/details?id=$playId".toUri()
+                                                data =
+                                                    "https://play.google.com/store/apps/details?id=$playId".toUri()
                                                 addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                                             }
                                             context.startActivity(webIntent)

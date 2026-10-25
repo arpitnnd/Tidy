@@ -8,6 +8,7 @@ import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.test.platform.app.InstrumentationRegistry
 import com.tidy.app.TidyApp
+import com.tidy.app.theme.TidyTheme
 import kotlinx.coroutines.runBlocking
 import org.junit.Before
 import org.junit.Rule
@@ -31,12 +32,14 @@ class MainScreenTest {
         runBlocking { TidyApp.instance.settingsRepository.setFirstLaunchDone() }
 
         composeTestRule.setContent {
-            MainScreen(
-                sharedUrl = null,
-                crashReportText = null,
-                onSettingsClick = {},
-                onHistoryClick = {}
-            )
+            TidyTheme {
+                MainScreen(
+                    sharedText = null,
+                    crashReportText = null,
+                    onSettingsClick = {},
+                    onHistoryClick = {}
+                )
+            }
         }
     }
 

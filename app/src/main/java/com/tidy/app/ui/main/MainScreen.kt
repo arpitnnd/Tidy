@@ -13,46 +13,45 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.animation.scaleIn
-import androidx.compose.animation.scaleOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.TransformOrigin
-import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
-import androidx.compose.ui.input.nestedscroll.NestedScrollSource
-import androidx.compose.ui.unit.Velocity
-import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlexAlignItems
+import androidx.compose.foundation.layout.FlexBox
+import androidx.compose.foundation.layout.FlexBoxConfig
+import androidx.compose.foundation.layout.FlexJustifyContent
+import androidx.compose.foundation.layout.FlexWrap
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.displayCutout
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.navigationBarsPadding
-import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.union
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.style.CommonStyle
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
@@ -71,12 +70,9 @@ import androidx.compose.material.icons.outlined.CloudOff
 import androidx.compose.material.icons.outlined.ContentPaste
 import androidx.compose.material.icons.outlined.History
 import androidx.compose.material.icons.outlined.Tune
-import androidx.compose.material3.AssistChip
-import androidx.compose.material3.AssistChipDefaults
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledIconButton
@@ -95,7 +91,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.VerticalDivider
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -108,20 +103,27 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalMediaQueryApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.derivedMediaQuery
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.TransformOrigin
+import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.graphics.lerp as lerpColor
+import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
+import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -129,9 +131,8 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Velocity
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.lerp
-import androidx.compose.ui.unit.sp
 import androidx.core.net.toUri
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
@@ -144,13 +145,21 @@ import com.tidy.app.TidyApp
 import com.tidy.app.data.HistoryRepository
 import com.tidy.app.data.UrlCleaner
 import com.tidy.app.data.UrlDetection
+import com.tidy.app.data.trackerDescriptionFor
+import com.tidy.app.theme.TidyCardTokens
 import com.tidy.app.ui.components.ArrowsOutward
+import com.tidy.app.ui.components.CleanStatusBadge
 import com.tidy.app.ui.components.CrashReportBottomSheet
 import com.tidy.app.ui.components.FeatureRow
 import com.tidy.app.ui.components.ParamDetailBottomSheet
+import com.tidy.app.ui.components.RemovedParameterChip
 import com.tidy.app.ui.components.TidyModalBottomSheet
 import com.tidy.app.ui.components.TooltipWrapper
 import com.tidy.app.ui.components.shimmer
+import com.tidy.designsystem.TidyComponentStyles
+import com.tidy.designsystem.TidyStyle
+import com.tidy.designsystem.TidyStyledCard
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -168,7 +177,7 @@ private val BannerExitTransition = fadeOut(tween(BannerAnimDurationMs)) +
 // results Column below), rather than the tighter 12.dp used for spacing within one section.
 private val BannerGap = 16.dp
 
-private const val HomeMorphDurationMs = 480
+private const val HomeMorphDurationMs = 220
 
 private enum class HomeBottomStage {
     Input,
@@ -176,10 +185,14 @@ private enum class HomeBottomStage {
     Actions
 }
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
+@OptIn(
+    ExperimentalMaterial3Api::class,
+    ExperimentalLayoutApi::class,
+    ExperimentalMediaQueryApi::class
+)
 @Composable
 fun MainScreen(
-    sharedUrl: String?,
+    sharedText: String?,
     crashReportText: String?,
     onSettingsClick: () -> Unit,
     onHistoryClick: () -> Unit,
@@ -188,6 +201,72 @@ fun MainScreen(
     showPlusUpsell: Boolean = false
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+    val settings = TidyApp.instance.settingsRepository
+    val dontAskAgainCrash by settings.dontAskAgainCrash.collectAsStateWithLifecycle(initialValue = false)
+    val checkClipboardForLinks by settings.checkClipboardForLinks.collectAsStateWithLifecycle(
+        initialValue = false
+    )
+    val clipboardCalloutDismissed by settings.clipboardCalloutDismissed.collectAsStateWithLifecycle(
+        initialValue = false
+    )
+    val isPlusUnlocked by TidyApp.instance.entitlementManager.isPlusUnlocked.collectAsStateWithLifecycle(
+        initialValue = false
+    )
+    val trackerDescriptions by settings.trackerDescriptions.collectAsStateWithLifecycle(initialValue = emptyMap())
+    MainScreenContent(
+        state = state,
+        sharedText = sharedText,
+        crashReportText = crashReportText,
+        onSettingsClick = onSettingsClick,
+        onHistoryClick = onHistoryClick,
+        modifier = modifier,
+        actions = viewModel,
+        showPlusUpsell = showPlusUpsell,
+        preferences = MainScreenPreferences(
+            dontAskAgainCrash, checkClipboardForLinks, clipboardCalloutDismissed,
+            isPlusUnlocked, trackerDescriptions,
+            settings::setDontAskAgainCrash, settings::setCheckClipboardForLinks,
+            settings::setClipboardCalloutDismissed,
+            cleanBulkUrls = { urls ->
+                val whitelist = settings.whitelistedDomains.first()
+                val customBlacklist = settings.blacklistedParams.first()
+                val domainParams = settings.domainWhitelistedParams.first()
+                val removeMobile = settings.autoRemoveMobileSubdomains.first()
+                val dropTrailingSlash = settings.dropTrailingSlash.first()
+                val trackers = settings.trackers.first()
+                urls.map { url ->
+                    UrlCleaner().clean(
+                        urlStr = url,
+                        whitelistedDomains = whitelist,
+                        customBlacklistParams = customBlacklist,
+                        domainWhitelistedParams = domainParams,
+                        removeMobileSubdomains = removeMobile,
+                        dropTrailingSlash = dropTrailingSlash,
+                        trackers = trackers
+                    ).cleanedUrl
+                }.joinToString("\n")
+            }
+        )
+    )
+}
+
+@OptIn(
+    ExperimentalMaterial3Api::class,
+    ExperimentalLayoutApi::class,
+    ExperimentalMediaQueryApi::class
+)
+@Composable
+internal fun MainScreenContent(
+    state: MainScreenViewModel.UiState,
+    onSettingsClick: () -> Unit,
+    onHistoryClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    actions: MainScreenActions = object : MainScreenActions {},
+    preferences: MainScreenPreferences = MainScreenPreferences(),
+    sharedText: String? = null,
+    crashReportText: String? = null,
+    showPlusUpsell: Boolean = false
+) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
     val activity = context as? android.app.Activity
@@ -197,32 +276,23 @@ fun MainScreen(
     val toastCleanedCopied = stringResource(R.string.toast_cleaned_copied)
     val toastCopied = stringResource(R.string.toast_copied)
     val toastNoBrowserApp = stringResource(R.string.toast_no_browser_app)
+    val cleanedUrlLabel = stringResource(R.string.main_cleaned_url)
+    val cleanedUrlsLabel = stringResource(R.string.clipboard_cleaned_urls)
     val plusToastBulkCleanedTemplate = stringResource(R.string.plus_toast_bulk_cleaned)
     val crashToastCopied = stringResource(R.string.crash_toast_copied)
     val crashToastBrowserError = stringResource(R.string.crash_toast_browser_error)
     val dialogShareCrashTitle = stringResource(R.string.dialog_share_crash_title)
 
-    val settingsRepository = TidyApp.instance.settingsRepository
-    val dontAskAgainCrash by settingsRepository.dontAskAgainCrash.collectAsStateWithLifecycle(
-        initialValue = false
-    )
-    val checkClipboardForLinks by settingsRepository.checkClipboardForLinks.collectAsStateWithLifecycle(
-        initialValue = false
-    )
-    val clipboardCalloutDismissed by settingsRepository.clipboardCalloutDismissed.collectAsStateWithLifecycle(
-        initialValue = false
-    )
-
-    val entitlementManager = TidyApp.instance.entitlementManager
-    val isPlusUnlocked by entitlementManager.isPlusUnlocked.collectAsStateWithLifecycle(initialValue = false)
+    val dontAskAgainCrash = preferences.dontAskAgainCrash
+    val checkClipboardForLinks = preferences.checkClipboardForLinks
+    val clipboardCalloutDismissed = preferences.clipboardCalloutDismissed
+    val isPlusUnlocked = preferences.isPlusUnlocked
     // rememberSaveable, not remember: showPlusUpsell is a constant prop for the Activity's
     // whole lifetime (read once from an intent extra), so a plain remember re-initialised
     // to it on every Settings/History round trip and every rotation, silently reopening a
     // sheet the user had just dismissed.
     var showUpsellSheet by rememberSaveable { mutableStateOf(showPlusUpsell) }
-    val trackerDescriptions by settingsRepository.trackerDescriptions.collectAsStateWithLifecycle(
-        initialValue = emptyMap()
-    )
+    val trackerDescriptions = preferences.trackerDescriptions
 
     var paramToWhitelist by remember { mutableStateOf<String?>(null) }
     val introSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
@@ -243,27 +313,33 @@ fun MainScreen(
         hasShownCrashSheetThisSession = true
     }
 
-    // Clean URL if shared through Android intent. hasHandledThisSharedUrl is rememberSaveable
-    // (keyed on sharedUrl) so it survives Settings/History disposing and recomposing this
+    // Clean URL if shared through Android intent. hasHandledThisSharedText is rememberSaveable
+    // (keyed on sharedText) so it survives Settings/History disposing and recomposing this
     // NavKey entry (without re-cleaning the same shared URL every round-trip) while a
     // genuinely new share still gets its own fresh Main(url) entry and its own fresh flag.
-    var hasHandledThisSharedUrl by rememberSaveable(sharedUrl) { mutableStateOf(false) }
-    LaunchedEffect(sharedUrl) {
-        if (sharedUrl != null && !hasHandledThisSharedUrl) {
-            hasHandledThisSharedUrl = true
-            viewModel.cleanUrl(sharedUrl, isShared = true)
+    var hasHandledThisSharedText by rememberSaveable(sharedText) { mutableStateOf(false) }
+    LaunchedEffect(sharedText) {
+        if (sharedText != null && !hasHandledThisSharedText) {
+            hasHandledThisSharedText = true
+            actions.cleanUrl(sharedText, isShared = true)
         }
     }
 
-    // Debounced manual input auto-clean
+    // Recheck current state after debouncing; programmatic cleans own their input.
+    val latestState by rememberUpdatedState(state)
     LaunchedEffect(state.inputUrl, state.autoCleanOnInput) {
-        if (state.autoCleanOnInput && state.inputUrl.isNotEmpty()) {
-            val trimmed = state.inputUrl.trim()
-            if (UrlDetection.looksLikeUrl(trimmed) && trimmed != state.originalUrl && trimmed != state.cleanedUrl && trimmed != state.expandedUrl) {
-                delay(400.milliseconds)
-                if (trimmed != state.originalUrl && trimmed != state.cleanedUrl && trimmed != state.expandedUrl) {
-                    viewModel.cleanUrl(trimmed)
-                }
+        val input = state.inputUrl.trim()
+        if (state.autoCleanOnInput && !state.isLoading && !state.isExpanding &&
+            state.sourceSharedText == null && UrlDetection.looksLikeUrl(input) &&
+            input != state.originalUrl && input != state.cleanedUrl && input != state.expandedUrl
+        ) {
+            delay(400.milliseconds)
+            val current = latestState
+            if (current.autoCleanOnInput && !current.isLoading && !current.isExpanding &&
+                current.sourceSharedText == null && current.inputUrl.trim() == input &&
+                input != current.originalUrl && input != current.cleanedUrl && input != current.expandedUrl
+            ) {
+                actions.cleanUrl(input)
             }
         }
     }
@@ -271,8 +347,8 @@ fun MainScreen(
     // Collect and handle automation events. The shared skip rule is applied once
     // here for every automation path: if the cleaned result is already exactly
     // what's on the clipboard, nothing happens at all.
-    LaunchedEffect(viewModel.automationEvents) {
-        viewModel.automationEvents.collect { event ->
+    LaunchedEffect(actions.automationEvents) {
+        actions.automationEvents.collect { event ->
             val clipboard =
                 context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
             val cleanedUrl = when (event) {
@@ -286,7 +362,7 @@ fun MainScreen(
                 is MainScreenViewModel.AutomationAction.CopyAndClose -> event.sourceClipText
             }
             val currentClip = try {
-                clipboard.primaryClip?.getItemAt(0)?.text?.toString()?.trim()
+                clipboard.primaryClip?.getItemAt(0)?.text?.toString()
             } catch (e: Exception) {
                 null
             }
@@ -307,7 +383,7 @@ fun MainScreen(
             // input would silently produce different outcomes depending on invisible
             // clipboard state.
             if (newClipText != currentClip) {
-                val clip = android.content.ClipData.newPlainText("Cleaned URL", newClipText)
+                val clip = android.content.ClipData.newPlainText(cleanedUrlLabel, newClipText)
                 clipboard.setPrimaryClip(clip)
                 android.widget.Toast.makeText(
                     context,
@@ -320,7 +396,7 @@ fun MainScreen(
                 is MainScreenViewModel.AutomationAction.CopyAndShare -> {
                     // Deliberately a plain, predictable share sheet: if it lists Tidy
                     // itself and the user picks it again, that's expected.
-                    viewModel.shareUrl(context)
+                    actions.shareText(context, newClipText)
                 }
 
                 is MainScreenViewModel.AutomationAction.CopyAndClose -> {
@@ -329,6 +405,20 @@ fun MainScreen(
                     activity?.finishAndRemoveTask()
                 }
             }
+        }
+    }
+
+    val expansionNetworkError = stringResource(R.string.main_expand_network_error)
+    val historySaveFailed = stringResource(R.string.history_save_failed)
+    LaunchedEffect(state.historySaveFailed) {
+        if (state.historySaveFailed) snackbarHostState.showSnackbar(historySaveFailed)
+    }
+    val expansionError = stringResource(R.string.main_expand_error)
+    LaunchedEffect(actions) {
+        actions.expansionFailures.collect { failure ->
+            snackbarHostState.showSnackbar(
+                if (failure == MainScreenViewModel.ExpansionFailure.Network) expansionNetworkError else expansionError
+            )
         }
     }
 
@@ -343,7 +433,7 @@ fun MainScreen(
         } catch (_: Exception) {
             null
         }
-        viewModel.checkClipboardText(text)
+        actions.checkClipboardText(text)
         hasCompletedInitialClipboardCheck = true
     }
 
@@ -354,16 +444,24 @@ fun MainScreen(
     // distinguishes "just returned" from "genuinely resumed"; both call this the same way.
     // That's deliberate: checkClipboardText's own dedup (comparing against what's already
     // displayed) is what keeps this predictable, not a guess at the lifecycle event.
-    DisposableEffect(lifecycleOwner) {
+    val windowInfo = LocalWindowInfo.current
+    DisposableEffect(lifecycleOwner, windowInfo) {
+        var clipboardCheckJob: Job? = null
         val observer = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_RESUME) {
-                scope.launch {
+                clipboardCheckJob?.cancel()
+                clipboardCheckJob = scope.launch {
+                    // Android can resume the activity before granting clipboard access.
+                    snapshotFlow { windowInfo.isWindowFocused }.first { it }
                     checkClipboard()
                 }
+            } else if (event == Lifecycle.Event.ON_PAUSE) {
+                clipboardCheckJob?.cancel()
             }
         }
         lifecycleOwner.lifecycle.addObserver(observer)
         onDispose {
+            clipboardCheckJob?.cancel()
             lifecycleOwner.lifecycle.removeObserver(observer)
         }
     }
@@ -388,7 +486,7 @@ fun MainScreen(
             null
         }
         scope.launch {
-            viewModel.clearAndCheckClipboard(text)
+            actions.clearAndCheckClipboard(text)
         }
     }
     var showUpperLoading by remember { mutableStateOf(false) }
@@ -397,9 +495,6 @@ fun MainScreen(
             delay(32)
             showUpperLoading = state.isLoading
         } else {
-            if (showUpperLoading) {
-                delay(180)
-            }
             showUpperLoading = false
         }
     }
@@ -412,10 +507,14 @@ fun MainScreen(
         }
     }
 
-    val nestedScrollConnection = remember {
+    val compactWindow by derivedMediaQuery { windowHeight < 480.dp }
+    val canCollapseHero by rememberUpdatedState(
+        !compactWindow && !state.isCleaned && !state.isLoading
+    )
+    val nestedScrollConnection = remember(scrollThresholdPx) {
         object : NestedScrollConnection {
             override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
-                if (state.isCleaned || state.isLoading) return Offset.Zero
+                if (!canCollapseHero) return Offset.Zero
                 val delta = available.y
                 if (delta < 0 && scrollOffset < scrollThresholdPx) {
                     val newOffset = (scrollOffset - delta).coerceIn(0f, scrollThresholdPx)
@@ -433,7 +532,7 @@ fun MainScreen(
             }
 
             override suspend fun onPreFling(available: Velocity): Velocity {
-                if (state.isCleaned || state.isLoading) return Velocity.Zero
+                if (!canCollapseHero) return Velocity.Zero
                 if (available.y < -300f || scrollOffset > scrollThresholdPx / 2) {
                     animate(scrollOffset, scrollThresholdPx) { value, _ -> scrollOffset = value }
                 } else {
@@ -444,17 +543,17 @@ fun MainScreen(
         }
     }
 
-    val targetCollapseFraction by remember {
+    val scrollCollapseFraction by remember(scrollThresholdPx) {
         derivedStateOf {
-            if (state.isCleaned || showUpperLoading) {
-                1f
-            } else {
-                (scrollOffset / scrollThresholdPx).coerceIn(0f, 1f)
-            }
+            (scrollOffset / scrollThresholdPx).coerceIn(0f, 1f)
         }
     }
     val collapseFraction by animateFloatAsState(
-        targetValue = targetCollapseFraction,
+        targetValue = if (compactWindow || state.isCleaned || showUpperLoading) {
+            1f
+        } else {
+            scrollCollapseFraction
+        },
         animationSpec = tween(
             durationMillis = 320,
             easing = FastOutSlowInEasing
@@ -482,10 +581,12 @@ fun MainScreen(
         HomeBottomStage.Input
     }
     var retainedInputState by remember { mutableStateOf(state) }
+    var retainedResultState by remember { mutableStateOf(state) }
     SideEffect {
         if (bottomStage == HomeBottomStage.Input) {
             retainedInputState = state
         }
+        if (state.isCleaned) retainedResultState = state
     }
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },
@@ -559,7 +660,10 @@ fun MainScreen(
                             )
                         },
                         modifier = Modifier
-                            .navigationBarsPadding()
+                            .windowInsetsPadding(
+                                WindowInsets.navigationBars.union(WindowInsets.displayCutout)
+                                    .only(WindowInsetsSides.Horizontal + WindowInsetsSides.Bottom)
+                            )
                             .padding(horizontal = 20.dp)
                             .padding(top = 22.dp, bottom = 18.dp)
                             .fillMaxWidth(),
@@ -571,7 +675,7 @@ fun MainScreen(
                                     ClipboardActionBanner(
                                         url = url,
                                         onActionClick = {
-                                            viewModel.cleanUrl(
+                                            actions.cleanUrl(
                                                 url,
                                                 copyResultToClipboard = state.suggestionCopiesOnClean
                                             )
@@ -613,7 +717,7 @@ fun MainScreen(
                                         ) {
                                             Button(
                                                 onClick = {
-                                                    viewModel.copyToClipboard(context)
+                                                    actions.copyToClipboard(context)
                                                     scope.launch {
                                                         snackbarHostState.showSnackbar(toastCopied)
                                                     }
@@ -657,7 +761,7 @@ fun MainScreen(
                                             modifier = Modifier.fillMaxWidth()
                                         ) {
                                             Button(
-                                                onClick = { viewModel.shareUrl(context) },
+                                                onClick = { actions.shareUrl(context) },
                                                 modifier = Modifier.fillMaxWidth(),
                                                 shape = RoundedCornerShape(16.dp),
                                                 colors = ButtonDefaults.buttonColors(
@@ -695,7 +799,7 @@ fun MainScreen(
                                         ClipboardCalloutBanner(
                                             onEnable = {
                                                 scope.launch {
-                                                    settingsRepository.setCheckClipboardForLinks(
+                                                    preferences.setCheckClipboardForLinks(
                                                         true
                                                     )
                                                 }
@@ -703,7 +807,7 @@ fun MainScreen(
                                             },
                                             onDismiss = {
                                                 scope.launch {
-                                                    settingsRepository.setClipboardCalloutDismissed(
+                                                    preferences.setClipboardCalloutDismissed(
                                                         true
                                                     )
                                                 }
@@ -740,7 +844,7 @@ fun MainScreen(
                                     } else {
                                         state
                                     },
-                                    viewModel = viewModel,
+                                    actions = actions,
                                     onClear = clearAndCheckClipboard
                                 )
                             }
@@ -754,8 +858,7 @@ fun MainScreen(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues)
-                .padding(horizontal = 16.dp),
+                .padding(paddingValues),
             contentAlignment = Alignment.TopCenter
         ) {
             var titleWidthPx by remember { mutableIntStateOf(0) }
@@ -763,7 +866,7 @@ fun MainScreen(
 
             // --- THE PHYSICAL SHARED BRAND ELEMENT (LOGO + TITLE) ---
             BoxWithConstraints(
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)
             ) {
                 val screenWidthPx = constraints.maxWidth.toFloat()
                 val density = LocalDensity.current
@@ -821,6 +924,7 @@ fun MainScreen(
                         .clip(RoundedCornerShape(22.dp))
                         .background(
                             MaterialTheme.colorScheme.primaryContainer.copy(alpha = logoBgAlpha)
+                                .compositeOver(MaterialTheme.colorScheme.background)
                         ),
                     contentAlignment = Alignment.Center
                 ) {
@@ -837,7 +941,7 @@ fun MainScreen(
                     text = stringResource(R.string.welcome_title),
                     style = MaterialTheme.typography.headlineMedium,
                     fontWeight = FontWeight.ExtraBold,
-                    color = MaterialTheme.colorScheme.onBackground,
+                    color = MaterialTheme.colorScheme.primary,
                     modifier = Modifier
                         .onGloballyPositioned { coordinates ->
                             titleWidthPx = coordinates.size.width
@@ -859,381 +963,322 @@ fun MainScreen(
                 targetState = state.isCleaned || showUpperLoading,
                 transitionSpec = {
                     if (targetState) {
-                        (fadeIn(tween(HomeMorphDurationMs, delayMillis = 80)) +
-                                slideInVertically(tween(HomeMorphDurationMs)) { it * 3 }) togetherWith
-                                (fadeOut(tween(220)) +
-                                        slideOutVertically(tween(HomeMorphDurationMs)) { -it / 3 })
+                        (fadeIn(tween(HomeMorphDurationMs)) +
+                                slideInVertically(tween(HomeMorphDurationMs)) { it / 16 }) togetherWith
+                                fadeOut(tween(120))
                     } else {
-                        fadeIn(tween(200, delayMillis = 30)) togetherWith
+                        fadeIn(tween(160)) togetherWith
                                 fadeOut(tween(140))
                     }
                 },
+                modifier = Modifier.fillMaxSize(),
                 label = "homeContentMorph"
             ) { showResult ->
                 if (showResult) {
-                    // Unified Results Card Container (Morphs smoothly between Loading and Cleaned Result)
-                    Column(
+                    val resultState =
+                        if (state.isCleaned || showUpperLoading) state else retainedResultState
+                    Box(
                         modifier = Modifier
-                            .fillMaxHeight()
-                            .widthIn(max = 650.dp)
-                            .verticalScroll(rememberScrollState()),
-                        verticalArrangement = Arrangement.spacedBy(16.dp)
+                            .fillMaxSize()
+                            .verticalScroll(rememberScrollState())
+                            .padding(horizontal = 16.dp),
+                        contentAlignment = Alignment.TopCenter
                     ) {
-                        Spacer(modifier = Modifier.height(12.dp))
-
-                        val showCleanedContent = !showUpperLoading &&
-                                (state.isCleaned || (!state.isLoading && lastResultWasCleaned))
-                        val resultReveal by animateFloatAsState(
-                            targetValue = if (showCleanedContent) 1f else 0f,
-                            animationSpec = tween(360),
-                            label = "resultSurfaceReveal"
-                        )
-                        val loadingContainerColor =
-                            MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
-                        val gradientBrush = Brush.linearGradient(
-                            colors = listOf(
-                                lerpColor(
-                                    loadingContainerColor,
-                                    MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.8f),
-                                    resultReveal
-                                ),
-                                lerpColor(
-                                    loadingContainerColor,
-                                    MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.5f),
-                                    resultReveal
-                                )
-                            )
-                        )
-
-                        Box(
+                        // Unified Results Card Container (Morphs smoothly between Loading and Cleaned Result)
+                        Column(
                             modifier = Modifier
+                                .widthIn(max = 650.dp)
                                 .fillMaxWidth()
-                                .clip(RoundedCornerShape(24.dp))
-                                .background(gradientBrush)
-                                .border(
-                                    width = 1.dp,
-                                    color = lerpColor(
-                                        MaterialTheme.colorScheme.outline.copy(alpha = 0.15f),
-                                        MaterialTheme.colorScheme.primary.copy(alpha = 0.2f),
-                                        resultReveal
-                                    ),
-                                    shape = RoundedCornerShape(24.dp)
-                                )
+                                .padding(top = TidyCardTokens.screenTopSpacing),
+                            verticalArrangement = Arrangement.spacedBy(16.dp)
                         ) {
-                            Column(modifier = Modifier.fillMaxWidth()) {
-                                if (!showCleanedContent) {
-                                    // Loading Content inside the Unified Card
-                                    Column(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .padding(20.dp),
-                                        verticalArrangement = Arrangement.spacedBy(14.dp)
-                                    ) {
-                                        Row(
-                                            verticalAlignment = Alignment.CenterVertically,
-                                            horizontalArrangement = Arrangement.spacedBy(12.dp),
-                                            modifier = Modifier.fillMaxWidth()
-                                        ) {
-                                            CircularProgressIndicator(
-                                                modifier = Modifier.size(20.dp),
-                                                strokeWidth = 2.dp,
-                                                color = MaterialTheme.colorScheme.primary
-                                            )
-                                            Text(
-                                                text = stringResource(R.string.main_cleaning_url),
-                                                style = MaterialTheme.typography.titleMedium,
-                                                fontWeight = FontWeight.Bold,
-                                                color = MaterialTheme.colorScheme.onSurface
-                                            )
-                                        }
-                                        if (state.inputUrl.isNotBlank()) {
-                                            Text(
-                                                text = state.inputUrl,
-                                                style = MaterialTheme.typography.bodyMedium,
-                                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                                maxLines = 3,
-                                                overflow = TextOverflow.Ellipsis
-                                            )
-                                        }
-                                    }
-                                }
-
-                                if (showCleanedContent) {
-                                    // Cleaned Result Content inside the Unified Card
-                                    var showDetails by remember { mutableStateOf(false) }
-
-                                    Column(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .padding(
-                                                start = 20.dp,
-                                                end = 20.dp,
-                                                top = 20.dp,
-                                                bottom = 12.dp
-                                            ),
-                                        verticalArrangement = Arrangement.spacedBy(14.dp)
-                                    ) {
-                                        Row(
-                                            horizontalArrangement = Arrangement.SpaceBetween,
-                                            verticalAlignment = Alignment.CenterVertically,
-                                            modifier = Modifier.fillMaxWidth()
-                                        ) {
-                                            Text(
-                                                text = stringResource(R.string.main_cleaned_url),
-                                                style = MaterialTheme.typography.titleMedium,
-                                                fontWeight = FontWeight.Bold,
-                                                color = MaterialTheme.colorScheme.onPrimaryContainer
-                                            )
-
-                                            val removedCount = state.removedParams.size
-                                            val badgeColor = if (removedCount > 0) {
-                                                MaterialTheme.colorScheme.primaryContainer
-                                            } else {
-                                                MaterialTheme.colorScheme.surfaceVariant
-                                            }
-                                            val badgeTextColor = if (removedCount > 0) {
-                                                MaterialTheme.colorScheme.onPrimaryContainer
-                                            } else {
-                                                MaterialTheme.colorScheme.onSurfaceVariant
-                                            }
-                                            Surface(
-                                                shape = RoundedCornerShape(12.dp),
-                                                color = badgeColor
-                                            ) {
-                                                Text(
-                                                    text = if (removedCount > 0) stringResource(
-                                                        R.string.history_item_removed_count,
-                                                        removedCount
-                                                    ) else stringResource(R.string.history_item_clean),
-                                                    fontWeight = FontWeight.Bold,
-                                                    style = MaterialTheme.typography.labelSmall,
-                                                    color = badgeTextColor,
-                                                    modifier = Modifier.padding(
-                                                        horizontal = 10.dp,
-                                                        vertical = 4.dp
-                                                    )
-                                                )
-                                            }
-                                        }
-
-                                        Row(
-                                            verticalAlignment = Alignment.CenterVertically,
-                                            horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                            modifier = Modifier.fillMaxWidth()
-                                        ) {
-                                            Text(
-                                                text = state.cleanedUrl,
-                                                style = MaterialTheme.typography.bodyMedium,
-                                                fontWeight = FontWeight.SemiBold,
-                                                color = MaterialTheme.colorScheme.onPrimaryContainer,
-                                                maxLines = 5,
-                                                overflow = TextOverflow.Ellipsis,
-                                                modifier = Modifier
-                                                    .weight(1f)
-                                                    .clickable {
-                                                        viewModel.copyToClipboard(context)
-                                                        scope.launch {
-                                                            snackbarHostState.showSnackbar(
-                                                                toastCopied
-                                                            )
-                                                        }
-                                                    }
-                                            )
-                                            if (state.canExpand) {
-                                                TooltipWrapper(tooltipText = stringResource(R.string.main_expand_url)) {
-                                                    IconButton(
-                                                        onClick = { viewModel.expandShortUrl() },
-                                                        enabled = !state.isExpanding,
-                                                        colors = IconButtonDefaults.iconButtonColors(
-                                                            contentColor = MaterialTheme.colorScheme.onPrimaryContainer
-                                                        )
-                                                    ) {
-                                                        if (state.isExpanding) {
-                                                            CircularProgressIndicator(
-                                                                modifier = Modifier.size(20.dp),
-                                                                color = MaterialTheme.colorScheme.onPrimaryContainer,
-                                                                strokeWidth = 2.dp
-                                                            )
-                                                        } else {
-                                                            Icon(
-                                                                imageVector = Icons.Outlined.ArrowsOutward,
-                                                                contentDescription = stringResource(
-                                                                    R.string.main_expand_url
-                                                                )
-                                                            )
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                            TooltipWrapper(tooltipText = stringResource(R.string.tooltip_open_browser)) {
-                                                IconButton(
-                                                    onClick = {
-                                                        try {
-                                                            val intent = Intent(
-                                                                Intent.ACTION_VIEW,
-                                                                state.cleanedUrl.toUri()
-                                                            ).apply {
-                                                                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                                                            }
-                                                            context.startActivity(intent)
-                                                        } catch (e: Exception) {
-                                                            scope.launch {
-                                                                snackbarHostState.showSnackbar(
-                                                                    toastNoBrowserApp
-                                                                )
-                                                            }
-                                                        }
-                                                    },
-                                                    colors = IconButtonDefaults.iconButtonColors(
-                                                        contentColor = MaterialTheme.colorScheme.onPrimaryContainer
-                                                    )
-                                                ) {
-                                                    Icon(
-                                                        imageVector = Icons.AutoMirrored.Filled.OpenInNew,
-                                                        contentDescription = stringResource(R.string.tooltip_open_browser)
-                                                    )
-                                                }
-                                            }
-                                        }
-                                    }
-
-                                    HorizontalDivider(
-                                        color = MaterialTheme.colorScheme.onPrimaryContainer.copy(
-                                            alpha = 0.12f
-                                        ),
-                                        modifier = Modifier.fillMaxWidth()
+                            val showCleanedContent = !showUpperLoading &&
+                                    (state.isCleaned || (!state.isLoading && lastResultWasCleaned))
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clip(RoundedCornerShape(24.dp))
+                                    .background(MaterialTheme.colorScheme.surface)
+                                    .border(
+                                        width = 1.dp,
+                                        color = MaterialTheme.colorScheme.outlineVariant,
+                                        shape = RoundedCornerShape(24.dp)
                                     )
-
-                                    TooltipWrapper(
-                                        tooltipText = stringResource(if (showDetails) R.string.main_hide_details else R.string.main_show_details),
-                                        modifier = Modifier.fillMaxWidth()
-                                    ) {
-                                        Row(
+                            ) {
+                                Column(modifier = Modifier.fillMaxWidth()) {
+                                    if (!showCleanedContent) {
+                                        // Loading Content inside the Unified Card
+                                        Column(
                                             modifier = Modifier
                                                 .fillMaxWidth()
-                                                .clickable { showDetails = !showDetails }
-                                                .padding(horizontal = 20.dp, vertical = 16.dp),
-                                            verticalAlignment = Alignment.CenterVertically,
-                                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                                .padding(20.dp),
+                                            verticalArrangement = Arrangement.spacedBy(14.dp)
                                         ) {
-                                            Icon(
-                                                imageVector = if (showDetails) Icons.Filled.KeyboardArrowUp else Icons.Filled.KeyboardArrowDown,
-                                                contentDescription = null,
-                                                modifier = Modifier.size(24.dp),
-                                                tint = MaterialTheme.colorScheme.onPrimaryContainer.copy(
-                                                    alpha = 0.8f
+                                            Row(
+                                                verticalAlignment = Alignment.CenterVertically,
+                                                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                                                modifier = Modifier.fillMaxWidth()
+                                            ) {
+                                                CircularProgressIndicator(
+                                                    modifier = Modifier.size(20.dp),
+                                                    strokeWidth = 2.dp,
+                                                    color = MaterialTheme.colorScheme.primary
                                                 )
-                                            )
-                                            Text(
-                                                text = if (showDetails) stringResource(R.string.main_hide_details) else stringResource(
-                                                    R.string.main_show_details
-                                                ),
-                                                style = MaterialTheme.typography.labelLarge,
-                                                color = MaterialTheme.colorScheme.onPrimaryContainer.copy(
-                                                    alpha = 0.8f
-                                                ),
-                                                fontWeight = FontWeight.Bold
-                                            )
+                                                Text(
+                                                    text = stringResource(R.string.main_cleaning_url),
+                                                    style = MaterialTheme.typography.titleMedium,
+                                                    fontWeight = FontWeight.Bold,
+                                                    color = MaterialTheme.colorScheme.onSurface
+                                                )
+                                            }
+                                            if (state.inputUrl.isNotBlank()) {
+                                                Text(
+                                                    text = state.inputUrl,
+                                                    style = MaterialTheme.typography.bodyMedium,
+                                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                                    maxLines = 3,
+                                                    overflow = TextOverflow.Ellipsis
+                                                )
+                                            }
                                         }
                                     }
 
-                                    AnimatedVisibility(
-                                        visible = showDetails,
-                                        enter = fadeIn() + expandVertically(),
-                                        exit = fadeOut() + shrinkVertically()
-                                    ) {
+                                    if (showCleanedContent) {
+                                        // Cleaned Result Content inside the Unified Card
+                                        var showDetails by remember { mutableStateOf(false) }
+
                                         Column(
-                                            verticalArrangement = Arrangement.spacedBy(12.dp),
                                             modifier = Modifier
                                                 .fillMaxWidth()
                                                 .padding(
                                                     start = 20.dp,
                                                     end = 20.dp,
-                                                    bottom = 20.dp
-                                                )
+                                                    top = 20.dp,
+                                                    bottom = 12.dp
+                                                ),
+                                            verticalArrangement = Arrangement.spacedBy(14.dp)
                                         ) {
-                                            Column {
+                                            FlowRow(
+                                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                                verticalArrangement = Arrangement.spacedBy(8.dp),
+                                                modifier = Modifier.fillMaxWidth()
+                                            ) {
                                                 Text(
-                                                    text = stringResource(R.string.main_original_url),
-                                                    style = MaterialTheme.typography.labelSmall,
-                                                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(
-                                                        alpha = 0.6f
-                                                    ),
-                                                    fontWeight = FontWeight.Bold
-                                                )
-                                                Spacer(modifier = Modifier.height(2.dp))
-                                                Text(
-                                                    text = state.originalUrl,
-                                                    style = MaterialTheme.typography.bodySmall,
+                                                    text = stringResource(R.string.main_cleaned_url),
+                                                    style = MaterialTheme.typography.titleMedium,
+                                                    fontWeight = FontWeight.Bold,
                                                     color = MaterialTheme.colorScheme.onPrimaryContainer
                                                 )
+
+                                                CleanStatusBadge(resultState.removedParams.size)
                                             }
 
-                                            if (state.expandedUrl != null) {
+                                            Row(
+                                                verticalAlignment = Alignment.CenterVertically,
+                                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                                modifier = Modifier.fillMaxWidth()
+                                            ) {
+                                                Text(
+                                                    text = resultState.cleanedUrl,
+                                                    style = MaterialTheme.typography.bodyMedium,
+                                                    fontWeight = FontWeight.SemiBold,
+                                                    color = MaterialTheme.colorScheme.onPrimaryContainer,
+                                                    maxLines = 5,
+                                                    overflow = TextOverflow.Ellipsis,
+                                                    modifier = Modifier
+                                                        .weight(1f)
+                                                        .clickable {
+                                                            actions.copyToClipboard(context)
+                                                            scope.launch {
+                                                                snackbarHostState.showSnackbar(
+                                                                    toastCopied
+                                                                )
+                                                            }
+                                                        }
+                                                )
+                                                if (resultState.canExpand) {
+                                                    TooltipWrapper(tooltipText = stringResource(R.string.main_expand_url)) {
+                                                        IconButton(
+                                                            onClick = { actions.expandShortUrl() },
+                                                            enabled = !resultState.isExpanding,
+                                                            colors = IconButtonDefaults.iconButtonColors(
+                                                                contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                                                            )
+                                                        ) {
+                                                            if (resultState.isExpanding) {
+                                                                CircularProgressIndicator(
+                                                                    modifier = Modifier.size(20.dp),
+                                                                    color = MaterialTheme.colorScheme.onPrimaryContainer,
+                                                                    strokeWidth = 2.dp
+                                                                )
+                                                            } else {
+                                                                Icon(
+                                                                    imageVector = Icons.Outlined.ArrowsOutward,
+                                                                    contentDescription = stringResource(
+                                                                        R.string.main_expand_url
+                                                                    )
+                                                                )
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                                TooltipWrapper(tooltipText = stringResource(R.string.tooltip_open_browser)) {
+                                                    IconButton(
+                                                        onClick = {
+                                                            try {
+                                                                val intent = Intent(
+                                                                    Intent.ACTION_VIEW,
+                                                                    resultState.cleanedUrl.toUri()
+                                                                ).apply {
+                                                                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                                                                }
+                                                                context.startActivity(intent)
+                                                            } catch (e: Exception) {
+                                                                scope.launch {
+                                                                    snackbarHostState.showSnackbar(
+                                                                        toastNoBrowserApp
+                                                                    )
+                                                                }
+                                                            }
+                                                        },
+                                                        colors = IconButtonDefaults.iconButtonColors(
+                                                            contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                                                        )
+                                                    ) {
+                                                        Icon(
+                                                            imageVector = Icons.AutoMirrored.Filled.OpenInNew,
+                                                            contentDescription = stringResource(R.string.tooltip_open_browser)
+                                                        )
+                                                    }
+                                                }
+                                            }
+                                        }
+
+                                        HorizontalDivider(
+                                            color = MaterialTheme.colorScheme.onPrimaryContainer.copy(
+                                                alpha = 0.12f
+                                            ),
+                                            modifier = Modifier.fillMaxWidth()
+                                        )
+
+                                        TooltipWrapper(
+                                            tooltipText = stringResource(if (showDetails) R.string.main_hide_details else R.string.main_show_details),
+                                            modifier = Modifier.fillMaxWidth()
+                                        ) {
+                                            Row(
+                                                modifier = Modifier
+                                                    .fillMaxWidth()
+                                                    .clickable { showDetails = !showDetails }
+                                                    .padding(horizontal = 20.dp, vertical = 16.dp),
+                                                verticalAlignment = Alignment.CenterVertically,
+                                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                            ) {
+                                                Text(
+                                                    text = if (showDetails) stringResource(R.string.main_hide_details) else stringResource(
+                                                        R.string.main_show_details
+                                                    ),
+                                                    style = MaterialTheme.typography.labelLarge,
+                                                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(
+                                                        alpha = 0.8f
+                                                    ),
+                                                    fontWeight = FontWeight.Bold,
+                                                    modifier = Modifier.weight(1f)
+                                                )
+                                                Icon(
+                                                    imageVector = if (showDetails) Icons.Filled.KeyboardArrowUp else Icons.Filled.KeyboardArrowDown,
+                                                    contentDescription = null,
+                                                    modifier = Modifier.size(24.dp),
+                                                    tint = MaterialTheme.colorScheme.onPrimaryContainer.copy(
+                                                        alpha = 0.8f
+                                                    )
+                                                )
+                                            }
+                                        }
+
+                                        AnimatedVisibility(
+                                            visible = showDetails,
+                                            enter = fadeIn() + expandVertically(),
+                                            exit = fadeOut() + shrinkVertically()
+                                        ) {
+                                            Column(
+                                                verticalArrangement = Arrangement.spacedBy(12.dp),
+                                                modifier = Modifier
+                                                    .fillMaxWidth()
+                                                    .padding(
+                                                        start = 20.dp,
+                                                        top = 12.dp,
+                                                        end = 20.dp,
+                                                        bottom = 20.dp
+                                                    )
+                                            ) {
                                                 Column {
                                                     Text(
-                                                        text = stringResource(R.string.main_expanded_url),
+                                                        text = stringResource(R.string.main_original_url),
                                                         style = MaterialTheme.typography.labelSmall,
                                                         color = MaterialTheme.colorScheme.onPrimaryContainer.copy(
                                                             alpha = 0.6f
                                                         ),
                                                         fontWeight = FontWeight.Bold
                                                     )
-                                                    Spacer(modifier = Modifier.height(2.dp))
+                                                    Spacer(modifier = Modifier.height(8.dp))
                                                     Text(
-                                                        text = state.expandedUrl!!,
+                                                        text = resultState.originalUrl,
                                                         style = MaterialTheme.typography.bodySmall,
                                                         color = MaterialTheme.colorScheme.onPrimaryContainer
                                                     )
                                                 }
-                                            }
 
-                                            if (state.removedParams.isNotEmpty()) {
-                                                Column(
-                                                    verticalArrangement = Arrangement.spacedBy(
-                                                        6.dp
-                                                    )
-                                                ) {
-                                                    Text(
-                                                        text = stringResource(R.string.main_removed_parameters),
-                                                        style = MaterialTheme.typography.labelSmall,
-                                                        color = MaterialTheme.colorScheme.onPrimaryContainer.copy(
-                                                            alpha = 0.6f
-                                                        ),
-                                                        fontWeight = FontWeight.Bold
-                                                    )
-                                                    FlowRow(
-                                                        horizontalArrangement = Arrangement.spacedBy(
-                                                            8.dp
-                                                        ),
+                                                if (resultState.expandedUrl != null) {
+                                                    Column {
+                                                        Text(
+                                                            text = stringResource(R.string.main_expanded_url),
+                                                            style = MaterialTheme.typography.labelSmall,
+                                                            color = MaterialTheme.colorScheme.onPrimaryContainer.copy(
+                                                                alpha = 0.6f
+                                                            ),
+                                                            fontWeight = FontWeight.Bold
+                                                        )
+                                                        Spacer(modifier = Modifier.height(8.dp))
+                                                        Text(
+                                                            text = resultState.expandedUrl!!,
+                                                            style = MaterialTheme.typography.bodySmall,
+                                                            color = MaterialTheme.colorScheme.onPrimaryContainer
+                                                        )
+                                                    }
+                                                }
+
+                                                if (resultState.removedParams.isNotEmpty()) {
+                                                    Column(
                                                         verticalArrangement = Arrangement.spacedBy(
-                                                            8.dp
-                                                        ),
-                                                        modifier = Modifier.fillMaxWidth()
+                                                            // Chips reserve another 8.dp above their visible surface.
+                                                            4.dp
+                                                        )
                                                     ) {
-                                                        state.removedParams.forEach { param ->
-                                                            AssistChip(
-                                                                onClick = {
-                                                                    paramToWhitelist = param
-                                                                },
-                                                                label = {
-                                                                    Text(
-                                                                        param,
-                                                                        style = MaterialTheme.typography.bodySmall
-                                                                    )
-                                                                },
-                                                                colors = AssistChipDefaults.assistChipColors(
-                                                                    containerColor = MaterialTheme.colorScheme.secondaryContainer,
-                                                                    labelColor = MaterialTheme.colorScheme.onSecondaryContainer
-                                                                ),
-                                                                shape = RoundedCornerShape(12.dp),
-                                                                border = BorderStroke(
-                                                                    width = 1.dp,
-                                                                    color = MaterialTheme.colorScheme.outline.copy(
-                                                                        alpha = 0.3f
-                                                                    )
+                                                        Text(
+                                                            text = stringResource(R.string.main_removed_parameters),
+                                                            style = MaterialTheme.typography.labelSmall,
+                                                            color = MaterialTheme.colorScheme.onPrimaryContainer.copy(
+                                                                alpha = 0.6f
+                                                            ),
+                                                            fontWeight = FontWeight.Bold
+                                                        )
+                                                        FlowRow(
+                                                            horizontalArrangement = Arrangement.spacedBy(
+                                                                8.dp
+                                                            ),
+                                                            verticalArrangement = Arrangement.spacedBy(
+                                                                8.dp
+                                                            ),
+                                                            modifier = Modifier.fillMaxWidth()
+                                                        ) {
+                                                            resultState.removedParams.forEach { param ->
+                                                                RemovedParameterChip(
+                                                                    parameter = param,
+                                                                    onClick = {
+                                                                        paramToWhitelist = param
+                                                                    }
                                                                 )
-                                                            )
+                                                            }
                                                         }
                                                     }
                                                 }
@@ -1245,177 +1290,154 @@ fun MainScreen(
                         }
                     }
                 } else if (!showIntro) {
-                    // DECLUTTERED Welcome State
-                    Column(
+                    Box(
                         modifier = Modifier
                             .fillMaxSize()
-                            .widthIn(max = 650.dp)
                             .nestedScroll(nestedScrollConnection)
-                            .verticalScroll(rememberScrollState()),
-                        horizontalAlignment = Alignment.CenterHorizontally
+                            .verticalScroll(rememberScrollState())
+                            .padding(horizontal = 16.dp),
+                        contentAlignment = Alignment.TopCenter
                     ) {
+                        // DECLUTTERED Welcome State
                         Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
                             modifier = Modifier
-                                .fillMaxWidth()
-                                .graphicsLayer {
-                                    alpha = (1f - collapseFraction * 2.5f).coerceIn(0f, 1f)
-                                }
+                                .widthIn(max = 650.dp)
+                                .fillMaxWidth(),
+                            horizontalAlignment = Alignment.CenterHorizontally
                         ) {
-                            // Reserved space for the floating shared Logo (72dp) + Title (30sp) + Spacers
-                            Spacer(modifier = Modifier.height(154.dp))
-
-                            Text(
-                                text = stringResource(R.string.welcome_subtitle),
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                textAlign = TextAlign.Center,
-                                modifier = Modifier.padding(horizontal = 16.dp)
-                            )
-
-                            Spacer(modifier = Modifier.height(24.dp))
-
-                            // --- Group 2: Trust Markers ---
-                            Row(
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally,
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .padding(horizontal = 8.dp),
-                                horizontalArrangement = Arrangement.SpaceEvenly,
-                                verticalAlignment = Alignment.CenterVertically
+                                    .graphicsLayer {
+                                        alpha = if (compactWindow) 1f else
+                                            (1f - collapseFraction * 2.5f).coerceIn(0f, 1f)
+                                    }
                             ) {
-                                CompactFeatureRow(
-                                    icon = Icons.Outlined.CloudOff,
-                                    text = stringResource(R.string.welcome_local_title)
-                                )
-                                VerticalDivider(
-                                    modifier = Modifier
-                                        .height(16.dp)
-                                        .width(1.dp),
-                                    color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
-                                )
-                                CompactFeatureRow(
-                                    icon = Icons.Outlined.Tune,
-                                    text = stringResource(R.string.welcome_privacy_title)
-                                )
-                                VerticalDivider(
-                                    modifier = Modifier
-                                        .height(16.dp)
-                                        .width(1.dp),
-                                    color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
-                                )
-                                CompactFeatureRow(
-                                    icon = Icons.Outlined.Block,
-                                    text = stringResource(R.string.welcome_free_title)
-                                )
-                            }
+                                // Reserved space for the floating shared Logo (72dp) + Title (30sp) + Spacers
+                                Spacer(modifier = Modifier.height(if (compactWindow) 16.dp else 154.dp))
 
-                            Spacer(modifier = Modifier.height(20.dp))
+                                Text(
+                                    text = stringResource(R.string.welcome_subtitle),
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    textAlign = TextAlign.Center,
+                                    modifier = Modifier.padding(horizontal = 16.dp)
+                                )
 
-                            // --- Group 3: Cleaning Stats Counter ---
-                            when {
-                                state.isInitialLoading -> {
-                                    Box(
-                                        modifier = Modifier
-                                            .width(220.dp)
-                                            .height(36.dp)
-                                            .clip(RoundedCornerShape(12.dp))
-                                            .shimmer()
+                                Spacer(modifier = Modifier.height(24.dp))
+
+                                // --- Group 2: Trust Markers ---
+                                FlexBox(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(horizontal = 8.dp),
+                                    config = FlexBoxConfig {
+                                        wrap(FlexWrap.Wrap)
+                                        justifyContent(FlexJustifyContent.Center)
+                                        alignItems(FlexAlignItems.Center)
+                                        columnGap(20.dp)
+                                        rowGap(16.dp)
+                                    }
+                                ) {
+                                    CompactFeatureRow(
+                                        icon = Icons.Outlined.CloudOff,
+                                        text = stringResource(R.string.welcome_local_title)
+                                    )
+                                    CompactFeatureRow(
+                                        icon = Icons.Outlined.Tune,
+                                        text = stringResource(R.string.welcome_privacy_title)
+                                    )
+                                    CompactFeatureRow(
+                                        icon = Icons.Outlined.Block,
+                                        text = stringResource(R.string.welcome_free_title)
                                     )
                                 }
 
-                                state.totalCleanedCount > 0 -> {
-                                    val cleanedSummary = pluralStringResource(
-                                        R.plurals.main_urls_cleaned,
-                                        state.totalCleanedCount,
-                                        state.totalCleanedCount
-                                    )
-                                    val blockedSummary = pluralStringResource(
-                                        R.plurals.main_trackers_blocked,
-                                        state.totalTrackersBlocked,
-                                        state.totalTrackersBlocked
-                                    )
-                                    Surface(
-                                        onClick = onHistoryClick,
-                                        shape = RoundedCornerShape(12.dp),
-                                        color = MaterialTheme.colorScheme.surfaceVariant.copy(
-                                            alpha = 0.4f
-                                        )
-                                    ) {
-                                        Text(
-                                            text = stringResource(
-                                                R.string.main_stats_summary,
-                                                cleanedSummary,
-                                                blockedSummary
-                                            ),
-                                            style = MaterialTheme.typography.labelMedium,
-                                            fontWeight = FontWeight.SemiBold,
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                            modifier = Modifier.padding(
-                                                horizontal = 16.dp,
-                                                vertical = 8.dp
-                                            )
+                                Spacer(modifier = Modifier.height(20.dp))
+
+                                // --- Group 3: Cleaning Stats Counter ---
+                                when {
+                                    state.isInitialLoading -> {
+                                        Box(
+                                            modifier = Modifier
+                                                .width(220.dp)
+                                                .height(36.dp)
+                                                .clip(RoundedCornerShape(12.dp))
+                                                .shimmer()
                                         )
                                     }
-                                }
-                            }
-                        }
 
-                        // Bulk Clipboard Clean card (gated behind Tidy+)
-                        com.tidy.app.FlavorConfig.BulkClipboardCleanCard(
-                            bulkClipboardUrls = state.bulkClipboardUrls,
-                            onDismiss = { viewModel.clearClipboardSuggestion() },
-                            isPlusUnlocked = isPlusUnlocked,
-                            onShowUpsell = { showUpsellSheet = true },
-                            onCleanExecute = {
-                                state.bulkClipboardUrls?.let { urls ->
-                                    scope.launch {
-                                        val settings = TidyApp.instance.settingsRepository
-                                        val whitelist = settings.whitelistedDomains.first()
-                                        val customBlacklist = settings.blacklistedParams.first()
-                                        val domainParams = settings.domainWhitelistedParams.first()
-                                        val removeMobile =
-                                            settings.autoRemoveMobileSubdomains.first()
-                                        val dropTrailingSlash =
-                                            settings.dropTrailingSlash.first()
-                                        val trackers = settings.trackers.first()
-
-                                        val cleaned = urls.map { url ->
-                                            UrlCleaner().clean(
-                                                urlStr = url,
-                                                whitelistedDomains = whitelist,
-                                                customBlacklistParams = customBlacklist,
-                                                domainWhitelistedParams = domainParams,
-                                                removeMobileSubdomains = removeMobile,
-                                                dropTrailingSlash = dropTrailingSlash,
-                                                trackers = trackers
-                                            ).cleanedUrl
-                                        }
-
-                                        val joinedCleaned = cleaned.joinToString("\n")
-
-                                        val clipboard =
-                                            context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-                                        val clip = android.content.ClipData.newPlainText(
-                                            "Cleaned URLs",
-                                            joinedCleaned
+                                    state.totalCleanedCount > 0 -> {
+                                        val cleanedSummary = pluralStringResource(
+                                            R.plurals.main_urls_cleaned,
+                                            state.totalCleanedCount,
+                                            state.totalCleanedCount
                                         )
-                                        clipboard.setPrimaryClip(clip)
-
-                                        scope.launch {
-                                            snackbarHostState.showSnackbar(
-                                                String.format(
-                                                    plusToastBulkCleanedTemplate,
-                                                    urls.size
+                                        val blockedSummary = pluralStringResource(
+                                            R.plurals.main_trackers_blocked,
+                                            state.totalTrackersBlocked,
+                                            state.totalTrackersBlocked
+                                        )
+                                        Surface(
+                                            onClick = onHistoryClick,
+                                            shape = RoundedCornerShape(12.dp),
+                                            color = MaterialTheme.colorScheme.surfaceVariant
+                                        ) {
+                                            Text(
+                                                text = stringResource(
+                                                    R.string.main_stats_summary,
+                                                    cleanedSummary,
+                                                    blockedSummary
+                                                ),
+                                                style = MaterialTheme.typography.labelMedium,
+                                                fontWeight = FontWeight.SemiBold,
+                                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                                modifier = Modifier.padding(
+                                                    horizontal = 16.dp,
+                                                    vertical = 8.dp
                                                 )
                                             )
                                         }
-                                        viewModel.clearClipboardSuggestion()
                                     }
                                 }
                             }
-                        )
 
-                        Spacer(modifier = Modifier.height(200.dp))
+                            // Bulk Clipboard Clean card (gated behind Tidy+)
+                            com.tidy.app.FlavorConfig.BulkClipboardCleanCard(
+                                bulkClipboardUrls = state.bulkClipboardUrls,
+                                onDismiss = { actions.clearClipboardSuggestion() },
+                                isPlusUnlocked = isPlusUnlocked,
+                                onShowUpsell = { showUpsellSheet = true },
+                                onCleanExecute = {
+                                    state.bulkClipboardUrls?.let { urls ->
+                                        scope.launch {
+                                            val joinedCleaned = preferences.cleanBulkUrls(urls)
+
+                                            val clipboard =
+                                                context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                                            val clip = android.content.ClipData.newPlainText(
+                                                cleanedUrlsLabel,
+                                                joinedCleaned
+                                            )
+                                            clipboard.setPrimaryClip(clip)
+
+                                            scope.launch {
+                                                snackbarHostState.showSnackbar(
+                                                    String.format(
+                                                        plusToastBulkCleanedTemplate,
+                                                        urls.size
+                                                    )
+                                                )
+                                            }
+                                            actions.clearClipboardSuggestion()
+                                        }
+                                    }
+                                }
+                            )
+
+                            Spacer(modifier = Modifier.height(200.dp))
+                        }
                     }
                 }
             }
@@ -1426,7 +1448,7 @@ fun MainScreen(
             TidyModalBottomSheet(
                 onDismissRequest = {
                     showIntro = false
-                    viewModel.markFirstLaunchDone()
+                    actions.markFirstLaunchDone()
                 },
                 sheetState = introSheetState
             ) { scrollFix ->
@@ -1445,7 +1467,7 @@ fun MainScreen(
                         modifier = Modifier
                             .size(48.dp)
                             .clip(RoundedCornerShape(12.dp))
-                            .background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f)),
+                            .background(MaterialTheme.colorScheme.primaryContainer),
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
@@ -1495,7 +1517,7 @@ fun MainScreen(
                     Button(
                         onClick = {
                             showIntro = false
-                            viewModel.markFirstLaunchDone()
+                            actions.markFirstLaunchDone()
                         },
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(16.dp),
@@ -1512,7 +1534,7 @@ fun MainScreen(
 
                     FlavorConfig.OnboardingExtra {
                         showIntro = false
-                        viewModel.markFirstLaunchDone()
+                        actions.markFirstLaunchDone()
                     }
                 }
             }
@@ -1527,7 +1549,7 @@ fun MainScreen(
                 dontAskAgainChecked = dontAskAgainCrash,
                 onDontAskAgainChange = { checked ->
                     scope.launch {
-                        settingsRepository.setDontAskAgainCrash(checked)
+                        preferences.setDontAskAgainCrash(checked)
                     }
                 },
                 showDeleteButton = false
@@ -1539,14 +1561,15 @@ fun MainScreen(
         val param = paramToWhitelist!!
         val domain = HistoryRepository.extractDomain(state.originalUrl)
         val description =
-            trackerDescriptions[param] ?: stringResource(R.string.details_no_explanation)
+            trackerDescriptions.trackerDescriptionFor(param)
+                ?: stringResource(R.string.details_no_explanation)
 
         ParamDetailBottomSheet(
             param = param,
             description = description,
             domain = domain,
             onDismiss = { paramToWhitelist = null },
-            onWhitelist = { d, p -> viewModel.addDomainWhitelistedParam(d, p) },
+            onWhitelist = { d, p -> actions.addDomainWhitelistedParam(d, p) },
             onReportIssueFailed = {
                 scope.launch {
                     snackbarHostState.showSnackbar(crashToastBrowserError)
@@ -1569,18 +1592,29 @@ fun MainScreen(
 @Composable
 private fun ManualEntryRow(
     state: MainScreenViewModel.UiState,
-    viewModel: MainScreenViewModel,
+    actions: MainScreenActions,
     onClear: () -> Unit
 ) {
+    val isUrlValid = remember(state.inputUrl) { UrlDetection.looksLikeUrl(state.inputUrl) }
+    var validationRequested by rememberSaveable(state.inputUrl) { mutableStateOf(false) }
+    val showInputError = validationRequested && state.inputUrl.isNotBlank() && !isUrlValid
+    val submit = {
+        validationRequested = true
+        if (isUrlValid && !state.isLoading) actions.cleanUrl(state.inputUrl)
+    }
     Row(
-        verticalAlignment = Alignment.CenterVertically,
+        verticalAlignment = Alignment.Top,
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         modifier = Modifier.fillMaxWidth()
     ) {
         OutlinedTextField(
             value = state.inputUrl,
-            onValueChange = { viewModel.onUrlInput(it) },
+            onValueChange = { actions.onUrlInput(it) },
             enabled = !state.isLoading,
+            isError = showInputError,
+            supportingText = if (showInputError) {
+                { Text(stringResource(R.string.main_invalid_url)) }
+            } else null,
             placeholder = {
                 Text(
                     stringResource(R.string.welcome_placeholder),
@@ -1612,9 +1646,7 @@ private fun ManualEntryRow(
             ),
             keyboardActions = KeyboardActions(
                 onDone = {
-                    if (UrlDetection.looksLikeUrl(state.inputUrl) && !state.isLoading) {
-                        viewModel.cleanUrl(state.inputUrl)
-                    }
+                    if (state.inputUrl.isNotBlank() && !state.isLoading) submit()
                 }
             ),
             colors = OutlinedTextFieldDefaults.colors(
@@ -1625,9 +1657,9 @@ private fun ManualEntryRow(
 
         TooltipWrapper(tooltipText = stringResource(R.string.tooltip_process_url)) {
             Button(
-                onClick = { viewModel.cleanUrl(state.inputUrl) },
+                onClick = submit,
                 shape = RoundedCornerShape(16.dp),
-                enabled = UrlDetection.looksLikeUrl(state.inputUrl) && !state.isLoading,
+                enabled = state.inputUrl.isNotBlank() && !state.isLoading,
                 colors = ButtonDefaults.buttonColors(
                     containerColor = MaterialTheme.colorScheme.primary
                 ),
@@ -1648,20 +1680,15 @@ private fun ClipboardActionBanner(
     url: String,
     onActionClick: () -> Unit,
     modifier: Modifier = Modifier,
-    enabled: Boolean = true
+    enabled: Boolean = true,
+    style: TidyStyle = CommonStyle
 ) {
-    Card(
-        shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.6f)
-        ),
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.25f)),
-        modifier = modifier
+    TidyStyledCard(
+        modifier = modifier,
+        style = CommonStyle(TidyComponentStyles.clipboardAction, style)
     ) {
         Row(
-            modifier = Modifier
-                .padding(12.dp)
-                .fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
@@ -1669,7 +1696,10 @@ private fun ClipboardActionBanner(
                 modifier = Modifier
                     .size(40.dp)
                     .clip(RoundedCornerShape(12.dp))
-                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)),
+                    .background(
+                        MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)
+                            .compositeOver(MaterialTheme.colorScheme.surface)
+                    ),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
@@ -1725,17 +1755,14 @@ private fun ClipboardActionBanner(
 private fun ClipboardCalloutBanner(
     onEnable: () -> Unit,
     onDismiss: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    style: TidyStyle = CommonStyle
 ) {
-    Card(
-        shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f)
-        ),
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.25f)),
-        modifier = modifier
+    TidyStyledCard(
+        modifier = modifier,
+        style = CommonStyle(TidyComponentStyles.clipboardCallout, style)
     ) {
-        Column(modifier = Modifier.padding(12.dp)) {
+        Column {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
@@ -1745,7 +1772,10 @@ private fun ClipboardCalloutBanner(
                     modifier = Modifier
                         .size(40.dp)
                         .clip(RoundedCornerShape(12.dp))
-                        .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)),
+                        .background(
+                            MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)
+                                .compositeOver(MaterialTheme.colorScheme.surface)
+                        ),
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
@@ -1811,17 +1841,14 @@ private fun ClipboardCalloutBanner(
 private fun ClipboardEnabledSuccessBanner(
     onViewSettings: () -> Unit,
     onLater: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    style: TidyStyle = CommonStyle
 ) {
-    Card(
-        shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.6f)
-        ),
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.tertiary.copy(alpha = 0.25f)),
-        modifier = modifier
+    TidyStyledCard(
+        modifier = modifier,
+        style = CommonStyle(TidyComponentStyles.clipboardSuccess, style)
     ) {
-        Column(modifier = Modifier.padding(12.dp)) {
+        Column {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
@@ -1831,7 +1858,10 @@ private fun ClipboardEnabledSuccessBanner(
                     modifier = Modifier
                         .size(40.dp)
                         .clip(RoundedCornerShape(12.dp))
-                        .background(MaterialTheme.colorScheme.tertiary.copy(alpha = 0.15f)),
+                        .background(
+                            MaterialTheme.colorScheme.tertiary.copy(alpha = 0.15f)
+                                .compositeOver(MaterialTheme.colorScheme.surface)
+                        ),
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(

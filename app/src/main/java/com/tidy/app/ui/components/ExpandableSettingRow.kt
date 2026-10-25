@@ -1,14 +1,22 @@
+@file:OptIn(androidx.compose.foundation.style.ExperimentalFoundationStyleApi::class)
+
 package com.tidy.app.ui.components
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.style.CommonStyle
+import androidx.compose.material3.ripple
+import androidx.compose.runtime.remember
+import com.tidy.designsystem.TidyComponentStyles
+import com.tidy.designsystem.TidyStyle
+import com.tidy.designsystem.rememberTidyStyle
+import com.tidy.designsystem.tidyStyleContent
+import com.tidy.designsystem.tidyStyleSurface
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
@@ -18,11 +26,14 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.tidy.app.R
+import com.tidy.app.theme.TidyCardTokens
 
 /**
  * A full-width clickable row used as a collapsible section header in settings cards.
@@ -40,14 +51,29 @@ fun ExpandableSettingRow(
     summary: String,
     expanded: Boolean,
     onToggle: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    style: TidyStyle = CommonStyle
 ) {
+    val interactionSource = remember { MutableInteractionSource() }
+    val resolver = rememberTidyStyle(TidyComponentStyles.settingsRow, style, interactionSource)
+    val actionLabel = stringResource(
+        if (expanded) R.string.settings_collapse else R.string.settings_expand
+    )
+    val expandedState = stringResource(
+        if (expanded) R.string.settings_expanded else R.string.settings_collapsed
+    )
     Row(
         modifier = modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(12.dp))
-            .clickable(onClick = onToggle)
-            .padding(horizontal = 8.dp, vertical = 12.dp),
+            .tidyStyleSurface(resolver)
+            .semantics { stateDescription = expandedState }
+            .clickable(
+                interactionSource = interactionSource,
+                indication = ripple(),
+                role = Role.Button,
+                onClickLabel = actionLabel,
+                onClick = onToggle
+            )
+            .tidyStyleContent(resolver),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -58,7 +84,7 @@ fun ExpandableSettingRow(
                 fontWeight = FontWeight.SemiBold,
                 color = MaterialTheme.colorScheme.onSurface
             )
-            Spacer(modifier = Modifier.height(2.dp))
+            Spacer(modifier = Modifier.height(TidyCardTokens.rowTitleSpacing))
             Text(
                 text = summary,
                 style = MaterialTheme.typography.bodySmall,
@@ -67,11 +93,7 @@ fun ExpandableSettingRow(
         }
         Icon(
             imageVector = if (expanded) Icons.Filled.KeyboardArrowUp else Icons.Filled.KeyboardArrowDown,
-            contentDescription = if (expanded) {
-                stringResource(R.string.settings_collapse)
-            } else {
-                stringResource(R.string.settings_expand)
-            },
+            contentDescription = null,
             tint = MaterialTheme.colorScheme.onSurfaceVariant
         )
     }

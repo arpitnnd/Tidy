@@ -65,6 +65,88 @@ class UrlDetectionTest {
     }
 
     @Test
+    fun findsWrappedUrlsWithoutDroppingBalancedPathBrackets() {
+        assertEquals(
+            listOf("https://example.com/a_(b)?utm_source=x", "example.org/page"),
+            UrlDetection.findAllUrls("See (https://example.com/a_(b)?utm_source=x), then <example.org/page>.")
+        )
+        assertEquals(
+            "https://example.com/a_(b)",
+            UrlDetection.findFirstUrl("https://example.com/a_(b)")
+        )
+    }
+
+    @Test
+    fun findsNestedWrappersAndPreservesBalancedPathBrackets() {
+        for ((text, expected) in listOf(
+            "See [(https://example.com/page)]" to "https://example.com/page",
+            "See ([https://example.com/page])" to "https://example.com/page",
+            "See (<https://example.com/page>)" to "https://example.com/page",
+            "See [(https://example.com/a_(b)[c])], please." to "https://example.com/a_(b)[c]"
+        )) {
+            assertEquals(expected, UrlDetection.findFirstUrl(text))
+            assertEquals(
+                text.replace(expected, "https://clean.example/"),
+                UrlDetection.spliceUrl(
+                    text,
+                    UrlDetection.findFirstUrl(text)!!,
+                    "https://clean.example/"
+                )
+            )
+        }
+    }
+
+    @Test(timeout = 2_000)
+    fun longUnmatchedBracketSuffixDoesNotBlockDetection() {
+        val url = "https://example.com/page"
+        assertEquals(url, UrlDetection.findFirstUrl(url + ")".repeat(100_000)))
+        assertEquals(url, UrlDetection.findFirstUrl(url + ")]".repeat(50_000)))
+    }
+
+    @Test
+    fun splicingPreservesWhitespacePunctuationAndLaterUrls() {
+        val source = "  See (example.com/p?utm_source=x),\nthen https://other.org/?fbclid=y!  "
+        assertEquals(
+            "  See (https://example.com/p),\nthen https://other.org/?fbclid=y!  ",
+            UrlDetection.spliceUrl(
+                source,
+                UrlDetection.findFirstUrl(source)!!,
+                "https://example.com/p"
+            )
+        )
+    }
+
+    @Test
+    fun splicingUsesTheDetectedPositionAfterAnEmail() {
+        val source = "Email user@example.com then visit [(example.com)], then example.com"
+        assertEquals(
+            "Email user@example.com then visit [(https://example.com)], then example.com",
+            UrlDetection.spliceUrl(
+                source,
+                UrlDetection.findFirstUrl(source)!!,
+                "https://example.com"
+            )
+        )
+    }
+
+    @Test
+    fun splicingDoesNotReplacePartOfAnotherUrl() {
+        val source = "https://other.org/example.com then example.com"
+        assertEquals(
+            "https://other.org/example.com then https://example.com",
+            UrlDetection.spliceUrl(source, "example.com", "https://example.com")
+        )
+    }
+
+    @Test
+    fun splicingFallsBackWhenOnlyAnEmailContainsTheUrl() {
+        assertEquals(
+            "https://example.com",
+            UrlDetection.spliceUrl("Email user@example.com", "example.com", "https://example.com")
+        )
+    }
+
+    @Test
     fun normalizeAddsSchemeOnlyWhenMissing() {
         assertEquals("https://example.com", UrlDetection.normalize("example.com"))
         assertEquals("https://example.com", UrlDetection.normalize("  example.com "))

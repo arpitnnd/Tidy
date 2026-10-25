@@ -1,13 +1,11 @@
 package com.tidy.app
 
-import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Modifier
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.ui.NavDisplay
@@ -18,14 +16,14 @@ import kotlinx.coroutines.flow.SharedFlow
 
 @Composable
 fun MainNavigation(
-    initialUrl: String?,
-    sharedUrls: SharedFlow<String>,
+    initialSharedText: String?,
+    sharedMessages: SharedFlow<String>,
     plusUpsellRequests: SharedFlow<Unit>,
     crashReportText: String?,
     showPlusUpsell: Boolean = false
 ) {
     val backStack = rememberNavBackStack(
-        Main(sharedUrl = initialUrl, showPlusUpsell = showPlusUpsell)
+        Main(sharedText = initialSharedText, showPlusUpsell = showPlusUpsell)
     )
 
     // Strictly increasing for the composition's lifetime (rememberSaveable survives
@@ -34,9 +32,9 @@ fun MainNavigation(
     // shareSequence KDoc).
     var nextShareSequence by rememberSaveable { mutableIntStateOf(1) }
 
-    LaunchedEffect(sharedUrls) {
-        sharedUrls.collect { url ->
-            backStack.add(Main(sharedUrl = url, shareSequence = nextShareSequence))
+    LaunchedEffect(sharedMessages) {
+        sharedMessages.collect { url ->
+            backStack.add(Main(sharedText = url, shareSequence = nextShareSequence))
             nextShareSequence++
         }
     }
@@ -60,31 +58,27 @@ fun MainNavigation(
             entryProvider {
                 entry<Main> { key ->
                     MainScreen(
-                        sharedUrl = key.sharedUrl,
+                        sharedText = key.sharedText,
                         crashReportText = crashReportText,
                         onSettingsClick = { backStack.add(Settings) },
                         onHistoryClick = { backStack.add(History) },
-                        modifier = Modifier.systemBarsPadding(),
                         showPlusUpsell = key.showPlusUpsell
                     )
                 }
                 entry<Settings> {
                     SettingsScreen(
                         onBackClick = { backStack.removeLastOrNull() },
-                        onAboutClick = { backStack.add(About) },
-                        modifier = Modifier.systemBarsPadding()
+                        onAboutClick = { backStack.add(About) }
                     )
                 }
                 entry<History> {
                     HistoryScreen(
-                        onBackClick = { backStack.removeLastOrNull() },
-                        modifier = Modifier.systemBarsPadding()
+                        onBackClick = { backStack.removeLastOrNull() }
                     )
                 }
                 entry<About> {
                     com.tidy.app.ui.about.AboutScreen(
-                        onBackClick = { backStack.removeLastOrNull() },
-                        modifier = Modifier.systemBarsPadding()
+                        onBackClick = { backStack.removeLastOrNull() }
                     )
                 }
             },

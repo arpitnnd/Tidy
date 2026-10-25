@@ -45,92 +45,94 @@ object UrlExpander {
         return host == cleanPattern || host.endsWith(".$cleanPattern")
     }
 
-    suspend fun resolve(urlStr: String): String = withContext(Dispatchers.IO) {
-        var currentUrl = urlStr.trim()
-        val cached = cache[currentUrl]
-        if (cached != null) {
-            return@withContext cached
-        }
-        if (!currentUrl.startsWith(
-                "http://",
-                ignoreCase = true
-            ) && !currentUrl.startsWith("https://", ignoreCase = true)
-        ) {
-            currentUrl = "https://$currentUrl"
-        }
-        val maxHops = 5
-        var hop = 0
-        val timeoutMs = 3000
-        // Only a completed HTTP exchange (a final response, or a redirect this loop
-        // deliberately stops following) is trustworthy enough to cache. An exception
-        // (timeout, no connection, offline) must not be cached: it isn't "resolved to
-        // itself", it's "not resolved at all yet", and caching it would poison this URL
-        // for the rest of the process's lifetime the first time it's tried offline.
-        var succeeded = false
+    suspend fun resolve(urlStr: String, reportFailure: Boolean = false): String =
+        withContext(Dispatchers.IO) {
+            var currentUrl = urlStr.trim()
+            val cached = cache[currentUrl]
+            if (cached != null) {
+                return@withContext cached
+            }
+            if (!currentUrl.startsWith(
+                    "http://",
+                    ignoreCase = true
+                ) && !currentUrl.startsWith("https://", ignoreCase = true)
+            ) {
+                currentUrl = "https://$currentUrl"
+            }
+            val maxHops = 5
+            var hop = 0
+            val timeoutMs = 3000
+            // Cache completed responses only. Caching a network failure would prevent
+            // this URL from being retried until the process restarts.
+            var succeeded = false
 
-        while (hop < maxHops) {
-            var connection: HttpURLConnection? = null
-            try {
-                val url = URL(currentUrl)
-                connection = url.openConnection() as HttpURLConnection
-                connection.requestMethod = "GET"
-                connection.connectTimeout = timeoutMs
-                connection.readTimeout = timeoutMs
-                connection.instanceFollowRedirects = false
+            while (hop < maxHops) {
+                var connection: HttpURLConnection? = null
+                try {
+                    val url = URL(currentUrl)
+                    connection = url.openConnection() as HttpURLConnection
+                    connection.requestMethod = "GET"
+                    connection.connectTimeout = timeoutMs
+                    connection.readTimeout = timeoutMs
+                    connection.instanceFollowRedirects = false
 
-                // Add a modern user agent
-                connection.setRequestProperty(
-                    "User-Agent",
-                    "Mozilla/5.0 (Linux; Android 10) Tidy/1.0"
-                )
+                    // Add a modern user agent
+                    connection.setRequestProperty(
+                        "User-Agent",
+                        "Mozilla/5.0 (Linux; Android 10) Tidy/1.0"
+                    )
 
-                val responseCode = connection.responseCode
-                if (responseCode in 300..399) {
-                    val location = connection.getHeaderField("Location")
-                    if (!location.isNullOrEmpty()) {
-                        val nextUrl =
-                            if (location.startsWith("http://") || location.startsWith("https://")) {
-                                location
-                            } else {
-                                val base = URL(currentUrl)
-                                URL(base, location).toString()
+                    val responseCode = connection.responseCode
+                    if (responseCode >= 400) {
+                        throw java.io.IOException("URL expansion request failed")
+                    }
+                    if (responseCode in 300..399) {
+                        val location = connection.getHeaderField("Location")
+                        if (!location.isNullOrEmpty()) {
+                            val nextUrl =
+                                if (location.startsWith("http://") || location.startsWith("https://")) {
+                                    location
+                                } else {
+                                    val base = URL(currentUrl)
+                                    URL(base, location).toString()
+                                }
+                            // Refuse to follow a redirect to a non-http(s) scheme (e.g.
+                            // ftp:// or file:). Stop here and keep the last URL that was
+                            // actually fetched over http(s), rather than surfacing a target
+                            // this app never actually requested.
+                            val nextScheme = try {
+                                URL(nextUrl).protocol
+                            } catch (e: Exception) {
+                                null
                             }
-                        // Refuse to follow a redirect to a non-http(s) scheme (e.g.
-                        // ftp:// or file:). Stop here and keep the last URL that was
-                        // actually fetched over http(s), rather than surfacing a target
-                        // this app never actually requested.
-                        val nextScheme = try {
-                            URL(nextUrl).protocol
-                        } catch (e: Exception) {
-                            null
-                        }
-                        if (nextScheme != "http" && nextScheme != "https") {
+                            if (nextScheme != "http" && nextScheme != "https") {
+                                succeeded = true
+                                break
+                            }
+                            currentUrl = nextUrl
+                            hop++
+                        } else {
                             succeeded = true
                             break
                         }
-                        currentUrl = nextUrl
-                        hop++
                     } else {
+                        // 200 OK or other response, stop resolving
                         succeeded = true
                         break
                     }
-                } else {
-                    // 200 OK or other response, stop resolving
-                    succeeded = true
+                } catch (e: Exception) {
+                    // Explicit expansion reports failure; automatic cleaning retains its offline fallback.
+                    if (reportFailure) throw e
                     break
+                } finally {
+                    connection?.disconnect()
                 }
-            } catch (e: Exception) {
-                // Return latest URL on failure, but don't cache it (see succeeded above).
-                break
-            } finally {
-                connection?.disconnect()
             }
+            if (succeeded) {
+                cache[urlStr.trim()] = currentUrl
+            }
+            currentUrl
         }
-        if (succeeded) {
-            cache[urlStr.trim()] = currentUrl
-        }
-        currentUrl
-    }
 
     private fun extractHost(url: String): String {
         var temp = url

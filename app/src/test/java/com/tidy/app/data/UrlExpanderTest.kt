@@ -29,6 +29,20 @@ class UrlExpanderTest {
         return "http://127.0.0.1:${server.address.port}/"
     }
 
+    @Test
+    fun explicitExpansionReportsNetworkFailureWhileAutomaticResolutionKeepsItsFallback() = runTest {
+        val port = java.net.ServerSocket(0).use { it.localPort }
+        val url = "http://127.0.0.1:$port/unreachable"
+        assertEquals(url, UrlExpander.resolve(url))
+        var failed = false
+        try {
+            UrlExpander.resolve(url, reportFailure = true)
+        } catch (_: java.io.IOException) {
+            failed = true
+        }
+        assertTrue("Manual expansion must report failure rather than pretend to resolve", failed)
+    }
+
     // isShortUrl --------------------------------------------------------
 
     @Test
@@ -176,13 +190,25 @@ class UrlExpanderTest {
         assertEquals(unreachable, UrlExpander.resolve(unreachable))
     }
 
-    // Deliberately no automated test for "a failed resolution isn't cached": reliably
-    // forcing resolve() into its exception path with a live listener, without either a
-    // slow real-time timeout (introduces flakiness in the wider suite, confirmed while
-    // writing this) or a stop/rebind-the-port race (flaky under Windows' delayed socket
-    // release), isn't achievable here with reasonable effort. Verified by code review
-    // instead: succeeded above starts false and is only set before the two non-exception
-    // break paths, and the cache write is gated on it.
+    @Test
+    fun serverFailureIsReportedAndDoesNotPoisonTheCache() = runTest {
+        val hits = AtomicInteger(0)
+        val url = startServer { exchange ->
+            exchange.sendResponseHeaders(if (hits.incrementAndGet() == 1) 503 else 200, -1)
+            exchange.close()
+        }
+        var failed = false
+        try {
+            UrlExpander.resolve(url, reportFailure = true)
+        } catch (_: java.io.IOException) {
+            failed = true
+        }
+        assertTrue(failed)
+        assertEquals(url, UrlExpander.resolve(url, reportFailure = true))
+        assertEquals(2, hits.get())
+        UrlExpander.resolve(url, reportFailure = true)
+        assertEquals(2, hits.get())
+    }
 
     @Test
     fun resolveRefusesToFollowRedirectToNonHttpScheme() = runTest {

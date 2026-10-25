@@ -4,30 +4,105 @@ All notable changes to Tidy will be documented in this file.
 
 ## [Unreleased]
 
-## [1.3.0]
+## [1.4.0]
 
-This release improves sharing, backup restores, and the home screen.
+Tidy 1.4.0 refreshes the everyday experience of cleaning and sharing links. A new light palette,
+clearer results and layouts that adapt to your screen make Home, History and Settings easier to use.
+Controls are easier to navigate with a screen reader, and larger text stays readable without crowding
+controls. Sharing keeps the words around your links intact, and clipboard cleaning responds more
+reliably.
 
 ### New
 
-- Check for blocklist updates from Settings.
+- You can open Tidy's privacy policy, terms of use and software licence from About.
+
+### Improvements
+
+- Light mode uses a muted slate background with lighter off-white cards. Content surfaces are opaque
+  in both modes, and the launch background matches the app.
+- Home's title uses the theme colour. Result cards have a flat background and more space around
+  expanded details.
+- Settings titles, descriptions and section headings have more space. Privacy labels on Home also
+  have clearer gaps.
+- Home and History use muted green status badges. Removed parameters appear in red with an
+  information icon. Badges wrap at large text sizes, and results stay visible during animations.
+- Parameter details give the explanation more emphasis than the Always keep action. About section
+  headings now match Settings.
+- Screen readers announce whether Settings controls are on, selected or expanded. Theme rows have
+  a single action, and section headings make navigation easier.
+- Locked options and switches in the off state have clearer contrast. Automation choices stack at
+  larger text sizes or in narrow windows.
+- History arranges records in multiple columns in wider windows. Home uses a smaller header in short
+  windows, and its privacy labels wrap when space is limited.
+- Screen headers have solid backgrounds that hide scrolling content beneath them. Long titles stay
+  on one line and end with an ellipsis.
+- Link and rule fields explain invalid input after submission. Actions sit beside the fields.
+- Settings and clipboard prompts use shorter, clearer text. Backup settings explain what you agree
+  to and what happens to earlier backups.
+- Scrollable screens accept swipes from their side margins while keeping content centred.
+
+### Bug fixes
+
+- History keeps its previous data if a save fails. Clear and Undo report failures instead of
+  claiming success, and saved timestamps remain stable after reload.
+- Tidy+ text-selection cleaning preserves surrounding punctuation and repeated links.
+- History actions wrap at larger text sizes, keeping Copy original, Copy and Open readable.
+- The Get Tidy+ row stays readable while showing Coming soon.
+- Removed UTM and other pattern-matched parameters show their explanations in Home and History.
+- Clipboard suggestions and automatic cleaning work more reliably when you return to Tidy.
+- Copy and Share preserve text around a link received from another app, including punctuation and
+  email addresses. Only the first detected link is replaced. Later links remain unchanged, and
+  History stores only links.
+- After successful expansion, the expansion action is disabled even if the link stays unchanged.
+  Failed requests can be retried. Clearing or replacing the input prevents old expansion results
+  from appearing.
+- Fresh installations use bundled rules without an automatic first-session network request.
+- The confirmation before clearing History explains when you can undo it. Cleared entries are
+  discarded when the undo prompt ends or you leave History.
+- Expanded History entries keep their state when scrolled out of view and back.
+- Manually expanding a link shows an error if the network request fails.
+- Home input and result controls stay clear of camera cutouts in landscape.
+- You can share complete backups through Android's share menu. Backup sharing can only access
+  exported backups, keeping other app files private.
+- If you enable Android backups, they restore History, rules and settings. Diagnostic files and
+  temporary purchase data stay out of these backups.
+
+### Internal
+
+- Added a shared Compose Styles layer for custom component surfaces and theme-aware overrides.
+- Updated Kotlin, Gradle, Android Gradle Plugin and Compose dependencies, and added native AGP
+  screenshot test suites.
+- Aligned Java and Kotlin bytecode targets and CI builds on Java 25.
+- Added deployment for the privacy and terms website from its maintained source.
+- Play bundle exports keep the original build output, so repeat builds and Android Studio can still
+  find it.
+- Tidy+ checkout uses the active billing connection, and all premium themes check purchase status.
+
+## [1.3.0]
+
+Sharing into Tidy now feels immediate, even when a short URL takes time to expand. The home screen
+moves more smoothly, and restoring history keeps your lifetime totals accurate.
+
+### New
+
+- You can now check for blocklist updates from Settings.
 
 ### Improvements
 
 - Shared URLs appear straight away, with a loading indicator while short URLs expand.
-- The home-screen header shrinks as you scroll, and the input, suggestions, and results change
-  more smoothly.
+- The home screen header shrinks as you scroll. Input, suggestions, and results transition more
+  smoothly.
 - Tidy checks for blocklist updates when you return to the app or share a URL. Settings shows
   when it last checked.
-- Added tracking rules for Samsung's `cid` and XDA's `taid` parameters.
-- Tidied up the wording of lifetime statistics and the borders on clipboard prompts.
+- Tidy now removes `cid` from Samsung URLs and `taid` from XDA URLs.
+- Lifetime statistics now use natural singular and plural wording, and clipboard prompts have
+  more consistent borders.
 
 ### Bug fixes
 
 - Email addresses are no longer mistaken for URLs.
 - Restoring history now updates your lifetime statistics. Full backups keep those totals too.
-- Sharing to Tidy keeps one separate card in Recents instead of opening duplicate screens inside
-  the sending app.
+- Sharing to Tidy now opens one Tidy card in Recents, separate from the app you shared from.
 - Clipboard suggestions disappear when you enter or clean the same URL.
 
 ### Internal

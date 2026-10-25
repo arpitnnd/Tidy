@@ -37,8 +37,27 @@ class BlocklistSyncerTest {
     private val servers = mutableListOf<HttpServer>()
 
     @Before
-    fun setUp() {
+    fun setUp() = kotlinx.coroutines.runBlocking {
         settingsRepository = SettingsRepository(FakeDataStore())
+        settingsRepository.setFirstLaunchDone()
+    }
+
+    @Test
+    fun freshInstallationDoesNotFetchAutomatically() = runTest {
+        val freshSettings = SettingsRepository(FakeDataStore())
+        val hits = AtomicInteger(0)
+        val url = startServer { exchange ->
+            hits.incrementAndGet()
+            exchange.sendResponseHeaders(200, -1)
+            exchange.close()
+        }
+        assertEquals(
+            BlocklistSyncer.SyncResult.Skipped,
+            BlocklistSyncer.sync(context, freshSettings, url)
+        )
+        assertEquals(0, hits.get())
+        assertEquals(0L, freshSettings.blocklistLastSuccessfulCheckTime.first())
+        assertTrue(freshSettings.trackers.first().isNotEmpty())
     }
 
     @After

@@ -19,7 +19,7 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 // automation is the "Close Tidy instead of sharing" toggle, which fires solely in
 // response to a genuine incoming ACTION_SEND intent from another app.
 class MainActivity : ComponentActivity() {
-    private val sharedUrls = MutableSharedFlow<String>(extraBufferCapacity = 1)
+    private val sharedMessages = MutableSharedFlow<String>(extraBufferCapacity = 1)
     private val plusUpsellRequests = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -44,8 +44,8 @@ class MainActivity : ComponentActivity() {
             null
         }
 
-        val initialUrl = handleIntent(intent)
-        if (initialUrl != null) sharedUrls.tryEmit(initialUrl)
+        val initialSharedText = handleIntent(intent)
+        if (initialSharedText != null) sharedMessages.tryEmit(initialSharedText)
 
         val showPlusUpsell = intent?.getBooleanExtra("show_plus_upsell", false) ?: false
         intent?.removeExtra("show_plus_upsell")
@@ -58,8 +58,8 @@ class MainActivity : ComponentActivity() {
                     color = MaterialTheme.colorScheme.background
                 ) {
                     MainNavigation(
-                        initialUrl = initialUrl,
-                        sharedUrls = sharedUrls,
+                        initialSharedText = initialSharedText,
+                        sharedMessages = sharedMessages,
                         plusUpsellRequests = plusUpsellRequests,
                         crashReportText = crashReportText,
                         showPlusUpsell = showPlusUpsell
@@ -80,15 +80,19 @@ class MainActivity : ComponentActivity() {
         intent.removeExtra("show_plus_upsell")
         setIntent(intent)
         val url = handleIntent(intent)
-        if (url != null) sharedUrls.tryEmit(url)
+        if (url != null) sharedMessages.tryEmit(url)
         if (showPlusUpsell) plusUpsellRequests.tryEmit(Unit)
     }
 
     private fun handleIntent(intent: Intent): String? {
         if (intent.action == Intent.ACTION_SEND && intent.type == "text/plain") {
-            val sharedText = intent.getStringExtra(Intent.EXTRA_TEXT)
+            val sharedText = try {
+                intent.getCharSequenceExtra(Intent.EXTRA_TEXT)?.toString()
+            } catch (_: RuntimeException) {
+                null
+            }
             // Shared detection rule: shares without anything link-like are skipped silently.
-            return UrlDetection.findFirstUrl(sharedText)
+            return sharedText?.takeIf { UrlDetection.findFirstUrl(it) != null }
         }
         return null
     }

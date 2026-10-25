@@ -12,6 +12,8 @@ import junit.framework.TestCase.assertFalse
 import junit.framework.TestCase.assertTrue
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.CoroutineStart
+import kotlinx.coroutines.async
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.flow.Flow
@@ -88,6 +90,20 @@ class MainScreenViewModelTest {
     }
 
     @Test
+    fun historyWriteFailureKeepsTheCleanedResultAndReportsUnsavedHistory() = runTest {
+        val stage = File(tempFolder.root, "history.json.new").apply { mkdir() }
+        File(stage, "blocker").writeText("block")
+        viewModel.cleanUrl("https://example.com/page?utm_source=mail")
+        val state = viewModel.uiState.first { it.historySaveFailed && !it.isLoading }
+        assertEquals("https://example.com/page", state.cleanedUrl)
+        assertTrue(state.isCleaned)
+        assertEquals(
+            emptyList<com.tidy.app.data.HistoryEntry>(),
+            historyRepository.getEntriesSnapshot()
+        )
+    }
+
+    @Test
     fun testCleanUrl() = runTest {
         // "si" is deliberately not used here: it's domain-scoped to Spotify/YouTube.
         viewModel.cleanUrl("https://example.com/page?utm_source=newsletter&utm_medium=email&fbclid=12345&igsh=abc")
@@ -99,9 +115,8 @@ class MainScreenViewModelTest {
         assertEquals(1, state.totalCleanedCount)
         assertEquals(4, state.totalTrackersBlocked)
 
-        // Verify history contains entry
-        historyRepository.loadHistory()
-        val history = historyRepository.historyFlow.value
+        // History is saved on Dispatchers.IO after the result is published.
+        val history = historyRepository.historyFlow.first { it.isNotEmpty() }
         assertEquals(1, history.size)
         assertEquals("https://example.com/page", history[0].cleanedUrl)
         assertEquals("example.com", history[0].domain)
@@ -136,6 +151,131 @@ class MainScreenViewModelTest {
         val state = viewModel.uiState.value
         assertEquals("https://example.com/page?keep=1", state.cleanedUrl)
         assertTrue(state.removedParams.contains("fbclid"))
+    }
+
+    @Test
+    fun sharedMessagePreservesContextAndOnlyPersistsTheFirstUrl() = runTest {
+        val message =
+            "  See (example.com/page?utm_source=private),\nthen https://other.org/?fbclid=keep!  "
+        viewModel.cleanUrl(message, isShared = true)
+        viewModel.uiState.first { !it.isLoading }
+        val state = viewModel.uiState.value
+        assertEquals("https://example.com/page?utm_source=private", state.originalUrl)
+        assertEquals(
+            "  See (https://example.com/page),\nthen https://other.org/?fbclid=keep!  ",
+            state.outputText
+        )
+        val entry = historyRepository.historyFlow.first { it.isNotEmpty() }.single()
+        assertEquals(state.originalUrl, entry.originalUrl)
+        assertEquals(state.cleanedUrl, entry.cleanedUrl)
+        assertFalse(historyRepository.exportToJson().contains("See"))
+    }
+
+    @Test
+    fun sharedMessagePreservesAnEmailBeforeTheDetectedUrl() = runTest {
+        viewModel.cleanUrl("Email user@example.com then visit (example.com).", isShared = true)
+        viewModel.uiState.first { !it.isLoading }
+        assertEquals(
+            "Email user@example.com then visit (https://example.com).",
+            viewModel.uiState.value.outputText
+        )
+    }
+
+    @Test
+    fun sharedMessageSurvivesRuleRefreshAndExpansion() = runTest {
+        val original = "example.com/page?fbclid=private"
+        val message = "Read $original, please."
+        viewModel.cleanUrl(message, isShared = true)
+        viewModel.addDomainWhitelistedParam("example.com", "fbclid")
+        assertEquals("Read https://$original, please.", viewModel.uiState.value.outputText)
+        viewModel.cleanUrl(
+            "https://example.com/expanded",
+            originalShortUrl = "https://$original",
+            addToHistory = false
+        )
+        assertEquals(
+            "Read https://example.com/expanded, please.",
+            viewModel.uiState.value.outputText
+        )
+        assertFalse(viewModel.uiState.value.canExpand)
+    }
+
+    @Test
+    fun repeatedSharedMessagesReplaceContextAndManualInputClearsIt() = runTest {
+        viewModel.cleanUrl("First https://example.com/?fbclid=1", isShared = true)
+        viewModel.cleanUrl("Second https://example.com/?fbclid=1", isShared = true)
+        assertEquals("Second https://example.com", viewModel.uiState.value.outputText)
+        viewModel.onUrlInput("https://other.org/?fbclid=2")
+        assertEquals(null, viewModel.uiState.value.sourceSharedText)
+        viewModel.cleanUrl("https://other.org/?fbclid=2")
+        assertEquals(viewModel.uiState.value.cleanedUrl, viewModel.uiState.value.outputText)
+        viewModel.clear()
+        assertEquals("", viewModel.uiState.value.outputText)
+    }
+
+    @Test
+    fun clearingWithClipboardCheckDiscardsSharedMessage() = runTest {
+        viewModel.cleanUrl("Private https://example.com/?fbclid=1", isShared = true)
+        viewModel.clearAndCheckClipboard(null)
+        assertEquals(null, viewModel.uiState.value.sourceSharedText)
+        assertEquals("", viewModel.uiState.value.outputText)
+    }
+
+    @Test
+    fun successfulExpansionDisablesFurtherExpansionEvenWithoutARedirect() = runTest {
+        viewModel.viewModelScope.coroutineContext[Job]?.cancelAndJoin()
+        var requests = 0
+        viewModel =
+            MainScreenViewModel(settingsRepository, historyRepository, resolveUrl = { url, _ ->
+                requests++
+                url
+            })
+        viewModel.cleanUrl("https://example.com/page")
+        viewModel.expandShortUrl()
+        viewModel.uiState.first { it.expandedUrl != null && !it.isLoading }
+        assertFalse(viewModel.uiState.value.canExpand)
+        viewModel.expandShortUrl()
+        assertEquals(1, requests)
+        assertEquals(1, historyRepository.historyFlow.first { it.isNotEmpty() }.size)
+    }
+
+    @Test
+    fun failedExpansionCanBeRetried() = runTest {
+        viewModel.viewModelScope.coroutineContext[Job]?.cancelAndJoin()
+        var requests = 0
+        viewModel =
+            MainScreenViewModel(settingsRepository, historyRepository, resolveUrl = { url, _ ->
+                if (requests++ == 0) throw java.io.IOException()
+                url
+            })
+        viewModel.cleanUrl("https://example.com/page")
+        val failure =
+            async(start = CoroutineStart.UNDISPATCHED) { viewModel.expansionFailures.first() }
+        viewModel.expandShortUrl()
+        assertEquals(MainScreenViewModel.ExpansionFailure.Network, failure.await())
+        assertTrue(viewModel.uiState.value.canExpand)
+        viewModel.expandShortUrl()
+        assertFalse(viewModel.uiState.value.canExpand)
+        assertEquals(2, requests)
+    }
+
+    @Test
+    fun clearingOrCleaningAnotherUrlCancelsPendingExpansion() = runTest {
+        viewModel.viewModelScope.coroutineContext[Job]?.cancelAndJoin()
+        val resolution = kotlinx.coroutines.CompletableDeferred<String>()
+        viewModel = MainScreenViewModel(
+            settingsRepository,
+            historyRepository,
+            resolveUrl = { _, _ -> resolution.await() })
+        viewModel.cleanUrl("https://example.com/page")
+        viewModel.expandShortUrl()
+        assertTrue(viewModel.uiState.value.isExpanding)
+        viewModel.clear()
+        resolution.complete("https://stale.example.org/")
+        assertFalse(viewModel.uiState.value.isCleaned)
+        assertEquals("", viewModel.uiState.value.cleanedUrl)
+        viewModel.cleanUrl("https://other.example.org/page")
+        assertEquals("https://other.example.org/page", viewModel.uiState.value.cleanedUrl)
     }
 
     @Test
@@ -279,10 +419,15 @@ class MainScreenViewModelTest {
         // (connection refused) and returns the URL unchanged: no real network needed.
         val unreachable = "http://127.0.0.1:1/"
         viewModel.cleanUrl(unreachable)
-        historyRepository.loadHistory()
-        assertEquals(1, historyRepository.historyFlow.value.size)
+        assertEquals(1, historyRepository.historyFlow.first { it.isNotEmpty() }.size)
 
+        val cleanedBeforeExpansion = viewModel.uiState.value.cleanedUrl
+        val failure =
+            async(start = CoroutineStart.UNDISPATCHED) { viewModel.expansionFailures.first() }
         viewModel.expandShortUrl()
+        assertEquals(MainScreenViewModel.ExpansionFailure.Network, failure.await())
+        val settled = viewModel.uiState.first { !it.isExpanding }
+        assertEquals(cleanedBeforeExpansion, settled.cleanedUrl)
         historyRepository.loadHistory()
         assertEquals(1, historyRepository.historyFlow.value.size)
     }
@@ -291,11 +436,17 @@ class MainScreenViewModelTest {
     fun onUrlInputDismissesClipboardSuggestionWhenMatchingUrlIsEntered() = runTest {
         settingsRepository.setCheckClipboardForLinks(true)
         viewModel.checkClipboardText("https://example.com/test?utm_source=promo")
-        assertEquals("https://example.com/test?utm_source=promo", viewModel.uiState.value.clipboardSuggestionUrl)
+        assertEquals(
+            "https://example.com/test?utm_source=promo",
+            viewModel.uiState.value.clipboardSuggestionUrl
+        )
 
         // Typing non-matching input leaves suggestion intact
         viewModel.onUrlInput("https://other.com")
-        assertEquals("https://example.com/test?utm_source=promo", viewModel.uiState.value.clipboardSuggestionUrl)
+        assertEquals(
+            "https://example.com/test?utm_source=promo",
+            viewModel.uiState.value.clipboardSuggestionUrl
+        )
 
         // Typing matching input dismisses suggestion
         viewModel.onUrlInput("https://example.com/test?utm_source=promo")

@@ -1,11 +1,16 @@
 package com.tidy.app
 
 import android.app.Application
+import androidx.compose.ui.ComposeUiFlags
+import androidx.compose.ui.ExperimentalComposeUiApi
 import com.tidy.app.data.HistoryRepository
 import com.tidy.app.data.SettingsRepository
 import com.tidy.app.data.createPlatformDataStore
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.async
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import org.acra.ACRA
 import org.acra.ReportField
@@ -21,6 +26,7 @@ class TidyApp : Application() {
         private set
 
     private val applicationScope = CoroutineScope(Dispatchers.Default)
+    private lateinit var automaticSyncAllowed: Deferred<Boolean>
 
     override fun attachBaseContext(base: android.content.Context) {
         super.attachBaseContext(base)
@@ -37,25 +43,32 @@ class TidyApp : Application() {
         ACRA.init(this, builder)
     }
 
+    @OptIn(ExperimentalComposeUiApi::class)
     override fun onCreate() {
+        ComposeUiFlags.isMediaQueryIntegrationEnabled = true
         super.onCreate()
         val dataStore = createPlatformDataStore(this)
         settingsRepository = SettingsRepository(dataStore)
+        // Capture the session's starting preference before onboarding can change it.
+        // A fresh installation uses bundled rules throughout its first session.
+        automaticSyncAllowed = applicationScope.async { settingsRepository.firstLaunchDone.first() }
         historyRepository = HistoryRepository(this)
         instance = this
+        com.tidy.app.data.SharedDependencies.settingsRepository = settingsRepository
 
         entitlementManager = FlavorConfig.createEntitlementManager(this)
         entitlementManager.init()
 
         com.tidy.app.data.SharedDependencies.entitlementManager = entitlementManager
-        com.tidy.app.data.SharedDependencies.settingsRepository = settingsRepository
 
         syncBlocklistInBackground()
     }
 
     fun syncBlocklistInBackground() {
         applicationScope.launch {
-            com.tidy.app.data.BlocklistSyncer.sync(this@TidyApp, settingsRepository)
+            if (automaticSyncAllowed.await()) {
+                com.tidy.app.data.BlocklistSyncer.sync(this@TidyApp, settingsRepository)
+            }
         }
     }
 

@@ -12,11 +12,12 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.io.IOException
 
 class HistoryScreenViewModel(
     private val historyRepository: HistoryRepository = TidyApp.instance.historyRepository,
     private val settingsRepository: SettingsRepository = TidyApp.instance.settingsRepository
-) : ViewModel() {
+) : ViewModel(), HistoryScreenActions {
 
     data class UiState(
         val history: List<HistoryEntry> = emptyList(),
@@ -24,6 +25,7 @@ class HistoryScreenViewModel(
         val totalTrackersBlocked: Int = 0,
         val showClearConfirmation: Boolean = false,
         val isInitialLoading: Boolean = true,
+        val historyLoadFailed: Boolean = false,
         val trackerDescriptions: Map<String, String> = emptyMap()
     )
 
@@ -31,10 +33,15 @@ class HistoryScreenViewModel(
     val uiState: StateFlow<UiState> = _uiState.asStateFlow()
 
     private var lastClearedHistory: List<HistoryEntry>? = null
+    private var undoGeneration = 0
 
     init {
         viewModelScope.launch {
-            historyRepository.loadHistory()
+            try {
+                historyRepository.loadHistory()
+            } catch (_: IOException) {
+                _uiState.update { it.copy(historyLoadFailed = true, isInitialLoading = false) }
+            }
         }
         viewModelScope.launch {
             combine(
@@ -56,41 +63,54 @@ class HistoryScreenViewModel(
         }
     }
 
-    fun showClearConfirmation() {
+    override fun showClearConfirmation() {
         _uiState.update { it.copy(showClearConfirmation = true) }
     }
 
-    fun dismissClearConfirmation() {
+    override fun dismissClearConfirmation() {
         _uiState.update { it.copy(showClearConfirmation = false) }
     }
 
-    fun clearHistory() {
+    override fun clearHistory(onResult: (Boolean) -> Unit) {
+        val generation = undoGeneration
         viewModelScope.launch {
-            val currentHistory = _uiState.value.history
-            if (currentHistory.isNotEmpty()) {
-                lastClearedHistory = currentHistory
+            val success = try {
+                val backup = historyRepository.clearAll()
+                if (generation == undoGeneration) {
+                    lastClearedHistory = backup.takeIf { it.isNotEmpty() }
+                }
+                true
+            } catch (_: IOException) {
+                false
             }
-            historyRepository.clearAll()
             _uiState.update { it.copy(showClearConfirmation = false) }
+            onResult(success)
         }
     }
 
-    fun undoClearHistory() {
+    override fun undoClearHistory(onResult: (Boolean) -> Unit) {
         val backup = lastClearedHistory
         if (backup != null) {
+            lastClearedHistory = null
             viewModelScope.launch {
                 val jsonStr = kotlinx.serialization.json.Json.encodeToString(backup)
-                historyRepository.importFromJson(jsonStr)
-                lastClearedHistory = null
+                onResult(historyRepository.importFromJson(jsonStr) >= 0)
             }
+        } else {
+            onResult(false)
         }
     }
 
-    suspend fun getExportJson(): String {
+    override fun discardClearUndo() {
+        undoGeneration++
+        lastClearedHistory = null
+    }
+
+    override suspend fun getExportJson(): String {
         return historyRepository.exportToJson()
     }
 
-    fun importHistory(json: String, onResult: (Int) -> Unit) {
+    override fun importHistory(json: String, onResult: (Int) -> Unit) {
         viewModelScope.launch {
             val result = historyRepository.importFromJsonWithResult(json)
             if (result != null) onResult(result.newEntriesCount)
@@ -98,7 +118,7 @@ class HistoryScreenViewModel(
         }
     }
 
-    fun addDomainWhitelistedParam(domain: String, param: String) {
+    override fun addDomainWhitelistedParam(domain: String, param: String) {
         viewModelScope.launch {
             settingsRepository.addDomainWhitelistedParam(domain, param)
         }

@@ -5,13 +5,14 @@ import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.consumeWindowInsets
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -23,6 +24,9 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.selection.selectableGroup
+import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -58,6 +62,7 @@ import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
@@ -71,6 +76,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
@@ -80,6 +86,7 @@ import com.tidy.app.R
 import com.tidy.app.data.BlocklistSyncer
 import com.tidy.app.data.ClipboardCleanTier
 import com.tidy.app.data.ShareCleanTier
+import com.tidy.app.theme.TidyCardTokens
 import com.tidy.app.ui.components.ExpandableSettingRow
 import com.tidy.app.ui.components.ScreenSectionHeader
 import com.tidy.app.ui.components.SettingCard
@@ -88,11 +95,11 @@ import com.tidy.app.ui.components.TidyTopAppBar
 import com.tidy.app.ui.components.TierCard
 import com.tidy.app.ui.components.TierSelectorRow
 import com.tidy.app.ui.components.TooltipWrapper
-import kotlinx.coroutines.launch
 import java.text.DateFormat
 import java.util.Calendar
 import java.util.Date
 import java.util.TimeZone
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
@@ -103,13 +110,39 @@ fun SettingsScreen(
     viewModel: SettingsScreenViewModel = viewModel()
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+    val settings = com.tidy.app.TidyApp.instance.settingsRepository
+    val isPlusUnlocked by com.tidy.app.TidyApp.instance.entitlementManager.isPlusUnlocked
+        .collectAsStateWithLifecycle(initialValue = false)
+    val isPurchasePending by com.tidy.app.TidyApp.instance.entitlementManager.isPurchasePending
+        .collectAsStateWithLifecycle(initialValue = false)
+    val selectedTheme by settings.selectedTheme.collectAsStateWithLifecycle(initialValue = "slate")
+    val scope = rememberCoroutineScope()
+    SettingsScreenContent(
+        state, onBackClick, onAboutClick, modifier, viewModel, isPlusUnlocked, selectedTheme,
+        onSelectTheme = { theme -> scope.launch { settings.setSelectedTheme(theme) } },
+        isPurchasePending = isPurchasePending,
+        upgradeRow = { onClick -> com.tidy.app.FlavorConfig.SettingsUpgradeRow(onClick) }
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
+@Composable
+internal fun SettingsScreenContent(
+    state: SettingsScreenViewModel.UiState,
+    onBackClick: () -> Unit,
+    onAboutClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    actions: SettingsScreenActions = object : SettingsScreenActions {},
+    isPlusUnlocked: Boolean = false,
+    selectedTheme: String = "slate",
+    onSelectTheme: (String) -> Unit = {},
+    isPurchasePending: Boolean = false,
+    upgradeRow: @Composable (() -> Unit) -> Unit = { onClick ->
+        com.tidy.app.FlavorConfig.SettingsUpgradeRow(isPlusUnlocked, isPurchasePending, onClick)
+    }
+) {
     val context = LocalContext.current
     val resources = LocalResources.current
-
-    val entitlementManager = com.tidy.app.TidyApp.instance.entitlementManager
-    val isPlusUnlocked by entitlementManager.isPlusUnlocked.collectAsStateWithLifecycle(initialValue = false)
-
-    val settingsRepository = com.tidy.app.TidyApp.instance.settingsRepository
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
 
@@ -133,18 +166,21 @@ fun SettingsScreen(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues),
+                .padding(paddingValues)
+                .consumeWindowInsets(paddingValues)
+                .imePadding()
+                .verticalScroll(rememberScrollState()),
             contentAlignment = Alignment.TopCenter
         ) {
             Column(
                 modifier = Modifier
-                    .fillMaxHeight()
                     .widthIn(max = 650.dp)
-                    .verticalScroll(rememberScrollState())
-                    .padding(horizontal = 16.dp),
-                verticalArrangement = Arrangement.spacedBy(20.dp)
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp)
+                    .padding(top = TidyCardTokens.screenTopSpacing, bottom = 8.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                com.tidy.app.FlavorConfig.SettingsUpgradeRow {
+                upgradeRow {
                     if (com.tidy.app.FlavorConfig.isPlayFlavor) {
                         showUpsellSheet = true
                     } else {
@@ -206,7 +242,7 @@ fun SettingsScreen(
                                     TooltipWrapper(tooltipText = stringResource(R.string.dialog_default_blocklist_refresh)) {
                                         IconButton(
                                             onClick = {
-                                                viewModel.refreshBlocklist(context) { result ->
+                                                actions.refreshBlocklist(context) { result ->
                                                     scope.launch {
                                                         val message = when (result) {
                                                             is BlocklistSyncer.SyncResult.Updated -> {
@@ -321,8 +357,8 @@ fun SettingsScreen(
 
                 SettingCard(modifier = Modifier.animateContentSize()) {
                     Column(
-                        modifier = Modifier.padding(12.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                        modifier = Modifier.padding(TidyCardTokens.contentPadding),
+                        verticalArrangement = Arrangement.spacedBy(TidyCardTokens.contentSpacing)
                     ) {
                         // 1. Bypass List Row (Clickable Row Header)
                         val bypassSummary = if (state.whitelistedDomains.isEmpty()) {
@@ -343,7 +379,11 @@ fun SettingsScreen(
                                 verticalArrangement = Arrangement.spacedBy(12.dp),
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .padding(start = 8.dp, end = 8.dp, bottom = 12.dp)
+                                    .padding(
+                                        start = TidyCardTokens.rowHorizontalPadding,
+                                        end = TidyCardTokens.rowHorizontalPadding,
+                                        bottom = 12.dp
+                                    )
                             ) {
                                 Text(
                                     text = stringResource(R.string.settings_bypass_desc),
@@ -351,14 +391,30 @@ fun SettingsScreen(
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
 
+                                var domainValidationRequested by rememberSaveable(state.domainInput) {
+                                    mutableStateOf(
+                                        false
+                                    )
+                                }
+                                val isDomainValid = remember(state.domainInput) {
+                                    state.domainInput.trim().run {
+                                        isNotEmpty() && contains(".") && !contains(" ")
+                                    }
+                                }
+
+
                                 Row(
-                                    verticalAlignment = Alignment.CenterVertically,
+                                    verticalAlignment = Alignment.Top,
                                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                                     modifier = Modifier.fillMaxWidth()
                                 ) {
                                     OutlinedTextField(
                                         value = state.domainInput,
-                                        onValueChange = { viewModel.onDomainInputChanged(it) },
+                                        isError = domainValidationRequested && state.domainInput.isNotBlank() && !isDomainValid,
+                                        supportingText = if (domainValidationRequested && state.domainInput.isNotBlank() && !isDomainValid) {
+                                            { Text(stringResource(R.string.settings_invalid_domain)) }
+                                        } else null,
+                                        onValueChange = { actions.onDomainInputChanged(it) },
                                         placeholder = { Text(stringResource(R.string.settings_placeholder_domain)) },
                                         modifier = Modifier.weight(1f),
                                         shape = RoundedCornerShape(12.dp),
@@ -371,16 +427,15 @@ fun SettingsScreen(
                                         )
                                     )
 
-                                    val isDomainValid = remember(state.domainInput) {
-                                        state.domainInput.trim().run {
-                                            isNotEmpty() && contains(".") && !contains(" ")
-                                        }
-                                    }
-
-                                    TooltipWrapper(tooltipText = stringResource(R.string.tooltip_add_domain)) {
+                                    TooltipWrapper(
+                                        tooltipText = stringResource(R.string.tooltip_add_domain)
+                                    ) {
                                         FilledIconButton(
-                                            onClick = { viewModel.addDomain() },
-                                            enabled = isDomainValid,
+                                            onClick = {
+                                                domainValidationRequested =
+                                                    true; if (isDomainValid) actions.addDomain()
+                                            },
+                                            enabled = state.domainInput.isNotBlank(),
                                             shape = RoundedCornerShape(12.dp),
                                             modifier = Modifier.size(52.dp)
                                         ) {
@@ -413,7 +468,7 @@ fun SettingsScreen(
                                                     TooltipWrapper(tooltipText = stringResource(R.string.tooltip_remove_domain)) {
                                                         IconButton(
                                                             onClick = {
-                                                                viewModel.removeDomain(
+                                                                actions.removeDomain(
                                                                     domain
                                                                 )
                                                             },
@@ -448,7 +503,7 @@ fun SettingsScreen(
 
                         HorizontalDivider(
                             color = MaterialTheme.colorScheme.outline.copy(alpha = 0.12f),
-                            modifier = Modifier.padding(horizontal = 8.dp)
+                            modifier = Modifier.padding(horizontal = TidyCardTokens.rowHorizontalPadding)
                         )
 
                         // 2. Parameter Whitelist Row (Clickable Row Header)
@@ -474,7 +529,11 @@ fun SettingsScreen(
                                 verticalArrangement = Arrangement.spacedBy(12.dp),
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .padding(start = 8.dp, end = 8.dp, bottom = 12.dp)
+                                    .padding(
+                                        start = TidyCardTokens.rowHorizontalPadding,
+                                        end = TidyCardTokens.rowHorizontalPadding,
+                                        bottom = 12.dp
+                                    )
                             ) {
                                 Text(
                                     text = stringResource(R.string.settings_param_whitelist_desc),
@@ -482,15 +541,40 @@ fun SettingsScreen(
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
 
+                                var whitelistValidationRequested by rememberSaveable(
+                                    state.newParamWhitelistDomain,
+                                    state.newParamWhitelistParam
+                                ) { mutableStateOf(false) }
+                                val isWhitelistDomainValid =
+                                    remember(state.newParamWhitelistDomain) {
+                                        state.newParamWhitelistDomain.trim().run {
+                                            isNotEmpty() && contains(".") && !contains(" ")
+                                        }
+                                    }
+                                val isWhitelistParamValid =
+                                    remember(state.newParamWhitelistParam) {
+                                        state.newParamWhitelistParam.trim().run {
+                                            isNotEmpty() && !contains(" ") && !contains("?") &&
+                                                    !contains("&") && !contains("=")
+                                        }
+                                    }
+                                val isParamWhitelistValid =
+                                    isWhitelistDomainValid && isWhitelistParamValid
+
+
                                 Row(
-                                    verticalAlignment = Alignment.CenterVertically,
+                                    verticalAlignment = Alignment.Top,
                                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                                     modifier = Modifier.fillMaxWidth()
                                 ) {
                                     OutlinedTextField(
                                         value = state.newParamWhitelistDomain,
+                                        isError = whitelistValidationRequested && !isWhitelistDomainValid,
+                                        supportingText = if (whitelistValidationRequested && !isWhitelistDomainValid) {
+                                            { Text(stringResource(R.string.settings_invalid_domain)) }
+                                        } else null,
                                         onValueChange = {
-                                            viewModel.onNewParamWhitelistDomainChanged(
+                                            actions.onNewParamWhitelistDomainChanged(
                                                 it
                                             )
                                         },
@@ -508,8 +592,12 @@ fun SettingsScreen(
 
                                     OutlinedTextField(
                                         value = state.newParamWhitelistParam,
+                                        isError = whitelistValidationRequested && !isWhitelistParamValid,
+                                        supportingText = if (whitelistValidationRequested && !isWhitelistParamValid) {
+                                            { Text(stringResource(R.string.settings_invalid_param)) }
+                                        } else null,
                                         onValueChange = {
-                                            viewModel.onNewParamWhitelistParamChanged(
+                                            actions.onNewParamWhitelistParamChanged(
                                                 it
                                             )
                                         },
@@ -525,23 +613,15 @@ fun SettingsScreen(
                                         )
                                     )
 
-                                    val isParamWhitelistValid = remember(
-                                        state.newParamWhitelistDomain,
-                                        state.newParamWhitelistParam
+                                    TooltipWrapper(
+                                        tooltipText = stringResource(R.string.tooltip_add_whitelist_param)
                                     ) {
-                                        state.newParamWhitelistDomain.trim().run {
-                                            isNotEmpty() && contains(".") && !contains(" ")
-                                        } && state.newParamWhitelistParam.trim().run {
-                                            isNotEmpty() && !contains(" ") && !contains("?") && !contains(
-                                                "&"
-                                            ) && !contains("=")
-                                        }
-                                    }
-
-                                    TooltipWrapper(tooltipText = stringResource(R.string.tooltip_add_whitelist_param)) {
                                         FilledIconButton(
-                                            onClick = { viewModel.addDomainWhitelistedParam() },
-                                            enabled = isParamWhitelistValid,
+                                            onClick = {
+                                                whitelistValidationRequested =
+                                                    true; if (isParamWhitelistValid) actions.addDomainWhitelistedParam()
+                                            },
+                                            enabled = state.newParamWhitelistDomain.isNotBlank() && state.newParamWhitelistParam.isNotBlank(),
                                             shape = RoundedCornerShape(12.dp),
                                             modifier = Modifier.size(52.dp)
                                         ) {
@@ -552,6 +632,7 @@ fun SettingsScreen(
                                         }
                                     }
                                 }
+
 
                                 if (state.domainWhitelistedParams.isNotEmpty()) {
                                     Spacer(modifier = Modifier.height(4.dp))
@@ -575,7 +656,7 @@ fun SettingsScreen(
                                                     TooltipWrapper(tooltipText = stringResource(R.string.tooltip_remove_whitelist_param)) {
                                                         IconButton(
                                                             onClick = {
-                                                                viewModel.removeDomainWhitelistedParam(
+                                                                actions.removeDomainWhitelistedParam(
                                                                     entry
                                                                 )
                                                             },
@@ -610,7 +691,7 @@ fun SettingsScreen(
 
                         HorizontalDivider(
                             color = MaterialTheme.colorScheme.outline.copy(alpha = 0.12f),
-                            modifier = Modifier.padding(horizontal = 8.dp)
+                            modifier = Modifier.padding(horizontal = TidyCardTokens.rowHorizontalPadding)
                         )
 
                         // 3. Custom Blacklisted Parameters Row (Clickable Row Header)
@@ -632,7 +713,11 @@ fun SettingsScreen(
                                 verticalArrangement = Arrangement.spacedBy(12.dp),
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .padding(start = 8.dp, end = 8.dp, bottom = 12.dp)
+                                    .padding(
+                                        start = TidyCardTokens.rowHorizontalPadding,
+                                        end = TidyCardTokens.rowHorizontalPadding,
+                                        bottom = 12.dp
+                                    )
                             ) {
                                 Text(
                                     text = stringResource(R.string.settings_custom_params_desc),
@@ -640,14 +725,32 @@ fun SettingsScreen(
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
 
+                                var paramValidationRequested by rememberSaveable(state.paramInput) {
+                                    mutableStateOf(
+                                        false
+                                    )
+                                }
+                                val isParamValid = remember(state.paramInput) {
+                                    state.paramInput.trim().run {
+                                        isNotEmpty() && !contains(" ") && !contains("?") && !contains(
+                                            "&"
+                                        ) && !contains("=")
+                                    }
+                                }
+
+
                                 Row(
-                                    verticalAlignment = Alignment.CenterVertically,
+                                    verticalAlignment = Alignment.Top,
                                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                                     modifier = Modifier.fillMaxWidth()
                                 ) {
                                     OutlinedTextField(
                                         value = state.paramInput,
-                                        onValueChange = { viewModel.onParamInputChanged(it) },
+                                        isError = paramValidationRequested && state.paramInput.isNotBlank() && !isParamValid,
+                                        supportingText = if (paramValidationRequested && state.paramInput.isNotBlank() && !isParamValid) {
+                                            { Text(stringResource(R.string.settings_invalid_param)) }
+                                        } else null,
+                                        onValueChange = { actions.onParamInputChanged(it) },
                                         placeholder = { Text(stringResource(R.string.settings_placeholder_param)) },
                                         modifier = Modifier.weight(1f),
                                         shape = RoundedCornerShape(12.dp),
@@ -660,18 +763,15 @@ fun SettingsScreen(
                                         )
                                     )
 
-                                    val isParamValid = remember(state.paramInput) {
-                                        state.paramInput.trim().run {
-                                            isNotEmpty() && !contains(" ") && !contains("?") && !contains(
-                                                "&"
-                                            ) && !contains("=")
-                                        }
-                                    }
-
-                                    TooltipWrapper(tooltipText = stringResource(R.string.tooltip_add_custom_param)) {
+                                    TooltipWrapper(
+                                        tooltipText = stringResource(R.string.tooltip_add_custom_param)
+                                    ) {
                                         FilledIconButton(
-                                            onClick = { viewModel.addParam() },
-                                            enabled = isParamValid,
+                                            onClick = {
+                                                paramValidationRequested =
+                                                    true; if (isParamValid) actions.addParam()
+                                            },
+                                            enabled = state.paramInput.isNotBlank(),
                                             shape = RoundedCornerShape(12.dp),
                                             modifier = Modifier.size(52.dp)
                                         ) {
@@ -703,7 +803,7 @@ fun SettingsScreen(
                                                 trailingIcon = {
                                                     TooltipWrapper(tooltipText = stringResource(R.string.tooltip_remove_custom_param)) {
                                                         IconButton(
-                                                            onClick = { viewModel.removeParam(param) },
+                                                            onClick = { actions.removeParam(param) },
                                                             modifier = Modifier.size(24.dp)
                                                         ) {
                                                             Icon(
@@ -738,13 +838,16 @@ fun SettingsScreen(
 
                 // Default Blocklist Card (separated reference link)
                 SettingCard {
-                    Column(modifier = Modifier.padding(12.dp)) {
+                    Column(modifier = Modifier.padding(TidyCardTokens.contentPadding)) {
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .clip(RoundedCornerShape(12.dp))
+                                .clip(RoundedCornerShape(TidyCardTokens.rowCornerRadius))
                                 .clickable { showDefaultBlocklistSheet = true }
-                                .padding(horizontal = 8.dp, vertical = 12.dp),
+                                .padding(
+                                    horizontal = TidyCardTokens.rowHorizontalPadding,
+                                    vertical = TidyCardTokens.rowVerticalPadding
+                                ),
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
@@ -755,7 +858,7 @@ fun SettingsScreen(
                                     fontWeight = FontWeight.SemiBold,
                                     color = MaterialTheme.colorScheme.onSurface
                                 )
-                                Spacer(modifier = Modifier.height(2.dp))
+                                Spacer(modifier = Modifier.height(TidyCardTokens.rowTitleSpacing))
                                 Text(
                                     text = stringResource(R.string.settings_default_blocklist_desc),
                                     style = MaterialTheme.typography.bodySmall,
@@ -779,8 +882,8 @@ fun SettingsScreen(
 
                 SettingCard {
                     Column(
-                        modifier = Modifier.padding(12.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                        modifier = Modifier.padding(TidyCardTokens.contentPadding),
+                        verticalArrangement = Arrangement.spacedBy(TidyCardTokens.contentSpacing)
                     ) {
 
                         val themeSageSlate = stringResource(R.string.theme_sage_slate)
@@ -807,33 +910,29 @@ fun SettingsScreen(
                             }
                         }
 
-                        val selectedThemeState =
-                            settingsRepository.selectedTheme.collectAsStateWithLifecycle(
-                                initialValue = "slate"
-                            )
-                        val selectedTheme = selectedThemeState.value
-
                         Column(
                             verticalArrangement = Arrangement.spacedBy(2.dp),
-                            modifier = Modifier.fillMaxWidth()
+                            modifier = Modifier.fillMaxWidth().selectableGroup()
                         ) {
                             themes.forEach { (themeKey, themeName) ->
                                 Row(
                                     modifier = Modifier
                                         .fillMaxWidth()
-                                        .clip(RoundedCornerShape(12.dp))
-                                        .clickable {
-                                            if (themeKey == "slate" || isPlusUnlocked) {
-                                                scope.launch {
-                                                    settingsRepository.setSelectedTheme(themeKey)
+                                        .clip(RoundedCornerShape(TidyCardTokens.rowCornerRadius))
+                                        .selectable(
+                                            selected = selectedTheme == themeKey,
+                                            role = Role.RadioButton,
+                                            onClick = {
+                                                if (themeKey == "slate" || isPlusUnlocked) {
+                                                    onSelectTheme(themeKey)
+                                                } else {
+                                                    showUpsellSheet = true
                                                 }
-                                            } else {
-                                                showUpsellSheet = true
                                             }
-                                        }
+                                        )
                                         .padding(
                                             start = 0.dp,
-                                            end = 8.dp,
+                                            end = TidyCardTokens.rowHorizontalPadding,
                                             top = 8.dp,
                                             bottom = 8.dp
                                         ),
@@ -846,15 +945,8 @@ fun SettingsScreen(
                                     ) {
                                         RadioButton(
                                             selected = (selectedTheme == themeKey),
-                                            onClick = {
-                                                if (themeKey == "slate" || isPlusUnlocked) {
-                                                    scope.launch {
-                                                        settingsRepository.setSelectedTheme(themeKey)
-                                                    }
-                                                } else {
-                                                    showUpsellSheet = true
-                                                }
-                                            }
+                                            onClick = null,
+                                            modifier = Modifier.padding(12.dp)
                                         )
                                         Text(
                                             text = themeName,
@@ -884,14 +976,14 @@ fun SettingsScreen(
                 // Clipboard checking: master toggle + tiered selector
                 SettingCard(modifier = Modifier.animateContentSize()) {
                     Column(
-                        modifier = Modifier.padding(12.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                        modifier = Modifier.padding(TidyCardTokens.contentPadding),
+                        verticalArrangement = Arrangement.spacedBy(TidyCardTokens.contentSpacing)
                     ) {
                         SettingToggleRow(
                             title = stringResource(R.string.settings_check_clipboard_title),
                             description = stringResource(R.string.settings_check_clipboard_desc),
                             checked = state.checkClipboardForLinks,
-                            onToggle = { viewModel.setCheckClipboardForLinks(!state.checkClipboardForLinks) }
+                            onToggle = { actions.setCheckClipboardForLinks(!state.checkClipboardForLinks) }
                         )
 
                         if (state.checkClipboardForLinks) {
@@ -900,7 +992,10 @@ fun SettingsScreen(
                                 style = MaterialTheme.typography.labelLarge,
                                 fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier.padding(start = 8.dp, top = 4.dp)
+                                modifier = Modifier.padding(
+                                    start = TidyCardTokens.rowHorizontalPadding,
+                                    top = 4.dp
+                                )
                             )
                             TierSelectorRow(
                                 cards = listOf(
@@ -926,7 +1021,7 @@ fun SettingsScreen(
                                     )
                                 ),
                                 selected = if (isPlusUnlocked) state.clipboardCleanTier else ClipboardCleanTier.SUGGEST,
-                                onSelect = { viewModel.setClipboardCleanTier(it) },
+                                onSelect = { actions.setClipboardCleanTier(it) },
                                 onLockedTap = { showUpsellSheet = true },
                                 modifier = Modifier.padding(horizontal = 4.dp, vertical = 4.dp)
                             )
@@ -937,15 +1032,18 @@ fun SettingsScreen(
                 // Share-to-clean tiered selector
                 SettingCard(modifier = Modifier.animateContentSize()) {
                     Column(
-                        modifier = Modifier.padding(12.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                        modifier = Modifier.padding(TidyCardTokens.contentPadding),
+                        verticalArrangement = Arrangement.spacedBy(TidyCardTokens.contentSpacing)
                     ) {
                         Text(
                             text = stringResource(R.string.settings_share_tier_heading),
                             style = MaterialTheme.typography.labelLarge,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.padding(start = 8.dp, top = 4.dp)
+                            modifier = Modifier.padding(
+                                start = TidyCardTokens.rowHorizontalPadding,
+                                top = 4.dp
+                            )
                         )
                         val effectiveShareTier =
                             if (isPlusUnlocked) state.shareCleanTier else ShareCleanTier.CLEAN
@@ -973,7 +1071,7 @@ fun SettingsScreen(
                                 )
                             ),
                             selected = effectiveShareTier,
-                            onSelect = { viewModel.setShareCleanTier(it) },
+                            onSelect = { actions.setShareCleanTier(it) },
                             onLockedTap = { showUpsellSheet = true },
                             modifier = Modifier.padding(horizontal = 4.dp, vertical = 4.dp)
                         )
@@ -982,13 +1080,13 @@ fun SettingsScreen(
                             HorizontalDivider(
                                 color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f),
                                 thickness = 1.dp,
-                                modifier = Modifier.padding(horizontal = 8.dp)
+                                modifier = Modifier.padding(horizontal = TidyCardTokens.rowHorizontalPadding)
                             )
                             SettingToggleRow(
                                 title = stringResource(R.string.settings_close_instead_title),
                                 description = stringResource(R.string.settings_close_instead_desc),
                                 checked = state.closeInsteadOfSharing,
-                                onToggle = { viewModel.setCloseInsteadOfSharing(!state.closeInsteadOfSharing) }
+                                onToggle = { actions.setCloseInsteadOfSharing(!state.closeInsteadOfSharing) }
                             )
                         }
                     }
@@ -997,59 +1095,59 @@ fun SettingsScreen(
                 // Other automation toggles
                 SettingCard {
                     Column(
-                        modifier = Modifier.padding(12.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                        modifier = Modifier.padding(TidyCardTokens.contentPadding),
+                        verticalArrangement = Arrangement.spacedBy(TidyCardTokens.contentSpacing)
                     ) {
                         SettingToggleRow(
                             title = stringResource(R.string.settings_auto_expand_title),
                             description = stringResource(R.string.settings_auto_expand_desc),
                             checked = state.autoExpandShortUrls,
-                            onToggle = { viewModel.setAutoExpandShortUrls(!state.autoExpandShortUrls) }
+                            onToggle = { actions.setAutoExpandShortUrls(!state.autoExpandShortUrls) }
                         )
 
                         HorizontalDivider(
                             color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f),
                             thickness = 1.dp,
-                            modifier = Modifier.padding(horizontal = 8.dp)
+                            modifier = Modifier.padding(horizontal = TidyCardTokens.rowHorizontalPadding)
                         )
 
                         SettingToggleRow(
                             title = stringResource(R.string.settings_remove_mobile_subdomains_title),
                             description = stringResource(R.string.settings_remove_mobile_subdomains_desc),
                             checked = state.autoRemoveMobileSubdomains,
-                            onToggle = { viewModel.setAutoRemoveMobileSubdomains(!state.autoRemoveMobileSubdomains) }
+                            onToggle = { actions.setAutoRemoveMobileSubdomains(!state.autoRemoveMobileSubdomains) }
                         )
 
                         HorizontalDivider(
                             color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f),
                             thickness = 1.dp,
-                            modifier = Modifier.padding(horizontal = 8.dp)
+                            modifier = Modifier.padding(horizontal = TidyCardTokens.rowHorizontalPadding)
                         )
 
                         SettingToggleRow(
                             title = stringResource(R.string.settings_drop_trailing_slash_title),
                             description = stringResource(R.string.settings_drop_trailing_slash_desc),
                             checked = state.dropTrailingSlash,
-                            onToggle = { viewModel.setDropTrailingSlash(!state.dropTrailingSlash) }
+                            onToggle = { actions.setDropTrailingSlash(!state.dropTrailingSlash) }
                         )
 
                         HorizontalDivider(
                             color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f),
                             thickness = 1.dp,
-                            modifier = Modifier.padding(horizontal = 8.dp)
+                            modifier = Modifier.padding(horizontal = TidyCardTokens.rowHorizontalPadding)
                         )
 
                         SettingToggleRow(
                             title = stringResource(R.string.settings_auto_clean_input_title),
                             description = stringResource(R.string.settings_auto_clean_input_desc),
                             checked = state.autoCleanOnInput,
-                            onToggle = { viewModel.setAutoCleanOnInput(!state.autoCleanOnInput) }
+                            onToggle = { actions.setAutoCleanOnInput(!state.autoCleanOnInput) }
                         )
 
                         HorizontalDivider(
                             color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f),
                             thickness = 1.dp,
-                            modifier = Modifier.padding(horizontal = 8.dp)
+                            modifier = Modifier.padding(horizontal = TidyCardTokens.rowHorizontalPadding)
                         )
 
                         // "Clean from any app" genuinely toggles the ACTION_PROCESS_TEXT
@@ -1084,14 +1182,21 @@ fun SettingsScreen(
 
                 SettingCard {
                     Column(
-                        modifier = Modifier.padding(12.dp)
+                        modifier = Modifier.padding(TidyCardTokens.contentPadding)
                     ) {
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .clip(RoundedCornerShape(12.dp))
-                                .clickable { viewModel.setAllowSystemBackup(!state.allowSystemBackup) }
-                                .padding(horizontal = 8.dp, vertical = 12.dp),
+                                .clip(RoundedCornerShape(TidyCardTokens.rowCornerRadius))
+                                .toggleable(
+                                    value = state.allowSystemBackup,
+                                    role = Role.Switch,
+                                    onValueChange = actions::setAllowSystemBackup
+                                )
+                                .padding(
+                                    horizontal = TidyCardTokens.rowHorizontalPadding,
+                                    vertical = TidyCardTokens.rowVerticalPadding
+                                ),
                             horizontalArrangement = Arrangement.spacedBy(16.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
@@ -1102,7 +1207,7 @@ fun SettingsScreen(
                                     fontWeight = FontWeight.SemiBold,
                                     color = MaterialTheme.colorScheme.onSurface
                                 )
-                                Spacer(modifier = Modifier.height(2.dp))
+                                Spacer(modifier = Modifier.height(TidyCardTokens.rowTitleSpacing))
                                 Text(
                                     text = stringResource(R.string.settings_allow_system_backup_desc),
                                     style = MaterialTheme.typography.bodySmall,
@@ -1126,14 +1231,17 @@ fun SettingsScreen(
 
                 SettingCard {
                     Column(
-                        modifier = Modifier.padding(12.dp)
+                        modifier = Modifier.padding(TidyCardTokens.contentPadding)
                     ) {
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .clip(RoundedCornerShape(12.dp))
+                                .clip(RoundedCornerShape(TidyCardTokens.rowCornerRadius))
                                 .clickable { onAboutClick() }
-                                .padding(horizontal = 8.dp, vertical = 12.dp),
+                                .padding(
+                                    horizontal = TidyCardTokens.rowHorizontalPadding,
+                                    vertical = TidyCardTokens.rowVerticalPadding
+                                ),
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
@@ -1144,7 +1252,7 @@ fun SettingsScreen(
                                     fontWeight = FontWeight.SemiBold,
                                     color = MaterialTheme.colorScheme.onSurface
                                 )
-                                Spacer(modifier = Modifier.height(2.dp))
+                                Spacer(modifier = Modifier.height(TidyCardTokens.rowTitleSpacing))
                                 Text(
                                     text = stringResource(R.string.settings_about_desc),
                                     style = MaterialTheme.typography.bodySmall,
@@ -1178,7 +1286,7 @@ fun SettingsScreen(
 
 /**
  * A standard settings toggle row: title + description on the left, switch on the right.
- * [enabled] = false renders the row greyed; it stays tappable so a locked row can still
+ * [enabled] = false disables the switch; the row stays tappable so a locked row can still
  * surface the Tidy+ upsell via [onLockedTap]. [showLock] adds the lock indicator next to
  * the title.
  */
@@ -1192,13 +1300,21 @@ private fun SettingToggleRow(
     showLock: Boolean = false,
     onLockedTap: () -> Unit = {}
 ) {
-    val contentAlpha = if (enabled) 1f else 0.38f
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(12.dp))
-            .clickable { if (enabled) onToggle() else onLockedTap() }
-            .padding(horizontal = 8.dp, vertical = 12.dp),
+            .clip(RoundedCornerShape(TidyCardTokens.rowCornerRadius))
+            .then(
+                if (enabled) Modifier.toggleable(
+                    value = checked,
+                    role = Role.Switch,
+                    onValueChange = { onToggle() }
+                ) else Modifier.clickable(role = Role.Button, onClick = onLockedTap)
+            )
+            .padding(
+                horizontal = TidyCardTokens.rowHorizontalPadding,
+                vertical = TidyCardTokens.rowVerticalPadding
+            ),
         horizontalArrangement = Arrangement.spacedBy(16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -1211,7 +1327,7 @@ private fun SettingToggleRow(
                     text = title,
                     style = MaterialTheme.typography.bodyMedium,
                     fontWeight = FontWeight.SemiBold,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = contentAlpha)
+                    color = MaterialTheme.colorScheme.onSurface
                 )
                 if (showLock) {
                     Icon(
@@ -1222,11 +1338,11 @@ private fun SettingToggleRow(
                     )
                 }
             }
-            Spacer(modifier = Modifier.height(2.dp))
+            Spacer(modifier = Modifier.height(TidyCardTokens.rowTitleSpacing))
             Text(
                 text = description,
                 style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = contentAlpha)
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
         Switch(
@@ -1243,9 +1359,9 @@ private fun clearSwitchColors() = SwitchDefaults.colors(
     checkedThumbColor = MaterialTheme.colorScheme.onPrimary,
     checkedTrackColor = MaterialTheme.colorScheme.primary,
     checkedBorderColor = MaterialTheme.colorScheme.primary,
-    uncheckedThumbColor = MaterialTheme.colorScheme.outline,
+    uncheckedThumbColor = MaterialTheme.colorScheme.onSurfaceVariant,
     uncheckedTrackColor = MaterialTheme.colorScheme.surfaceVariant,
-    uncheckedBorderColor = MaterialTheme.colorScheme.outline,
+    uncheckedBorderColor = MaterialTheme.colorScheme.onSurfaceVariant,
     disabledCheckedThumbColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f),
     disabledCheckedTrackColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f),
     disabledCheckedBorderColor = Color.Transparent,

@@ -1,32 +1,27 @@
+@file:OptIn(androidx.compose.foundation.style.ExperimentalFoundationStyleApi::class)
+
 package com.tidy.app.ui.components
 
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
+import androidx.compose.foundation.style.CommonStyle
+import com.tidy.designsystem.TidyComponentStyles
+import com.tidy.designsystem.TidyStyle
+import com.tidy.designsystem.TidyStyledCard
 
 /**
  * The standard Tidy card style used on settings and about screens.
  *
- * Renders a [Card] with a 24.dp rounded corner and a translucent surfaceVariant background.
+ * Resolves its surface and dimensions through Styles, with caller overrides applied last.
  * Callers provide a [content] lambda for the card body.
  */
 @Composable
 fun SettingCard(
     modifier: Modifier = Modifier,
+    style: TidyStyle = CommonStyle,
     content: @Composable () -> Unit
 ) {
-    Card(
-        shape = RoundedCornerShape(24.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)
-        ),
-        modifier = modifier.fillMaxWidth()
-    ) {
+    TidyStyledCard(modifier, CommonStyle(TidyComponentStyles.settingsCard, style)) {
         content()
     }
 }

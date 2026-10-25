@@ -1,6 +1,12 @@
 package com.tidy.app.data
 
 import android.content.Context
+import androidx.annotation.Keep
+import java.io.File
+import java.io.FileOutputStream
+import java.io.IOException
+import java.util.UUID
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -8,14 +14,11 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
-import androidx.annotation.Keep
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.decodeFromJsonElement
-import java.io.File
-import java.util.UUID
 
 @Keep
 @Serializable
@@ -47,6 +50,7 @@ class HistoryRepository(
     private val json = Json {
         ignoreUnknownKeys = true
         prettyPrint = true
+        encodeDefaults = true
     }
 
     private var cachedEntries: List<HistoryEntry>? = null
@@ -73,20 +77,22 @@ class HistoryRepository(
             mutex.withLock {
                 val current = getOrLoadEntries().toMutableList()
                 current.add(0, entry) // newest first
-                cachedEntries = current
                 writeToFile(current)
+                cachedEntries = current
                 _historyFlow.value = current
             }
         }
     }
 
-    suspend fun clearAll() {
-        withContext(Dispatchers.IO) {
+    suspend fun clearAll(): List<HistoryEntry> {
+        return withContext(Dispatchers.IO) {
             mutex.withLock {
+                val previous = getOrLoadEntries()
                 val empty = emptyList<HistoryEntry>()
-                cachedEntries = empty
                 writeToFile(empty)
+                cachedEntries = empty
                 _historyFlow.value = empty
+                previous
             }
         }
     }
@@ -122,14 +128,16 @@ class HistoryRepository(
                     if (newEntries.isNotEmpty()) {
                         current.addAll(0, newEntries)
                         current.sortByDescending { it.timestamp }
-                        cachedEntries = current
                         writeToFile(current)
+                        cachedEntries = current
                         _historyFlow.value = current
                     }
                     HistoryImportResult(
                         newEntriesCount = newEntries.size,
                         newTrackersBlocked = newEntries.sumOf { it.removedParamsCount }
                     )
+                } catch (e: CancellationException) {
+                    throw e
                 } catch (e: Exception) {
                     null
                 }
@@ -142,7 +150,7 @@ class HistoryRepository(
         return try {
             parseJson(historyFile.readText())
         } catch (e: Exception) {
-            emptyList()
+            throw IOException("History could not be read", e)
         }
     }
 
@@ -162,7 +170,19 @@ class HistoryRepository(
 
     private fun writeToFile(entries: List<HistoryEntry>) {
         val jsonStr = json.encodeToString(entries)
-        historyFile.writeText(jsonStr)
+        // Keep the last complete file until its replacement is written and synced.
+        val stagedFile = File(historyFile.path + ".new")
+        try {
+            FileOutputStream(stagedFile).use { output ->
+                output.write(jsonStr.toByteArray(Charsets.UTF_8))
+                output.fd.sync()
+            }
+            if (!stagedFile.renameTo(historyFile)) {
+                throw IOException("History could not be replaced")
+            }
+        } finally {
+            stagedFile.delete()
+        }
     }
 
     companion object {

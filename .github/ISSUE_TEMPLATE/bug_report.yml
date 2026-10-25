@@ -6,8 +6,8 @@ body:
   - type: markdown
     attributes:
       value: |
-        Thanks for reporting this. If this came from the "Report" button
-        inside Tidy, some of these fields may already be filled in.
+        Describe the problem and steps to reproduce it.
+        Review any prefilled fields before submitting. Do not include private URLs or tokens.
   - type: dropdown
     id: build
     attributes:
@@ -37,9 +37,8 @@ body:
     attributes:
       label: Domain or URL pattern involved (if relevant)
       description: >
-        Share the domain or general pattern, not the full personal link,
-        if you'd rather keep it private. e.g. "youtube.com" not the
-        specific video link.
+        Give the domain or a URL pattern, such as "youtube.com".
+        Do not include private URLs or tokens.
       placeholder: "example.com"
   - type: textarea
     id: expected

@@ -12,6 +12,18 @@ object FlavorConfig {
 
     @Composable
     fun SettingsUpgradeRow(
+        isUnlocked: Boolean,
+        isPending: Boolean,
+        onUpgradeClick: () -> Unit
+    ) {
+        com.tidy.app.ui.settings.SettingsMigrationViews.UpgradePromptRow(
+            onUpgradeClick,
+            showFollowup = false
+        )
+    }
+
+    @Composable
+    fun SettingsUpgradeRow(
         onUpgradeClick: () -> Unit
     ) {
         com.tidy.app.ui.settings.SettingsMigrationViews.UpgradePromptRow(onUpgradeClick)

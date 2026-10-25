@@ -16,7 +16,9 @@ if (keystorePropertiesFile.exists()) {
 
 android {
     namespace = "com.tidy.app"
-    compileSdk = 37
+    compileSdk {
+        version = release(37) { minorApiLevel = 2 }
+    }
 
     signingConfigs {
         create("fossRelease") {
@@ -68,8 +70,8 @@ android {
         applicationId = "com.tidy.app"
         minSdk = 24
         targetSdk = 37
-        versionCode = 4
-        versionName = "1.3.0"
+        versionCode = 5
+        versionName = "1.4.0"
         // Gates the foss-only "Get Tidy+" row (SettingsMigrationViews.UpgradePromptRow) between
         // its live upgrade action and a "Coming soon" sheet. Only read by the foss flavor; the
         // play flavor drives its own upgrade row off AndroidEntitlementManager.isPlusUnlocked
@@ -89,6 +91,12 @@ android {
     }
 
     buildTypes {
+        getByName("debug") {
+            if (providers.gradleProperty("tidyVisualTest").getOrElse("false").toBoolean()) {
+                applicationIdSuffix = ".visualtest"
+                resValue("string", "app_name", "Tidy+ test")
+            }
+        }
         release {
             isMinifyEnabled = false
             proguardFiles(
@@ -110,14 +118,27 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_21
-        targetCompatibility = JavaVersion.VERSION_21
+        sourceCompatibility = JavaVersion.VERSION_25
+        targetCompatibility = JavaVersion.VERSION_25
     }
     buildFeatures {
         compose = true
         aidl = false
         buildConfig = true
+        resValues = true
         shaders = false
+    }
+
+    testOptions {
+        unitTests.isIncludeAndroidResources = true
+        screenshotTests.create("screenshotTest") {
+            engineVersion = libs.versions.screenshot.get()
+            targetVariants.addAll(listOf("fossDebug", "playDebug"))
+            dependencies {
+                implementation(libs.androidx.compose.ui.tooling)
+                implementation(libs.screenshot.validation.api)
+            }
+        }
     }
 
     packaging {
@@ -134,7 +155,7 @@ tasks.register("renameArtifacts") {
     doLast {
         val dateStr = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"))
 
-        // 1. Rename AABs
+        // Keep AGP's declared bundle output for incremental builds and IDE metadata.
         val bundleDir = File(targetBuildDir, "outputs/bundle")
         if (bundleDir.exists()) {
             bundleDir.walkTopDown().forEach { file ->
@@ -144,9 +165,8 @@ tasks.register("renameArtifacts") {
                         if (path.contains("foss")) "foss" else if (path.contains("play")) "play" else ""
                     val newName = "Tidy-${flavor}-v${targetVersionCode}-${dateStr}.aab"
                     val destFile = File(file.parentFile, newName)
-                    if (file.renameTo(destFile)) {
-                        println("Renamed bundle: ${file.name} -> $newName")
-                    }
+                    file.copyTo(destFile, overwrite = true)
+                    logger.lifecycle("Copied bundle: ${file.name} -> $newName")
                 }
             }
         }
@@ -185,7 +205,15 @@ androidComponents {
     }
 }
 
+kotlin {
+    compilerOptions {
+        jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_25)
+        optIn.add("androidx.compose.foundation.style.ExperimentalFoundationStyleApi")
+    }
+}
+
 dependencies {
+    implementation(project(":design-system"))
     val composeBom = platform(libs.androidx.compose.bom)
     implementation(composeBom)
     androidTestImplementation(composeBom)
@@ -194,6 +222,7 @@ dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
+    implementation(libs.androidx.browser)
 
     // Arch Components
     implementation(libs.androidx.lifecycle.runtime.compose)
@@ -201,6 +230,7 @@ dependencies {
 
     // Compose
     implementation(libs.androidx.compose.ui)
+    implementation(libs.androidx.compose.foundation)
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.compose.material3)
     implementation(libs.androidx.compose.material.icons.extended)

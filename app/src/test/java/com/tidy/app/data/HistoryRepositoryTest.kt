@@ -206,4 +206,49 @@ class HistoryRepositoryTest {
         assertEquals("m.example.com", HistoryRepository.extractDomain("https://m.example.com/"))
         assertEquals("example.com", HistoryRepository.extractDomain("example.com"))
     }
+
+    @Test
+    fun failedWritesPreserveSnapshotsAndAllowLaterRecovery() = runTest {
+        val original = sampleEntry()
+        repository.addEntry(original)
+        val saved = historyFile.readText()
+        val blockedStage = File(historyFile.path + ".new")
+        assertTrue(blockedStage.mkdir())
+        val blocker = File(blockedStage, "blocker").apply { writeText("block") }
+
+        assertTrue(runCatching { repository.clearAll() }.exceptionOrNull() is java.io.IOException)
+        assertTrue(runCatching { repository.addEntry(sampleEntry()) }.exceptionOrNull() is java.io.IOException)
+        val imported = kotlinx.serialization.json.Json.encodeToString(listOf(sampleEntry()))
+        assertEquals(-1, repository.importFromJson(imported))
+        assertEquals(listOf(original), repository.getEntriesSnapshot())
+        assertEquals(listOf(original), repository.historyFlow.value)
+        assertEquals(saved, historyFile.readText())
+
+        assertTrue(blocker.delete())
+        assertTrue(blockedStage.delete())
+        repository.addEntry(sampleEntry())
+        val reloaded = HistoryRepository(testFile = historyFile)
+        assertEquals(2, reloaded.getEntriesSnapshot().size)
+    }
+
+    @Test
+    fun interruptedStagingDoesNotReplaceSavedHistory() = runTest {
+        val original = sampleEntry()
+        repository.addEntry(original)
+        File(historyFile.path + ".new").writeText("[broken")
+        val reloaded = HistoryRepository(testFile = historyFile)
+        assertEquals(listOf(original), reloaded.getEntriesSnapshot())
+        reloaded.addEntry(sampleEntry())
+        assertEquals(2, HistoryRepository(testFile = historyFile).getEntriesSnapshot().size)
+        assertTrue(!File(historyFile.path + ".new").exists())
+    }
+
+    @Test
+    fun unreadableHistoryIsNotTreatedAsAnEmptyFile() = runTest {
+        historyFile.writeText("[broken")
+        assertTrue(runCatching { repository.loadHistory() }.exceptionOrNull() is java.io.IOException)
+        assertTrue(runCatching { repository.addEntry(sampleEntry()) }.exceptionOrNull() is java.io.IOException)
+        assertEquals(-1, repository.importFromJson("[]"))
+        assertEquals("[broken", historyFile.readText())
+    }
 }

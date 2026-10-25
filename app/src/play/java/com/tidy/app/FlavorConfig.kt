@@ -38,6 +38,19 @@ object FlavorConfig {
 
     @Composable
     fun SettingsUpgradeRow(
+        isUnlocked: Boolean,
+        isPending: Boolean,
+        onUpgradeClick: () -> Unit
+    ) {
+        com.tidy.app.ui.settings.SettingsMigrationViews.UpgradePromptRow(
+            onUpgradeClick,
+            isUnlocked,
+            isPending
+        )
+    }
+
+    @Composable
+    fun SettingsUpgradeRow(
         onUpgradeClick: () -> Unit
     ) {
         com.tidy.app.ui.settings.SettingsMigrationViews.UpgradePromptRow(onUpgradeClick)
@@ -55,7 +68,7 @@ object FlavorConfig {
         com.tidy.app.featureplus.PlusUpsellBottomSheet(
             onDismiss = onDismiss,
             launchPurchaseFlow = { act ->
-                createEntitlementManager(context).launchPurchaseFlow(act) { errorMsg ->
+                TidyApp.instance.entitlementManager.launchPurchaseFlow(act) { errorMsg ->
                     Toast.makeText(context, errorMsg, Toast.LENGTH_LONG).show()
                 }
             }

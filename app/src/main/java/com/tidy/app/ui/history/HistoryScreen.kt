@@ -6,29 +6,37 @@ import android.content.Intent
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlexAlignItems
+import androidx.compose.foundation.layout.FlexBox
+import androidx.compose.foundation.layout.FlexBoxConfig
+import androidx.compose.foundation.layout.FlexWrap
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.calculateEndPadding
+import androidx.compose.foundation.layout.calculateStartPadding
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.defaultMinSize
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.GridItemSpan
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.style.CommonStyle
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.OpenInNew
 import androidx.compose.material.icons.filled.ContentCopy
@@ -40,8 +48,6 @@ import androidx.compose.material.icons.outlined.Link
 import androidx.compose.material.icons.outlined.Shield
 import androidx.compose.material.icons.outlined.Speed
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.AssistChip
-import androidx.compose.material3.AssistChipDefaults
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -56,21 +62,28 @@ import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -81,11 +94,17 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.tidy.app.R
 import com.tidy.app.data.HistoryEntry
+import com.tidy.app.data.trackerDescriptionFor
+import com.tidy.app.ui.components.CleanStatusBadge
 import com.tidy.app.ui.components.ParamDetailBottomSheet
+import com.tidy.app.ui.components.RemovedParameterChip
 import com.tidy.app.ui.components.ScreenSectionHeader
 import com.tidy.app.ui.components.TidyTopAppBar
 import com.tidy.app.ui.components.TooltipWrapper
 import com.tidy.app.ui.components.shimmer
+import com.tidy.designsystem.TidyComponentStyles
+import com.tidy.designsystem.TidyStyle
+import com.tidy.designsystem.TidyStyledCard
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -100,9 +119,24 @@ fun HistoryScreen(
     viewModel: HistoryScreenViewModel = viewModel()
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+    HistoryScreenContent(state, onBackClick, modifier, viewModel)
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+internal fun HistoryScreenContent(
+    state: HistoryScreenViewModel.UiState,
+    onBackClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    actions: HistoryScreenActions = object : HistoryScreenActions {}
+) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
+    val latestActions by rememberUpdatedState(actions)
+    DisposableEffect(Unit) {
+        onDispose { latestActions.discardClearUndo() }
+    }
 
     val historyToastExported = stringResource(R.string.history_toast_exported)
     val historyToastExportFailed = stringResource(R.string.history_toast_export_failed)
@@ -111,6 +145,12 @@ fun HistoryScreen(
     val historyImportInvalid = stringResource(R.string.history_import_invalid)
     val historyClearedToast = stringResource(R.string.history_cleared_toast)
     val historyUndoAction = stringResource(R.string.history_undo_action)
+    val historyLoadFailed = stringResource(R.string.history_load_failed)
+    val historyClearFailed = stringResource(R.string.history_clear_failed)
+    val historyUndoFailed = stringResource(R.string.history_undo_failed)
+    LaunchedEffect(state.historyLoadFailed) {
+        if (state.historyLoadFailed) snackbarHostState.showSnackbar(historyLoadFailed)
+    }
     val mainCopied = stringResource(R.string.main_copied)
     val mainCleanedUrl = stringResource(R.string.main_cleaned_url)
     val toastNoBrowserApp = stringResource(R.string.toast_no_browser_app)
@@ -122,7 +162,7 @@ fun HistoryScreen(
         uri?.let {
             scope.launch {
                 try {
-                    val json = viewModel.getExportJson()
+                    val json = actions.getExportJson()
                     context.contentResolver.openOutputStream(it)?.bufferedWriter()?.use { writer ->
                         writer.write(json)
                     }
@@ -143,7 +183,7 @@ fun HistoryScreen(
                     val inputStream = context.contentResolver.openInputStream(uri)
                     val json = inputStream?.bufferedReader()?.readText() ?: return@let
                     inputStream.close()
-                    viewModel.importHistory(json) { count ->
+                    actions.importHistory(json) { count ->
                         scope.launch {
                             val msg = if (count >= 0) {
                                 String.format(historyImportSuccessTemplate, count)
@@ -200,7 +240,7 @@ fun HistoryScreen(
                     // Clear all
                     if (state.history.isNotEmpty()) {
                         TooltipWrapper(tooltipText = stringResource(R.string.tooltip_clear_all)) {
-                            IconButton(onClick = { viewModel.showClearConfirmation() }) {
+                            IconButton(onClick = { actions.showClearConfirmation() }) {
                                 Icon(
                                     imageVector = Icons.Outlined.DeleteSweep,
                                     contentDescription = stringResource(R.string.history_clear_desc),
@@ -214,21 +254,33 @@ fun HistoryScreen(
         },
         modifier = modifier
     ) { paddingValues ->
-        Box(
+        BoxWithConstraints(
             modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues),
+                .fillMaxSize(),
             contentAlignment = Alignment.TopCenter
         ) {
-            LazyColumn(
+            val fontScale = LocalDensity.current.fontScale
+            val layoutDirection = LocalLayoutDirection.current
+            val startInset = paddingValues.calculateStartPadding(layoutDirection)
+            val endInset = paddingValues.calculateEndPadding(layoutDirection)
+            val availableWidth = maxWidth - startInset - endInset
+            val horizontalPadding = 16.dp + ((availableWidth - 1000.dp) / 2).coerceAtLeast(0.dp)
+            LazyVerticalGrid(
+                columns = GridCells.Adaptive(320.dp * fontScale.coerceAtLeast(1f)),
                 modifier = Modifier
-                    .fillMaxHeight()
-                    .widthIn(max = 650.dp),
-                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
+                    .fillMaxSize()
+                    .consumeWindowInsets(paddingValues),
+                contentPadding = PaddingValues(
+                    start = startInset + horizontalPadding,
+                    end = endInset + horizontalPadding,
+                    top = paddingValues.calculateTopPadding() + 8.dp,
+                    bottom = paddingValues.calculateBottomPadding() + 8.dp
+                ),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 // Analytics Section
-                item {
+                item(span = { GridItemSpan(maxLineSpan) }) {
                     ScreenSectionHeader(
                         text = stringResource(R.string.history_dashboard),
                         modifier = Modifier.padding(start = 0.dp)
@@ -236,7 +288,7 @@ fun HistoryScreen(
                 }
 
                 if (state.isInitialLoading) {
-                    item {
+                    item(span = { GridItemSpan(maxLineSpan) }) {
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.spacedBy(10.dp)
@@ -257,7 +309,7 @@ fun HistoryScreen(
                             )
                         }
                     }
-                    item {
+                    item(span = { GridItemSpan(maxLineSpan) }) {
                         Box(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -267,7 +319,7 @@ fun HistoryScreen(
                         )
                     }
                 } else {
-                    item {
+                    item(span = { GridItemSpan(maxLineSpan) }) {
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.spacedBy(10.dp)
@@ -288,7 +340,7 @@ fun HistoryScreen(
                             )
                         }
                     }
-                    item {
+                    item(span = { GridItemSpan(maxLineSpan) }) {
                         BandwidthCard(
                             trackersCount = state.totalTrackersBlocked,
                             modifier = Modifier.fillMaxWidth()
@@ -297,7 +349,7 @@ fun HistoryScreen(
                 }
 
                 // History Section
-                item {
+                item(span = { GridItemSpan(maxLineSpan) }) {
                     Spacer(modifier = Modifier.height(8.dp))
                     ScreenSectionHeader(
                         text = stringResource(R.string.history_clean_history),
@@ -316,11 +368,11 @@ fun HistoryScreen(
                         )
                     }
                 } else if (state.history.isEmpty()) {
-                    item {
+                    item(span = { GridItemSpan(maxLineSpan) }) {
                         Card(
                             shape = RoundedCornerShape(16.dp),
                             colors = CardDefaults.cardColors(
-                                containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
+                                containerColor = MaterialTheme.colorScheme.surfaceVariant
                             ),
                             modifier = Modifier.fillMaxWidth()
                         ) {
@@ -354,14 +406,14 @@ fun HistoryScreen(
                             onShowSnackbar = { msg ->
                                 scope.launch { snackbarHostState.showSnackbar(msg) }
                             },
-                            onWhitelist = viewModel::addDomainWhitelistedParam,
+                            onWhitelist = actions::addDomainWhitelistedParam,
                             reportIssueFailedMessage = crashToastBrowserError
                         )
                     }
                 }
 
                 // Bottom spacing
-                item {
+                item(span = { GridItemSpan(maxLineSpan) }) {
                     Spacer(modifier = Modifier.height(16.dp))
                 }
             }
@@ -371,7 +423,7 @@ fun HistoryScreen(
     // Clear confirmation dialog
     if (state.showClearConfirmation) {
         AlertDialog(
-            onDismissRequest = { viewModel.dismissClearConfirmation() },
+            onDismissRequest = { actions.dismissClearConfirmation() },
             icon = {
                 Icon(
                     imageVector = Icons.Filled.Delete,
@@ -386,20 +438,39 @@ fun HistoryScreen(
                 )
             },
             text = {
-                Text(stringResource(R.string.history_clear_dialog_text, state.history.size))
+                Text(
+                    pluralStringResource(
+                        R.plurals.history_clear_dialog_text,
+                        state.history.size,
+                        state.history.size
+                    )
+                )
             },
             confirmButton = {
                 Button(
                     onClick = {
-                        viewModel.clearHistory()
-                        scope.launch {
-                            val result = snackbarHostState.showSnackbar(
-                                message = historyClearedToast,
-                                actionLabel = historyUndoAction,
-                                duration = SnackbarDuration.Short
-                            )
-                            if (result == SnackbarResult.ActionPerformed) {
-                                viewModel.undoClearHistory()
+                        actions.clearHistory { success ->
+                            scope.launch {
+                                if (!success) {
+                                    snackbarHostState.showSnackbar(historyClearFailed)
+                                    return@launch
+                                }
+                                try {
+                                    val result = snackbarHostState.showSnackbar(
+                                        message = historyClearedToast,
+                                        actionLabel = historyUndoAction,
+                                        duration = SnackbarDuration.Short
+                                    )
+                                    if (result == SnackbarResult.ActionPerformed) {
+                                        actions.undoClearHistory { restored ->
+                                            if (!restored) scope.launch {
+                                                snackbarHostState.showSnackbar(historyUndoFailed)
+                                            }
+                                        }
+                                    }
+                                } finally {
+                                    actions.discardClearUndo()
+                                }
                             }
                         }
                     },
@@ -411,7 +482,7 @@ fun HistoryScreen(
                 }
             },
             dismissButton = {
-                TextButton(onClick = { viewModel.dismissClearConfirmation() }) {
+                TextButton(onClick = { actions.dismissClearConfirmation() }) {
                     Text(stringResource(R.string.dialog_cancel))
                 }
             }
@@ -425,24 +496,23 @@ private fun StatsCard(
     value: String,
     icon: ImageVector,
     color: Color,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    style: TidyStyle = CommonStyle
 ) {
-    Card(
-        shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f)
-        ),
-        modifier = modifier
+    TidyStyledCard(
+        modifier = modifier,
+        style = CommonStyle(TidyComponentStyles.statisticsCard, style)
     ) {
         Column(
-            modifier = Modifier.padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             Box(
                 modifier = Modifier
                     .size(40.dp)
                     .clip(RoundedCornerShape(12.dp))
-                    .background(color.copy(alpha = 0.15f)),
+                    .background(
+                        color.copy(alpha = 0.15f).compositeOver(MaterialTheme.colorScheme.surface)
+                    ),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
@@ -473,24 +543,25 @@ private fun StatsCard(
 @Composable
 private fun BandwidthCard(
     trackersCount: Int,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    style: TidyStyle = CommonStyle
 ) {
     val bytes = trackersCount * 52
     val formattedValue = when {
-        bytes >= 1_048_576 -> String.format(Locale.US, "%.1f MB", bytes / 1_048_576f)
-        bytes >= 1024 -> String.format(Locale.US, "%.1f KB", bytes / 1024f)
-        else -> "$bytes Bytes"
+        bytes >= 1_048_576 -> stringResource(
+            R.string.history_bandwidth_megabytes,
+            bytes / 1_048_576f
+        )
+
+        bytes >= 1024 -> stringResource(R.string.history_bandwidth_kilobytes, bytes / 1024f)
+        else -> pluralStringResource(R.plurals.history_bandwidth_bytes, bytes, bytes)
     }
 
-    Card(
-        shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f)
-        ),
-        modifier = modifier
+    TidyStyledCard(
+        modifier = modifier,
+        style = CommonStyle(TidyComponentStyles.statisticsCard, style)
     ) {
         Row(
-            modifier = Modifier.padding(16.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
@@ -498,7 +569,10 @@ private fun BandwidthCard(
                 modifier = Modifier
                     .size(40.dp)
                     .clip(RoundedCornerShape(12.dp))
-                    .background(MaterialTheme.colorScheme.tertiary.copy(alpha = 0.15f)),
+                    .background(
+                        MaterialTheme.colorScheme.tertiary.copy(alpha = 0.15f)
+                            .compositeOver(MaterialTheme.colorScheme.surface)
+                    ),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
@@ -534,36 +608,39 @@ private fun HistoryItem(
     onShowSnackbar: (String) -> Unit,
     onWhitelist: (domain: String, param: String) -> Unit,
     reportIssueFailedMessage: String,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    style: TidyStyle = CommonStyle
 ) {
-    var expanded by remember { mutableStateOf(false) }
-    var showFullOriginalUrl by remember { mutableStateOf(false) }
+    var expanded by rememberSaveable(entry.id) { mutableStateOf(false) }
+    var showFullOriginalUrl by rememberSaveable(entry.id) { mutableStateOf(false) }
     var selectedParam by remember { mutableStateOf<String?>(null) }
-    val dateFormat = remember { SimpleDateFormat("MMM d, yyyy · h:mm a", Locale.getDefault()) }
-    val formattedDate = remember(entry.timestamp) {
+    val datePattern = stringResource(R.string.history_entry_date_format)
+    val dateFormat = remember(datePattern) { SimpleDateFormat(datePattern, Locale.getDefault()) }
+    val formattedDate = remember(entry.timestamp, dateFormat) {
         dateFormat.format(Date(entry.timestamp))
     }
     val context = LocalContext.current
     val mainCopied = stringResource(R.string.main_copied)
     val mainCleanedUrl = stringResource(R.string.main_cleaned_url)
+    val mainOriginalUrl = stringResource(R.string.main_original_url)
     val toastNoBrowserApp = stringResource(R.string.toast_no_browser_app)
 
-    Card(
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.25f)
-        ),
+    TidyStyledCard(
+        modifier = modifier,
         onClick = { expanded = !expanded },
-        modifier = modifier.fillMaxWidth()
+        style = CommonStyle(TidyComponentStyles.historyCard, style)
     ) {
         Column(
-            modifier = Modifier.padding(14.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            Row(
+            FlexBox(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+                config = FlexBoxConfig {
+                    wrap(FlexWrap.Wrap)
+                    alignItems(FlexAlignItems.Center)
+                    columnGap(8.dp)
+                    rowGap(4.dp)
+                }
             ) {
                 Text(
                     text = entry.domain,
@@ -571,41 +648,9 @@ private fun HistoryItem(
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.primary,
                     maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.weight(1f)
+                    overflow = TextOverflow.Ellipsis
                 )
-                if (entry.removedParamsCount > 0) {
-                    Surface(
-                        shape = RoundedCornerShape(8.dp),
-                        color = MaterialTheme.colorScheme.primaryContainer,
-                        modifier = Modifier.padding(start = 8.dp)
-                    ) {
-                        Text(
-                            text = stringResource(
-                                R.string.history_item_removed_count,
-                                entry.removedParamsCount
-                            ),
-                            style = MaterialTheme.typography.labelSmall,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onPrimaryContainer,
-                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp)
-                        )
-                    }
-                } else {
-                    Surface(
-                        shape = RoundedCornerShape(8.dp),
-                        color = MaterialTheme.colorScheme.surfaceVariant,
-                        modifier = Modifier.padding(start = 8.dp)
-                    ) {
-                        Text(
-                            text = stringResource(R.string.history_item_clean),
-                            style = MaterialTheme.typography.labelSmall,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp)
-                        )
-                    }
-                }
+                CleanStatusBadge(entry.removedParamsCount)
             }
 
             Text(
@@ -700,30 +745,21 @@ private fun HistoryItem(
                             modifier = Modifier.fillMaxWidth()
                         ) {
                             removedParams.forEach { param ->
-                                AssistChip(
-                                    onClick = { selectedParam = param },
-                                    label = {
-                                        Text(
-                                            param,
-                                            style = MaterialTheme.typography.bodySmall
-                                        )
-                                    },
-                                    colors = AssistChipDefaults.assistChipColors(
-                                        containerColor = MaterialTheme.colorScheme.secondaryContainer,
-                                        labelColor = MaterialTheme.colorScheme.onSecondaryContainer
-                                    ),
-                                    shape = RoundedCornerShape(12.dp),
-                                    border = BorderStroke(
-                                        width = 1.dp,
-                                        color = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
-                                    )
+                                RemovedParameterChip(
+                                    parameter = param,
+                                    onClick = { selectedParam = param }
                                 )
                             }
                         }
                     }
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        modifier = Modifier.fillMaxWidth()
+                    FlexBox(
+                        modifier = Modifier.fillMaxWidth(),
+                        config = FlexBoxConfig {
+                            wrap(FlexWrap.Wrap)
+                            alignItems(FlexAlignItems.Center)
+                            columnGap(8.dp)
+                            rowGap(4.dp)
+                        }
                     ) {
                         // Copy Original Button
                         TooltipWrapper(tooltipText = stringResource(R.string.tooltip_copy_original)) {
@@ -732,7 +768,7 @@ private fun HistoryItem(
                                     val clipboard =
                                         context.getSystemService(Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
                                     val clip = android.content.ClipData.newPlainText(
-                                        "Original URL",
+                                        mainOriginalUrl,
                                         entry.originalUrl
                                     )
                                     clipboard.setPrimaryClip(clip)
@@ -841,7 +877,7 @@ private fun HistoryItem(
 
     if (selectedParam != null) {
         val param = selectedParam!!
-        val desc = trackerDescriptions[param.lowercase().trim()]
+        val desc = trackerDescriptions.trackerDescriptionFor(param)
             ?: stringResource(R.string.details_no_explanation)
         ParamDetailBottomSheet(
             param = param,

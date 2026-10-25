@@ -63,6 +63,8 @@ fun CrashReportBottomSheet(
     val crashToastCopied = stringResource(R.string.crash_toast_copied)
     val crashToastBrowserError = stringResource(R.string.crash_toast_browser_error)
     val toastCouldNotShare = stringResource(R.string.toast_could_not_share)
+    val crashReportTitle = stringResource(R.string.crash_report_title)
+    val crashReportIssueBody = stringResource(R.string.crash_report_issue_body)
 
     // Use the standard Tidy sheet — skipPartiallyExpanded = true so it snaps fully open
     TidyModalBottomSheet(onDismissRequest = onDismiss) { scrollFix ->
@@ -156,12 +158,14 @@ fun CrashReportBottomSheet(
                         val clipboard =
                             context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
                         clipboard.setPrimaryClip(
-                            ClipData.newPlainText("Crash Report", crashReportText)
+                            ClipData.newPlainText(crashReportTitle, crashReportText)
                         )
                         Toast.makeText(context, crashToastCopied, Toast.LENGTH_SHORT).show()
+                        val encodedTitle = java.net.URLEncoder.encode(crashReportTitle, "UTF-8")
+                        val encodedBody = java.net.URLEncoder.encode(crashReportIssueBody, "UTF-8")
                         val intent = Intent(
                             Intent.ACTION_VIEW,
-                            "https://github.com/arpitnnd/Tidy/issues/new?title=Crash%20Report&body=Paste%20copied%20crash%20log%20here".toUri()
+                            "https://github.com/arpitnnd/Tidy/issues/new?title=$encodedTitle&body=$encodedBody".toUri()
                         ).apply { addFlags(Intent.FLAG_ACTIVITY_NEW_TASK) }
                         try {
                             context.startActivity(intent)

@@ -1,11 +1,16 @@
 package com.tidy.app.ui.settings
 
+import androidx.compose.foundation.style.CommonStyle
+import androidx.compose.foundation.shape.RoundedCornerShape
+import com.tidy.designsystem.LocalTidyColours
+import com.tidy.designsystem.background
+import com.tidy.designsystem.shape
+
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.Star
@@ -18,6 +23,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -35,7 +41,11 @@ object SettingsMigrationViews {
         val isPending by entitlementManager.isPurchasePending.collectAsStateWithLifecycle(
             initialValue = false
         )
+        UpgradePromptRow(onUpgradeClick, isUnlocked, isPending)
+    }
 
+    @Composable
+    fun UpgradePromptRow(onUpgradeClick: () -> Unit, isUnlocked: Boolean, isPending: Boolean) {
         Card(
             onClick = {
                 if (!isUnlocked && !isPending) {
@@ -45,9 +55,9 @@ object SettingsMigrationViews {
             shape = RoundedCornerShape(20.dp),
             colors = CardDefaults.cardColors(
                 containerColor = if (isUnlocked) {
-                    MaterialTheme.colorScheme.primary.copy(alpha = 0.05f)
+                    MaterialTheme.colorScheme.surface
                 } else {
-                    MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f)
+                    MaterialTheme.colorScheme.primaryContainer
                 }
             ),
             modifier = Modifier.fillMaxWidth()
@@ -61,10 +71,11 @@ object SettingsMigrationViews {
             ) {
                 AppIconBox(
                     icon = Icons.Filled.Star,
-                    boxSize = 48.dp,
-                    iconSize = 24.dp,
-                    cornerRadius = 12.dp,
-                    background = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
+                    style = CommonStyle {
+                        val colours = LocalTidyColours.currentValue
+                        val surface = if (isUnlocked) colours.surface else colours.primaryContainer
+                        background(colours.primary.copy(alpha = 0.1f).compositeOver(surface))
+                    }
                 )
 
                 Column(modifier = Modifier.weight(1f)) {

@@ -1,14 +1,26 @@
 package com.tidy.app.ui.components
 
+import androidx.compose.foundation.style.CommonStyle
+import androidx.compose.foundation.shape.RoundedCornerShape
+import com.tidy.designsystem.TidyComponentStyles
+import com.tidy.designsystem.TidyStyle
+import com.tidy.designsystem.rememberTidyStyle
+import com.tidy.designsystem.tidyStyleSurface
+import com.tidy.designsystem.tidyStyleContent
+import com.tidy.designsystem.LocalTidyColours
+import com.tidy.designsystem.background
+import com.tidy.designsystem.shape
+import com.tidy.designsystem.size
+
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -28,19 +40,26 @@ fun FeatureRow(
     icon: ImageVector,
     title: String,
     description: String,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    style: TidyStyle = CommonStyle
 ) {
+    val resolver = rememberTidyStyle(TidyComponentStyles.featureRow, style)
     Row(
-        modifier = modifier.fillMaxWidth(),
+        modifier = modifier.tidyStyleSurface(resolver).tidyStyleContent(resolver),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         AppIconBox(
             icon = icon,
-            boxSize = 40.dp,
             iconSize = 20.dp,
-            cornerRadius = 10.dp,
-            background = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f)
+            style = CommonStyle {
+                size(40.dp)
+                shape(RoundedCornerShape(10.dp))
+                val colours = LocalTidyColours.currentValue
+                background(
+                    colours.primaryContainer.copy(alpha = 0.4f).compositeOver(colours.surface)
+                )
+            }
         )
         Column(modifier = Modifier.weight(1f)) {
             Text(
