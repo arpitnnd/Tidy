@@ -104,4 +104,15 @@ object UrlDetection {
         val index = findUrlMatches(text).firstOrNull { it.url == oldUrl }?.start ?: return newUrl
         return text.substring(0, index) + newUrl + text.substring(index + oldUrl.length)
     }
+
+    /** Transforms each detected URL once, preserving text outside its original range. */
+    fun replaceUrls(text: String, transform: (String) -> String): String = buildString {
+        var cursor = 0
+        for (match in findUrlMatches(text)) {
+            append(text, cursor, match.start)
+            append(transform(match.url))
+            cursor = match.start + match.url.length
+        }
+        append(text, cursor, text.length)
+    }
 }
