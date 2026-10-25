@@ -2,13 +2,13 @@
 
 # Tidy
 
-Control what a URL shares with strangers when you're just sharing it with a friend.
+Control what a link shares with strangers when you're just sharing it with a friend.
 
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
 [![Platform](https://img.shields.io/badge/Platform-Android-green.svg)](https://developer.android.com)
 [![Kotlin](https://img.shields.io/badge/Kotlin-Multiplatform-purple.svg)](https://kotlinlang.org/docs/multiplatform.html)
 
-Ever copied a URL and wondered about the extra text at the end,
+Ever copied a link and wondered about the extra text at the end,
 something like `?utm_source=facebook&fbclid=AbC123xyz`?
 Those parameters can tell a service where a visit came from or connect it to an earlier click.
 You wanted to share a page with a friend, not carry that extra information with it.
@@ -17,13 +17,13 @@ Tidy removes known tracking parameters before you share. You can see what change
 
 It's a small, free app. No account, no setup, no ads.
 Cleaning happens on your phone and works offline from the first launch.
-Optional URL expansion and rule updates use the network, as explained below.
+Optional link expansion and rule updates use the network, as explained below.
 
 <table>
 <tr>
 <td><img src="docs/screenshots/hero.jpg" width="240" alt="Tidy's home screen"></td>
-<td><img src="docs/screenshots/cleaned-url.jpg" width="240" alt="A cleaned URL with the removed tracking parameters listed"></td>
-<td><img src="docs/screenshots/privacy-dashboard.jpg" width="240" alt="History showing cleaned URLs and totals"></td>
+<td><img src="docs/screenshots/cleaned-url.jpg" width="240" alt="A cleaned link with the removed tracking parameters listed"></td>
+<td><img src="docs/screenshots/privacy-dashboard.jpg" width="240" alt="History showing cleaned links and totals"></td>
 </tr>
 </table>
 
@@ -36,9 +36,9 @@ Screenshots show an earlier version of Tidy.
 Read Tidy's [Privacy policy](https://arpitnnd.github.io/Tidy/privacy/) and
 [Terms of use](https://arpitnnd.github.io/Tidy/terms/).
 
-Share a URL to Tidy, or paste one in, and see the cleaned result.
+Share a link to Tidy, or paste one in, and see the cleaned result.
 Tidy removes matching tracking parameters and supported mobile subdomains.
-With expansion enabled, it also follows short URLs such as `bit.ly` and `t.co`. It cleans automatically
+With expansion enabled, it also follows short links such as `bit.ly` and `t.co`. It cleans automatically
 as you paste or type, with explicit actions whenever you want them.
 
 You stay in charge of the rules, not just the outcome:
@@ -51,12 +51,12 @@ You stay in charge of the rules, not just the outcome:
 - **Whitelisting with nuance.** Keep `v` on `youtube.com` while
   stripping it everywhere else. Add your own rules where the defaults
   don't fit.
-- **A record, entirely yours.** History keeps original and cleaned URLs, with open/copy actions and JSON export and import.
+- **A record, entirely yours.** History keeps original and cleaned links, with open/copy actions and JSON export and import.
   It also shows lifetime cleaning totals. The bandwidth figure estimates removed URL text, not measured network savings.
   Saved History stays in the app unless you export it or opt in to Android system backup.
 
-When you share a message, Tidy preserves its surrounding text and replaces only the first detected URL.
-History saves the URL pair, not the message.
+When you share a message, Tidy preserves its surrounding text and replaces only the first detected link.
+History saves the original and cleaned links, not the message.
 
 ### Fewer steps between copy and share
 
@@ -64,25 +64,25 @@ History saves the URL pair, not the message.
   notification shade, no app launch required.
 - **Clipboard checking.** Off by default. Turn it on and choose how
   far it goes, from a quick review prompt up to fully automatic.
-- **Share to Tidy.** Same choice for shared URLs: see the cleaned
+- **Share to Tidy.** Same choice for shared links: see the cleaned
   result, or let Tidy copy and even re-share it for you.
-- **Clean from anywhere** (Tidy+). Where an app supports Android's text-selection actions, select a URL and tap *Clean with Tidy*. No switching apps to do it.
+- **Clean from anywhere** (Tidy+). Where an app supports Android's text-selection actions, select a link and tap *Clean with Tidy*. No switching apps to do it.
 
 ---
 
 ## When Tidy uses the network
 
 Tidy's tracker blocklist lives in this repository. The app checks for updates while it is open,
-so new rules can reach you without an app update. These requests contain no input URLs or History.
+so new rules can reach you without an app update. These requests contain no input links or History.
 Fresh installations use bundled rules throughout their first session unless you request a refresh.
 Every change to the blocklist is public: [see the history for yourself](../../commits/main/blocklist).
 
-Short-URL expansion needs the network too. Expanding `bit.ly/xyz` means asking where it goes.
+Expanding short links needs the network too. Expanding `bit.ly/xyz` means asking where it goes.
 The request travels from your phone to that server and any redirect destinations.
-Those services receive the URL and normal connection information, including your IP address.
+Those services receive the link and normal connection information, including your IP address.
 Tidy has no server in between. You can disable automatic expansion in Settings.
 
-Sharing, opening URLs and exporting data pass information to the app or service you choose.
+Sharing, opening links and exporting data pass information to the app or service you choose.
 The Play edition also uses Google Play for purchases and restoring purchase access.
 Cleaning itself stays on your phone.
 
@@ -129,14 +129,14 @@ Zero subscription. Pay once, own forever.
 
 | Feature | **Tidy** | **Tidy+** |
 | --- | --- | --- |
-| Cleaning engine and short-URL expansion | Yes | Yes |
+| Cleaning engine and short-link expansion | Yes | Yes |
 | Custom rules and domain parameter exceptions | Yes | Yes |
 | Unlimited History and History export/import | Yes | Yes |
 | Opt-in Android system backup | Yes | Yes |
 | Quick Settings tile | Yes | Yes |
 | Clipboard checking, review before copying | Yes | Yes |
 | Clipboard checking, auto-copy or auto-clean | No | Yes |
-| Share to Tidy, view the cleaned URL | Yes | Yes |
+| Share to Tidy, view the cleaned link | Yes | Yes |
 | Share to Tidy, auto-copy or auto-share | No | Yes |
 | Text-selection cleaning | No | Yes |
 | Extra themes | No | Yes |

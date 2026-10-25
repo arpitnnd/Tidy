@@ -1,6 +1,6 @@
 # Security policy
 
-Tidy cleans URLs on the device. URL expansion, rule updates and actions you choose can contact other services.
+Tidy cleans links on the device. Expanding short links, updating rules and actions you choose can contact other services.
 See the [Privacy policy](https://arpitnnd.github.io/Tidy/privacy/) for data-handling details.
 
 ## Report a vulnerability

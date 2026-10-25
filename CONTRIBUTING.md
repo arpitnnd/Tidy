@@ -22,7 +22,8 @@ Use the narrowest supported domain scope. Do not classify a parameter as trackin
 ## Code and review
 
 - Keep changes focused. Separate unrelated fixes, refactors and formatting.
-- Use British English, sentence case and the term "URL" in new copy.
+- Use British English and sentence case. Prefer "link" in public explanations and marketing.
+- Use "URL" for technical precision. Match actual app labels when naming controls.
 - Put UI text in string or plural resources.
 - Reuse existing components and follow the [design system guide](docs/design-system.md).
 - Test changed behaviour and relevant failure paths. Avoid tests that only repeat the implementation.

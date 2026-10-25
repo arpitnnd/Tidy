@@ -155,7 +155,8 @@ A new clean or Clear cancels pending expansion. Preserve the departing result th
 - Keep one accessible action per control. Verify keyboard focus and activation.
 - Check long URLs, narrow windows and 200% text. Preserve native touch targets.
 - Check contrast in light and dark modes across supported themes.
-- Keep UI text in string or plural resources. Use sentence case, British English and the term "URL".
+- Keep UI text in string or plural resources. Use sentence case and British English.
+- Prefer "link" in public explanations. Use "URL" for technical precision and match actual labels when naming controls.
 - State each action and result directly. Do not rely on colour or motion alone.
 
 ## Verification
