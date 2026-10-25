@@ -18,9 +18,10 @@ roles = {
 
 
 def declarations(theme, indent="  "):
+    theme_roles = roles | {"surface": "Surface"} if theme == "Light" else roles
     return "\n".join(
         f"{indent}--{role}: #{colours[f'Tidy{theme}{token}'].lower()};"
-        for role, token in roles.items()
+        for role, token in theme_roles.items()
     )
 
 
