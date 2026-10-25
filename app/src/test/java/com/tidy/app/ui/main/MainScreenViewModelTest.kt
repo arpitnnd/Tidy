@@ -90,6 +90,20 @@ class MainScreenViewModelTest {
     }
 
     @Test
+    fun historyWriteFailureKeepsTheCleanedResultAndReportsUnsavedHistory() = runTest {
+        val stage = File(tempFolder.root, "history.json.new").apply { mkdir() }
+        File(stage, "blocker").writeText("block")
+        viewModel.cleanUrl("https://example.com/page?utm_source=mail")
+        val state = viewModel.uiState.first { it.historySaveFailed && !it.isLoading }
+        assertEquals("https://example.com/page", state.cleanedUrl)
+        assertTrue(state.isCleaned)
+        assertEquals(
+            emptyList<com.tidy.app.data.HistoryEntry>(),
+            historyRepository.getEntriesSnapshot()
+        )
+    }
+
+    @Test
     fun testCleanUrl() = runTest {
         // "si" is deliberately not used here: it's domain-scoped to Spotify/YouTube.
         viewModel.cleanUrl("https://example.com/page?utm_source=newsletter&utm_medium=email&fbclid=12345&igsh=abc")

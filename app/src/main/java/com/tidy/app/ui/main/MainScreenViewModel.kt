@@ -16,8 +16,10 @@ import com.tidy.app.data.ShareAutomationOutcome
 import com.tidy.app.data.UrlCleaner
 import com.tidy.app.data.UrlDetection
 import com.tidy.app.data.UrlExpander
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -28,9 +30,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
-import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.launch
-import kotlin.time.Duration.Companion.seconds
 
 class MainScreenViewModel(
     private val settingsRepository: SettingsRepository = TidyApp.instance.settingsRepository,
@@ -77,6 +77,7 @@ class MainScreenViewModel(
         val removedParams: List<String> = emptyList(),
         val isCleaned: Boolean = false,
         val copySuccess: Boolean = false,
+        val historySaveFailed: Boolean = false,
         val totalCleanedCount: Int = 0,
         val totalTrackersBlocked: Int = 0,
         val firstLaunchDone: Boolean = true, // default true to avoid flash
@@ -219,6 +220,7 @@ class MainScreenViewModel(
                 isLoading = true,
                 isExpanding = false,
                 sourceSharedText = sourceSharedText,
+                historySaveFailed = false,
                 isCleaned = false
             )
         }
@@ -279,14 +281,18 @@ class MainScreenViewModel(
 
                     // Add to history
                     val domain = HistoryRepository.extractDomain(resolvedUrl)
-                    historyRepository.addEntry(
-                        HistoryEntry(
-                            originalUrl = initialOriginal,
-                            cleanedUrl = result.cleanedUrl,
-                            removedParamsCount = result.removedParams.size,
-                            domain = domain
+                    try {
+                        historyRepository.addEntry(
+                            HistoryEntry(
+                                originalUrl = initialOriginal,
+                                cleanedUrl = result.cleanedUrl,
+                                removedParamsCount = result.removedParams.size,
+                                domain = domain
+                            )
                         )
-                    )
+                    } catch (_: java.io.IOException) {
+                        _uiState.update { it.copy(historySaveFailed = true) }
+                    }
                 }
 
                 if (copyResultToClipboard) {

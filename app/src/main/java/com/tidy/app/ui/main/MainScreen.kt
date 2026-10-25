@@ -409,6 +409,10 @@ internal fun MainScreenContent(
     }
 
     val expansionNetworkError = stringResource(R.string.main_expand_network_error)
+    val historySaveFailed = stringResource(R.string.history_save_failed)
+    LaunchedEffect(state.historySaveFailed) {
+        if (state.historySaveFailed) snackbarHostState.showSnackbar(historySaveFailed)
+    }
     val expansionError = stringResource(R.string.main_expand_error)
     LaunchedEffect(actions) {
         actions.expansionFailures.collect { failure ->

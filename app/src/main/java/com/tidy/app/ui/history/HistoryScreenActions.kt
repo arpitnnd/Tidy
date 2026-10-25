@@ -4,8 +4,8 @@ package com.tidy.app.ui.history
 interface HistoryScreenActions {
     fun showClearConfirmation() {}
     fun dismissClearConfirmation() {}
-    fun clearHistory() {}
-    fun undoClearHistory() {}
+    fun clearHistory(onResult: (Boolean) -> Unit = {}) {}
+    fun undoClearHistory(onResult: (Boolean) -> Unit = {}) {}
     fun discardClearUndo() {}
     suspend fun getExportJson(): String = "[]"
     fun importHistory(json: String, onResult: (Int) -> Unit) {}

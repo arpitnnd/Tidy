@@ -81,7 +81,9 @@ class HistoryScreenViewModelTest {
     fun clearingAndUndoingPreservesEntriesAndLifetimeStatistics() = runTest {
         addSampleEntry()
         settingsRepository.recordClean(1)
-        viewModel.clearHistory()
+        val cleared = CompletableDeferred<Boolean>()
+        viewModel.clearHistory { cleared.complete(it) }
+        assertEquals(true, cleared.await())
         viewModel.uiState.first { it.history.isEmpty() }
         assertEquals("[]", viewModel.getExportJson())
         viewModel.undoClearHistory()
@@ -93,7 +95,9 @@ class HistoryScreenViewModelTest {
     @Test
     fun expiredUndoCannotRestoreClearedHistory() = runTest {
         addSampleEntry()
-        viewModel.clearHistory()
+        val cleared = CompletableDeferred<Boolean>()
+        viewModel.clearHistory { cleared.complete(it) }
+        assertEquals(true, cleared.await())
         viewModel.uiState.first { it.history.isEmpty() }
         viewModel.discardClearUndo()
         viewModel.undoClearHistory()
@@ -121,5 +125,41 @@ class HistoryScreenViewModelTest {
         assertEquals(1, importedCount.await())
         assertEquals(1, settingsRepository.totalCleanedCount.first())
         assertEquals(2, settingsRepository.totalTrackersBlocked.first())
+    }
+
+    @Test
+    fun failedClearReportsFailureAndKeepsEntries() = runTest {
+        addSampleEntry()
+        val stage = File(tempFolder.root, "history.json.new").apply { mkdir() }
+        File(stage, "blocker").writeText("block")
+        val cleared = CompletableDeferred<Boolean>()
+        viewModel.showClearConfirmation()
+        viewModel.clearHistory { cleared.complete(it) }
+        assertEquals(false, cleared.await())
+        assertEquals("entry", viewModel.uiState.value.history.single().id)
+        assertEquals(false, viewModel.uiState.value.showClearConfirmation)
+    }
+
+    @Test
+    fun failedUndoReportsFailureWithoutInventingRestoredEntries() = runTest {
+        addSampleEntry()
+        val cleared = CompletableDeferred<Boolean>()
+        viewModel.clearHistory { cleared.complete(it) }
+        assertEquals(true, cleared.await())
+        val stage = File(tempFolder.root, "history.json.new").apply { mkdir() }
+        File(stage, "blocker").writeText("block")
+        val restored = CompletableDeferred<Boolean>()
+        viewModel.undoClearHistory { restored.complete(it) }
+        assertEquals(false, restored.await())
+        assertEquals("[]", viewModel.getExportJson())
+    }
+
+    @Test
+    fun unreadableHistoryReportsLoadFailureWithoutChangingTheFile() = runTest {
+        viewModel.viewModelScope.cancel()
+        val file = File(tempFolder.root, "damaged-history.json").apply { writeText("[broken") }
+        viewModel = HistoryScreenViewModel(HistoryRepository(testFile = file), settingsRepository)
+        viewModel.uiState.first { it.historyLoadFailed }
+        assertEquals("[broken", file.readText())
     }
 }

@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.io.IOException
 
 class HistoryScreenViewModel(
     private val historyRepository: HistoryRepository = TidyApp.instance.historyRepository,
@@ -24,6 +25,7 @@ class HistoryScreenViewModel(
         val totalTrackersBlocked: Int = 0,
         val showClearConfirmation: Boolean = false,
         val isInitialLoading: Boolean = true,
+        val historyLoadFailed: Boolean = false,
         val trackerDescriptions: Map<String, String> = emptyMap()
     )
 
@@ -31,10 +33,15 @@ class HistoryScreenViewModel(
     val uiState: StateFlow<UiState> = _uiState.asStateFlow()
 
     private var lastClearedHistory: List<HistoryEntry>? = null
+    private var undoGeneration = 0
 
     init {
         viewModelScope.launch {
-            historyRepository.loadHistory()
+            try {
+                historyRepository.loadHistory()
+            } catch (_: IOException) {
+                _uiState.update { it.copy(historyLoadFailed = true, isInitialLoading = false) }
+            }
         }
         viewModelScope.launch {
             combine(
@@ -64,26 +71,38 @@ class HistoryScreenViewModel(
         _uiState.update { it.copy(showClearConfirmation = false) }
     }
 
-    override fun clearHistory() {
-        lastClearedHistory = _uiState.value.history.takeIf { it.isNotEmpty() }
+    override fun clearHistory(onResult: (Boolean) -> Unit) {
+        val generation = undoGeneration
         viewModelScope.launch {
-            historyRepository.clearAll()
+            val success = try {
+                val backup = historyRepository.clearAll()
+                if (generation == undoGeneration) {
+                    lastClearedHistory = backup.takeIf { it.isNotEmpty() }
+                }
+                true
+            } catch (_: IOException) {
+                false
+            }
             _uiState.update { it.copy(showClearConfirmation = false) }
+            onResult(success)
         }
     }
 
-    override fun undoClearHistory() {
+    override fun undoClearHistory(onResult: (Boolean) -> Unit) {
         val backup = lastClearedHistory
         if (backup != null) {
             lastClearedHistory = null
             viewModelScope.launch {
                 val jsonStr = kotlinx.serialization.json.Json.encodeToString(backup)
-                historyRepository.importFromJson(jsonStr)
+                onResult(historyRepository.importFromJson(jsonStr) >= 0)
             }
+        } else {
+            onResult(false)
         }
     }
 
     override fun discardClearUndo() {
+        undoGeneration++
         lastClearedHistory = null
     }
 

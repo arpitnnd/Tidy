@@ -239,7 +239,7 @@
 
     <!-- History Import status -->
     <string name="history_import_success" tools:ignore="PluralsCandidate">Imported %1$d new entries</string>
-    <string name="history_import_invalid">Import failed: invalid file format</string>
+    <string name="history_import_invalid">History could not be imported. Check the file and available storage.</string>
 
     <string name="toast_could_not_share">Could not share</string>
     <string name="toast_no_link_app">Could not open link</string>
@@ -354,4 +354,8 @@
         <item quantity="one">Clear this history entry? You can undo this immediately afterwards.</item>
         <item quantity="other">Clear all %1$d history entries? You can undo this immediately afterwards.</item>
     </plurals>
+    <string name="history_save_failed">Link cleaned, but History could not be saved.</string>
+    <string name="history_load_failed">History could not be read. Saved data has not been changed.</string>
+    <string name="history_clear_failed">History could not be cleared. Please try again.</string>
+    <string name="history_undo_failed">History could not be restored.</string>
 </resources>

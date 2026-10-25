@@ -66,6 +66,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -144,6 +145,12 @@ internal fun HistoryScreenContent(
     val historyImportInvalid = stringResource(R.string.history_import_invalid)
     val historyClearedToast = stringResource(R.string.history_cleared_toast)
     val historyUndoAction = stringResource(R.string.history_undo_action)
+    val historyLoadFailed = stringResource(R.string.history_load_failed)
+    val historyClearFailed = stringResource(R.string.history_clear_failed)
+    val historyUndoFailed = stringResource(R.string.history_undo_failed)
+    LaunchedEffect(state.historyLoadFailed) {
+        if (state.historyLoadFailed) snackbarHostState.showSnackbar(historyLoadFailed)
+    }
     val mainCopied = stringResource(R.string.main_copied)
     val mainCleanedUrl = stringResource(R.string.main_cleaned_url)
     val toastNoBrowserApp = stringResource(R.string.toast_no_browser_app)
@@ -442,19 +449,28 @@ internal fun HistoryScreenContent(
             confirmButton = {
                 Button(
                     onClick = {
-                        actions.clearHistory()
-                        scope.launch {
-                            try {
-                                val result = snackbarHostState.showSnackbar(
-                                    message = historyClearedToast,
-                                    actionLabel = historyUndoAction,
-                                    duration = SnackbarDuration.Short
-                                )
-                                if (result == SnackbarResult.ActionPerformed) {
-                                    actions.undoClearHistory()
+                        actions.clearHistory { success ->
+                            scope.launch {
+                                if (!success) {
+                                    snackbarHostState.showSnackbar(historyClearFailed)
+                                    return@launch
                                 }
-                            } finally {
-                                actions.discardClearUndo()
+                                try {
+                                    val result = snackbarHostState.showSnackbar(
+                                        message = historyClearedToast,
+                                        actionLabel = historyUndoAction,
+                                        duration = SnackbarDuration.Short
+                                    )
+                                    if (result == SnackbarResult.ActionPerformed) {
+                                        actions.undoClearHistory { restored ->
+                                            if (!restored) scope.launch {
+                                                snackbarHostState.showSnackbar(historyUndoFailed)
+                                            }
+                                        }
+                                    }
+                                } finally {
+                                    actions.discardClearUndo()
+                                }
                             }
                         }
                     },
