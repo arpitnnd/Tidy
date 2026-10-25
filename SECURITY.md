@@ -1,63 +1,41 @@
-# Security Policy
+# Security policy
 
-Tidy runs entirely on-device with no backend server, no accounts, and
-no remote data storage. That shrinks the attack surface considerably,
-but it doesn't shrink it to zero. If you've found a real issue, here's
-how to tell us.
+Tidy cleans URLs on the device. URL expansion, rule updates and actions you choose can contact other services.
+See the [Privacy policy](https://arpitnnd.github.io/Tidy/privacy/) for data-handling details.
 
-## Reporting a Vulnerability
+## Report a vulnerability
 
-Please **do not** open a public GitHub issue for security reports.
-Use GitHub's private reporting instead: go to the **Security** tab of
-this repository → **Report a vulnerability**. This reaches maintainers
-directly without disclosing the issue publicly before a fix ships.
+Use this repository's **Security → Report a vulnerability** action on GitHub.
+Do not open a public issue for a security report.
 
 Include what you can:
 
-- Which build (GitHub/foss or Google Play) and version
-- Android version and device (or emulator) used
-- Steps to reproduce
-- What you'd expect an attacker to be able to do with it
+- The app version and build (GitHub/FOSS or Google Play).
+- The Android version and device or emulator.
+- Steps to reproduce the issue.
+- The expected impact and any relevant evidence.
 
-You'll get an acknowledgment within 5 business days. This is a
-one-person project, not a company security team, so response time
-depends on severity and my other commitments — but every report gets
-read and taken seriously.
+Expect an acknowledgement within five business days. This is a one-person project, so resolution time depends on severity and my availability.
+Every report gets read and taken seriously.
 
 ## Scope
 
-**In scope:**
+Reports can cover either app flavour, local data, backups, rule updates, diagnostics or purchase access.
 
-- The Android app itself, either flavour
-- Local data handling: whitelist rules, history, backups, DataStore
-  preferences
-- The remote blocklist sync mechanism
-- Crash report handling (local storage, sharing flow)
-- Anything in the Tidy+ entitlement/purchase flow
+The following are outside this project's scope:
 
-**Out of scope:**
+- Behaviour of third-party websites and URL destinations.
+- Attacks that require a rooted or already compromised device to bypass local checks.
+- Social engineering and issues unrelated to Tidy's code.
 
-- Behaviour of third-party sites or short-link services that URLs
-  happen to resolve to — Tidy doesn't control what's on the other end
-  of a link
-- Attacks that require a rooted or otherwise compromised device to
-  bypass local-only checks (e.g. the Tidy+ entitlement check). This is
-  a known, accepted tradeoff of running with no backend to verify
-  against, not a vulnerability in the usual sense
-- Social engineering, physical device access, or anything not
-  specific to Tidy's own code
+## Supported versions
 
-## Supported Versions
-
-Only the latest released version of each build (GitHub/foss and Google
-Play) is supported. Please update before reporting, if possible, in
-case it's already fixed.
+Only the latest released version of each available build is supported.
+If possible, update before reporting to check whether the issue is already fixed.
 
 ## Disclosure
 
-Coordinated disclosure is appreciated: give us a reasonable window to
-ship a fix before any public write-up. Credit is offered in release
-notes if you'd like it. There's no bug bounty program; this is an
-independent project without a budget for one.
+Allow time for a fix before publishing details. Release notes can credit you if you wish.
+There is no bug bounty programme.
 
 Thank you for taking the time to help keep Tidy trustworthy.

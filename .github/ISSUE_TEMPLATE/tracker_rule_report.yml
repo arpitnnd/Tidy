@@ -6,11 +6,9 @@ body:
   - type: markdown
     attributes:
       value: |
-        Use this if the blocklist got something wrong: a parameter that
-        shouldn't have been stripped (it broke the link or a needed
-        feature), or a tracking parameter that Tidy missed entirely.
-        If this came from tapping "Report an issue with this rule" inside
-        Tidy, some fields may already be filled in.
+        Report a parameter that was wrongly removed or a tracker that was missed.
+        If you opened this from Tidy's "Report issue" action, some fields may be prefilled.
+        Review them before submitting. Do not include private URLs or tokens.
   - type: dropdown
     id: issue-type
     attributes:
