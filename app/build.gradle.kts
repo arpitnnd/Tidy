@@ -70,8 +70,8 @@ android {
         applicationId = "com.tidy.app"
         minSdk = 24
         targetSdk = 37
-        versionCode = 4
-        versionName = "1.3.0"
+        versionCode = 5
+        versionName = "1.4.0"
         // Gates the foss-only "Get Tidy+" row (SettingsMigrationViews.UpgradePromptRow) between
         // its live upgrade action and a "Coming soon" sheet. Only read by the foss flavor; the
         // play flavor drives its own upgrade row off AndroidEntitlementManager.isPlusUnlocked
