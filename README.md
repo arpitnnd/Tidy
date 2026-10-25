@@ -33,9 +33,6 @@ Screenshots show an earlier version of Tidy.
 
 ## What it does
 
-Read Tidy's [Privacy policy](https://arpitnnd.github.io/Tidy/privacy/) and
-[Terms of use](https://arpitnnd.github.io/Tidy/terms/).
-
 Share a link to Tidy, or paste one in, and see the cleaned result.
 Tidy removes matching tracking parameters and supported mobile subdomains.
 With expansion enabled, it also follows short links such as `bit.ly` and `t.co`. It cleans automatically
@@ -105,6 +102,9 @@ Diagnostics and cached purchase receipts are excluded. Turning backup off does n
 An app that claims zero remote logging shouldn't ask you to trust that
 blindly. The code's right here. Go check.
 
+Read Tidy's [Privacy policy](https://arpitnnd.github.io/Tidy/privacy/) and
+[Terms of use](https://arpitnnd.github.io/Tidy/terms/) for full details.
+
 ---
 
 ## Tidy and Tidy+
@@ -129,17 +129,17 @@ Zero subscription. Pay once, own forever.
 
 | Feature | **Tidy** | **Tidy+** |
 | --- | --- | --- |
-| Cleaning engine and short-link expansion | Yes | Yes |
-| Custom rules and domain parameter exceptions | Yes | Yes |
-| Unlimited History and History export/import | Yes | Yes |
-| Opt-in Android system backup | Yes | Yes |
-| Quick Settings tile | Yes | Yes |
-| Clipboard checking, review before copying | Yes | Yes |
-| Clipboard checking, auto-copy or auto-clean | No | Yes |
-| Share to Tidy, view the cleaned link | Yes | Yes |
-| Share to Tidy, auto-copy or auto-share | No | Yes |
-| Text-selection cleaning | No | Yes |
-| Extra themes | No | Yes |
+| Cleaning engine and short-link expansion | ✅ | ✅ |
+| Custom rules and domain parameter exceptions | ✅ | ✅ |
+| Unlimited History and History export/import | ✅ | ✅ |
+| Opt-in Android system backup | ✅ | ✅ |
+| Quick Settings tile | ✅ | ✅ |
+| Clipboard checking, review before copying | ✅ | ✅ |
+| Clipboard checking, auto-copy or auto-clean | No | ✅ |
+| Share to Tidy, view the cleaned link | ✅ | ✅ |
+| Share to Tidy, auto-copy or auto-share | No | ✅ |
+| Text-selection cleaning | No | ✅ |
+| Extra themes | No | ✅ |
 
 ## Installing
 
