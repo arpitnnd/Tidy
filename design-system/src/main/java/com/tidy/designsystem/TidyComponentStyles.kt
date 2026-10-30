@@ -89,13 +89,11 @@ object TidyComponentStyles {
         val colours = LocalTidyColours.currentValue
         background(
             if (state.isSelected) colours.primaryContainer
-            else colours.surface
+            else colours.surfaceContainerHigh
         )
-        border(
-            if (state.isSelected || state.isFocused) 2.dp else 1.dp,
-            if (state.isSelected || state.isFocused) colours.primary
-            else colours.outline.copy(alpha = 0.12f)
-        )
+        if (state.isSelected || state.isFocused) {
+            border(2.dp, colours.primary)
+        }
     }
 
     val featureRow = CommonStyle { fillWidth() }
