@@ -18,6 +18,8 @@ import androidx.compose.foundation.layout.FlexBox
 import androidx.compose.foundation.layout.FlexBoxConfig
 import androidx.compose.foundation.layout.FlexWrap
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.Grid
+import androidx.compose.foundation.layout.GridTrackSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -26,6 +28,7 @@ import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -264,6 +267,8 @@ internal fun HistoryScreenContent(
             val endInset = paddingValues.calculateEndPadding(layoutDirection)
             val availableWidth = maxWidth - startInset - endInset
             val horizontalPadding = 16.dp + ((availableWidth - 1000.dp) / 2).coerceAtLeast(0.dp)
+            val statsColumns =
+                if ((availableWidth - horizontalPadding * 2 - 10.dp) / 2 / fontScale < 128.dp) 1 else 2
             LazyVerticalGrid(
                 columns = GridCells.Adaptive(320.dp * fontScale.coerceAtLeast(1f)),
                 modifier = Modifier
@@ -288,20 +293,23 @@ internal fun HistoryScreenContent(
 
                 if (state.isInitialLoading) {
                     item(span = { GridItemSpan(maxLineSpan) }) {
-                        Row(
+                        Grid(
                             modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(10.dp)
+                            config = {
+                                repeat(statsColumns) { column(GridTrackSize.MinMax(0.dp, 1.fr)) }
+                                gap(10.dp)
+                            }
                         ) {
                             Box(
                                 modifier = Modifier
-                                    .weight(1f)
+                                    .fillMaxWidth()
                                     .height(108.dp)
                                     .clip(RoundedCornerShape(20.dp))
                                     .shimmer()
                             )
                             Box(
                                 modifier = Modifier
-                                    .weight(1f)
+                                    .fillMaxWidth()
                                     .height(108.dp)
                                     .clip(RoundedCornerShape(20.dp))
                                     .shimmer()
@@ -310,23 +318,26 @@ internal fun HistoryScreenContent(
                     }
                 } else {
                     item(span = { GridItemSpan(maxLineSpan) }) {
-                        Row(
+                        Grid(
                             modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(10.dp)
+                            config = {
+                                repeat(statsColumns) { column(GridTrackSize.MinMax(0.dp, 1.fr)) }
+                                gap(10.dp)
+                            }
                         ) {
                             StatsCard(
                                 title = stringResource(R.string.history_urls_cleaned),
                                 value = "${state.totalCleanedCount}",
                                 icon = Icons.Outlined.Link,
                                 color = MaterialTheme.colorScheme.primary,
-                                modifier = Modifier.weight(1f)
+                                modifier = Modifier.fillMaxWidth().fillMaxHeight()
                             )
                             StatsCard(
                                 title = stringResource(R.string.history_parameters_removed),
                                 value = "${state.totalTrackersBlocked}",
                                 icon = Icons.Outlined.Shield,
                                 color = MaterialTheme.colorScheme.tertiary,
-                                modifier = Modifier.weight(1f)
+                                modifier = Modifier.fillMaxWidth().fillMaxHeight()
                             )
                         }
                     }
