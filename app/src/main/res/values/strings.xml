@@ -132,7 +132,6 @@
     <string name="history_import_desc">Import history</string>
     <string name="history_export_desc">Export history</string>
     <string name="history_clear_desc">Clear history</string>
-    <string name="history_dashboard">Privacy dashboard</string>
     <string name="history_urls_cleaned">URLs cleaned</string>
     <string name="history_parameters_removed">Parameters removed</string>
     <string name="history_clean_history">Clean history</string>

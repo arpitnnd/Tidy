@@ -283,14 +283,6 @@ internal fun HistoryScreenContent(
                 verticalArrangement = Arrangement.spacedBy(12.dp),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                // Analytics Section
-                item(span = { GridItemSpan(maxLineSpan) }) {
-                    ScreenSectionHeader(
-                        text = stringResource(R.string.history_dashboard),
-                        modifier = Modifier.padding(start = 0.dp)
-                    )
-                }
-
                 if (state.isInitialLoading) {
                     item(span = { GridItemSpan(maxLineSpan) }) {
                         Grid(
