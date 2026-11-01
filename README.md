@@ -49,7 +49,7 @@ You stay in charge of the rules, not just the outcome:
   stripping it everywhere else. Add your own rules where the defaults
   don't fit.
 - **A record, entirely yours.** History keeps original and cleaned links, with open/copy actions and JSON export and import.
-  It also shows lifetime cleaning totals. The bandwidth figure estimates removed URL text, not measured network savings.
+  It also shows lifetime totals for links cleaned and parameters removed.
   Saved History stays in the app unless you export it or opt in to Android system backup.
 
 When you share a message, Tidy preserves its surrounding text and replaces only the first detected link.

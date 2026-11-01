@@ -130,6 +130,8 @@ Scrollable bodies accept gestures across the viewport, including side margins.
 Bound the content inside the scroll container. Preserve system-bar, keyboard and display-cutout insets without applying them twice.
 
 History uses a bounded adaptive grid with inline details. Entry expansion survives scrolling out of view.
+Its dashboard shows lifetime totals for URLs cleaned and parameters removed. Do not label parameter removals as blocked requests or bandwidth savings.
+Statistics cards stack when two columns would leave less than 128 dp per card after text scaling.
 Tier choices stack when their labels need more room. Home reduces its hero space in short windows.
 These patterns keep existing actions available without adding separate navigation for wider windows.
 Expanded History cards increase their grid row height. Review the space below shorter neighbours with real expanded content.
