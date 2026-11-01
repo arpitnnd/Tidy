@@ -1375,7 +1375,7 @@ internal fun MainScreenContent(
                                             state.totalCleanedCount
                                         )
                                         val blockedSummary = pluralStringResource(
-                                            R.plurals.main_trackers_blocked,
+                                            R.plurals.main_parameters_removed,
                                             state.totalTrackersBlocked,
                                             state.totalTrackersBlocked
                                         )

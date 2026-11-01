@@ -332,7 +332,7 @@ internal fun HistoryScreenContent(
                                 modifier = Modifier.weight(1f)
                             )
                             StatsCard(
-                                title = stringResource(R.string.history_trackers_blocked),
+                                title = stringResource(R.string.history_parameters_removed),
                                 value = "${state.totalTrackersBlocked}",
                                 icon = Icons.Outlined.Shield,
                                 color = MaterialTheme.colorScheme.tertiary,

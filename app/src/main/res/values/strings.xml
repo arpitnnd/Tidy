@@ -134,7 +134,7 @@
     <string name="history_clear_desc">Clear history</string>
     <string name="history_dashboard">Privacy dashboard</string>
     <string name="history_urls_cleaned">URLs cleaned</string>
-    <string name="history_trackers_blocked">Trackers blocked</string>
+    <string name="history_parameters_removed">Parameters removed</string>
     <string name="history_clean_history">Clean history</string>
     <string name="history_no_history">No history yet</string>
     <string name="history_no_history_desc">Cleaned URLs will appear here</string>
@@ -161,9 +161,9 @@
         <item quantity="one">%1$d URL cleaned</item>
         <item quantity="other">%1$d URLs cleaned</item>
     </plurals>
-    <plurals name="main_trackers_blocked">
-        <item quantity="one">%1$d tracker blocked</item>
-        <item quantity="other">%1$d trackers blocked</item>
+    <plurals name="main_parameters_removed">
+        <item quantity="one">%1$d parameter removed</item>
+        <item quantity="other">%1$d parameters removed</item>
     </plurals>
     <string name="main_stats_summary">%1$s · %2$s</string>
 
@@ -304,9 +304,9 @@
         <item quantity="one">%1$d URL cleaned</item>
         <item quantity="other">%1$d URLs cleaned</item>
     </plurals>
-    <plurals name="migration_restore_trackers_blocked">
-        <item quantity="one">%1$d tracker blocked</item>
-        <item quantity="other">%1$d trackers blocked</item>
+    <plurals name="migration_restore_parameters_removed">
+        <item quantity="one">%1$d parameter removed</item>
+        <item quantity="other">%1$d parameters removed</item>
     </plurals>
     <plurals name="migration_restore_whitelist_rules">
         <item quantity="one">%1$d whitelist rule</item>
