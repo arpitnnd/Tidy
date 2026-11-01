@@ -97,6 +97,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.tidy.app.R
 import com.tidy.app.data.HistoryEntry
 import com.tidy.app.data.trackerDescriptionFor
+import com.tidy.app.theme.TidyCardTokens
 import com.tidy.app.ui.components.CleanStatusBadge
 import com.tidy.app.ui.components.ParamDetailBottomSheet
 import com.tidy.app.ui.components.RemovedParameterChip
@@ -277,7 +278,7 @@ internal fun HistoryScreenContent(
                 contentPadding = PaddingValues(
                     start = startInset + horizontalPadding,
                     end = endInset + horizontalPadding,
-                    top = paddingValues.calculateTopPadding() + 8.dp,
+                    top = paddingValues.calculateTopPadding() + TidyCardTokens.screenTopSpacing,
                     bottom = paddingValues.calculateBottomPadding() + 8.dp
                 ),
                 verticalArrangement = Arrangement.spacedBy(12.dp),
