@@ -46,7 +46,6 @@ import androidx.compose.material.icons.outlined.FileDownload
 import androidx.compose.material.icons.outlined.FileUpload
 import androidx.compose.material.icons.outlined.Link
 import androidx.compose.material.icons.outlined.Shield
-import androidx.compose.material.icons.outlined.Speed
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -309,15 +308,6 @@ internal fun HistoryScreenContent(
                             )
                         }
                     }
-                    item(span = { GridItemSpan(maxLineSpan) }) {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(84.dp)
-                                .clip(RoundedCornerShape(20.dp))
-                                .shimmer()
-                        )
-                    }
                 } else {
                     item(span = { GridItemSpan(maxLineSpan) }) {
                         Row(
@@ -339,12 +329,6 @@ internal fun HistoryScreenContent(
                                 modifier = Modifier.weight(1f)
                             )
                         }
-                    }
-                    item(span = { GridItemSpan(maxLineSpan) }) {
-                        BandwidthCard(
-                            trackersCount = state.totalTrackersBlocked,
-                            modifier = Modifier.fillMaxWidth()
-                        )
                     }
                 }
 
@@ -534,66 +518,6 @@ private fun StatsCard(
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     fontWeight = FontWeight.Medium
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun BandwidthCard(
-    trackersCount: Int,
-    modifier: Modifier = Modifier,
-    style: TidyStyle = CommonStyle
-) {
-    val bytes = trackersCount * 52
-    val formattedValue = when {
-        bytes >= 1_048_576 -> stringResource(
-            R.string.history_bandwidth_megabytes,
-            bytes / 1_048_576f
-        )
-
-        bytes >= 1024 -> stringResource(R.string.history_bandwidth_kilobytes, bytes / 1024f)
-        else -> pluralStringResource(R.plurals.history_bandwidth_bytes, bytes, bytes)
-    }
-
-    TidyStyledCard(
-        modifier = modifier,
-        style = CommonStyle(TidyComponentStyles.statisticsCard, style)
-    ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(40.dp)
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(
-                        MaterialTheme.colorScheme.tertiary.copy(alpha = 0.15f)
-                            .compositeOver(MaterialTheme.colorScheme.surface)
-                    ),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = Icons.Outlined.Speed,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.tertiary,
-                    modifier = Modifier.size(22.dp)
-                )
-            }
-
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = formattedValue,
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-                Text(
-                    text = stringResource(R.string.history_bandwidth_desc),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         }
