@@ -169,7 +169,7 @@ fun PlayOnboardingRestoreView(onDismiss: () -> Unit) {
                                 result.urlsCleaned
                             )
                             val trackersText = resources.getQuantityString(
-                                com.tidy.app.R.plurals.migration_restore_trackers_blocked,
+                                com.tidy.app.R.plurals.migration_restore_parameters_removed,
                                 result.trackersBlocked,
                                 result.trackersBlocked
                             )

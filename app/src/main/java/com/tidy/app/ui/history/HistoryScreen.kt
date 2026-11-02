@@ -18,6 +18,8 @@ import androidx.compose.foundation.layout.FlexBox
 import androidx.compose.foundation.layout.FlexBoxConfig
 import androidx.compose.foundation.layout.FlexWrap
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.Grid
+import androidx.compose.foundation.layout.GridTrackSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -26,6 +28,7 @@ import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -46,7 +49,6 @@ import androidx.compose.material.icons.outlined.FileDownload
 import androidx.compose.material.icons.outlined.FileUpload
 import androidx.compose.material.icons.outlined.Link
 import androidx.compose.material.icons.outlined.Shield
-import androidx.compose.material.icons.outlined.Speed
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -95,6 +97,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.tidy.app.R
 import com.tidy.app.data.HistoryEntry
 import com.tidy.app.data.trackerDescriptionFor
+import com.tidy.app.theme.TidyCardTokens
 import com.tidy.app.ui.components.CleanStatusBadge
 import com.tidy.app.ui.components.ParamDetailBottomSheet
 import com.tidy.app.ui.components.RemovedParameterChip
@@ -265,6 +268,8 @@ internal fun HistoryScreenContent(
             val endInset = paddingValues.calculateEndPadding(layoutDirection)
             val availableWidth = maxWidth - startInset - endInset
             val horizontalPadding = 16.dp + ((availableWidth - 1000.dp) / 2).coerceAtLeast(0.dp)
+            val statsColumns =
+                if ((availableWidth - horizontalPadding * 2 - 10.dp) / 2 / fontScale < 128.dp) 1 else 2
             LazyVerticalGrid(
                 columns = GridCells.Adaptive(320.dp * fontScale.coerceAtLeast(1f)),
                 modifier = Modifier
@@ -273,78 +278,61 @@ internal fun HistoryScreenContent(
                 contentPadding = PaddingValues(
                     start = startInset + horizontalPadding,
                     end = endInset + horizontalPadding,
-                    top = paddingValues.calculateTopPadding() + 8.dp,
+                    top = paddingValues.calculateTopPadding() + TidyCardTokens.screenTopSpacing,
                     bottom = paddingValues.calculateBottomPadding() + 8.dp
                 ),
                 verticalArrangement = Arrangement.spacedBy(12.dp),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                // Analytics Section
-                item(span = { GridItemSpan(maxLineSpan) }) {
-                    ScreenSectionHeader(
-                        text = stringResource(R.string.history_dashboard),
-                        modifier = Modifier.padding(start = 0.dp)
-                    )
-                }
-
                 if (state.isInitialLoading) {
                     item(span = { GridItemSpan(maxLineSpan) }) {
-                        Row(
+                        Grid(
                             modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(10.dp)
+                            config = {
+                                repeat(statsColumns) { column(GridTrackSize.MinMax(0.dp, 1.fr)) }
+                                gap(10.dp)
+                            }
                         ) {
                             Box(
                                 modifier = Modifier
-                                    .weight(1f)
+                                    .fillMaxWidth()
                                     .height(108.dp)
                                     .clip(RoundedCornerShape(20.dp))
                                     .shimmer()
                             )
                             Box(
                                 modifier = Modifier
-                                    .weight(1f)
+                                    .fillMaxWidth()
                                     .height(108.dp)
                                     .clip(RoundedCornerShape(20.dp))
                                     .shimmer()
                             )
                         }
                     }
-                    item(span = { GridItemSpan(maxLineSpan) }) {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(84.dp)
-                                .clip(RoundedCornerShape(20.dp))
-                                .shimmer()
-                        )
-                    }
                 } else {
                     item(span = { GridItemSpan(maxLineSpan) }) {
-                        Row(
+                        Grid(
                             modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(10.dp)
+                            config = {
+                                repeat(statsColumns) { column(GridTrackSize.MinMax(0.dp, 1.fr)) }
+                                gap(10.dp)
+                            }
                         ) {
                             StatsCard(
                                 title = stringResource(R.string.history_urls_cleaned),
                                 value = "${state.totalCleanedCount}",
                                 icon = Icons.Outlined.Link,
                                 color = MaterialTheme.colorScheme.primary,
-                                modifier = Modifier.weight(1f)
+                                modifier = Modifier.fillMaxWidth().fillMaxHeight()
                             )
                             StatsCard(
-                                title = stringResource(R.string.history_trackers_blocked),
+                                title = stringResource(R.string.history_parameters_removed),
                                 value = "${state.totalTrackersBlocked}",
                                 icon = Icons.Outlined.Shield,
                                 color = MaterialTheme.colorScheme.tertiary,
-                                modifier = Modifier.weight(1f)
+                                modifier = Modifier.fillMaxWidth().fillMaxHeight()
                             )
                         }
-                    }
-                    item(span = { GridItemSpan(maxLineSpan) }) {
-                        BandwidthCard(
-                            trackersCount = state.totalTrackersBlocked,
-                            modifier = Modifier.fillMaxWidth()
-                        )
                     }
                 }
 
@@ -534,66 +522,6 @@ private fun StatsCard(
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     fontWeight = FontWeight.Medium
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun BandwidthCard(
-    trackersCount: Int,
-    modifier: Modifier = Modifier,
-    style: TidyStyle = CommonStyle
-) {
-    val bytes = trackersCount * 52
-    val formattedValue = when {
-        bytes >= 1_048_576 -> stringResource(
-            R.string.history_bandwidth_megabytes,
-            bytes / 1_048_576f
-        )
-
-        bytes >= 1024 -> stringResource(R.string.history_bandwidth_kilobytes, bytes / 1024f)
-        else -> pluralStringResource(R.plurals.history_bandwidth_bytes, bytes, bytes)
-    }
-
-    TidyStyledCard(
-        modifier = modifier,
-        style = CommonStyle(TidyComponentStyles.statisticsCard, style)
-    ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(40.dp)
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(
-                        MaterialTheme.colorScheme.tertiary.copy(alpha = 0.15f)
-                            .compositeOver(MaterialTheme.colorScheme.surface)
-                    ),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = Icons.Outlined.Speed,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.tertiary,
-                    modifier = Modifier.size(22.dp)
-                )
-            }
-
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = formattedValue,
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-                Text(
-                    text = stringResource(R.string.history_bandwidth_desc),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         }

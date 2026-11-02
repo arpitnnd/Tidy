@@ -55,6 +55,29 @@ fun HomeWelcome() {
 }
 
 @PreviewTest
+@Preview(name = "Light", widthDp = 400, heightDp = 900)
+@Preview(
+    name = "Dark", widthDp = 400, heightDp = 900,
+    uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES
+)
+@Preview(name = "Large text", widthDp = 320, heightDp = 1200, fontScale = 2f)
+@Preview(
+    name = "Large text dark", widthDp = 320, heightDp = 1200, fontScale = 2f,
+    uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES
+)
+@Composable
+fun HomeLifetimeStats() {
+    ScreenshotTheme {
+        MainScreenContent(
+            state = MainScreenViewModel.UiState(
+                isInitialLoading = false, totalCleanedCount = 24, totalTrackersBlocked = 63
+            ),
+            onSettingsClick = {}, onHistoryClick = {}
+        )
+    }
+}
+
+@PreviewTest
 @WindowPreviews
 @ScreenVariations
 @Composable

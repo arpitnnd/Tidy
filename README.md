@@ -49,7 +49,7 @@ You stay in charge of the rules, not just the outcome:
   stripping it everywhere else. Add your own rules where the defaults
   don't fit.
 - **A record, entirely yours.** History keeps original and cleaned links, with open/copy actions and JSON export and import.
-  It also shows lifetime cleaning totals. The bandwidth figure estimates removed URL text, not measured network savings.
+  It also shows lifetime totals for links cleaned and parameters removed.
   Saved History stays in the app unless you export it or opt in to Android system backup.
 
 When you share a message, Tidy preserves its surrounding text and replaces only the first detected link.
@@ -116,8 +116,7 @@ exceptions, unlimited history, your own backups, stays free, for good.
 **Tidy+** is a one-time unlock on Google Play for people who already
 trust how Tidy behaves and want a few fewer taps: the upper tiers of
 clipboard and share automation, cleaning through Android's text-selection menu, extra
-themes. It's also how this stays a real, maintained project instead of
-an app that quietly stops getting updates. No ads, no subscription, no
+themes. It also helps support my work on Tidy. No ads, no subscription, no
 data collected to sell instead.
 
 Zero subscription. Pay once, own forever.
@@ -190,7 +189,7 @@ newer, targets API 37 and uses Java and Kotlin JVM 25 bytecode targets.
 CI and release workflows use JDK 25. Android's supported library APIs still
 depend on the device API level; the bytecode target does not add JDK 25 APIs.
 
-The project uses preview AGP and Compose alpha dependencies. Versions
+The project uses preview AGP and Compose dependencies. Versions
 are pinned in [the version catalogue](gradle/libs.versions.toml) and
 [Gradle wrapper](gradle/wrapper/gradle-wrapper.properties). Native
 screenshot test suites require Android Studio Rabbit 1 Canary 4 or newer.

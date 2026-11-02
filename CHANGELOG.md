@@ -4,6 +4,29 @@ All notable changes to Tidy will be documented in this file.
 
 ## [Unreleased]
 
+## [1.4.1]
+
+Clearer statistics and simpler History cards make your cleaning totals easier to understand.
+Automation choices also have clearer contrast in light and dark mode.
+
+### Improvements
+
+- History statistics stack in narrow windows and at larger text sizes.
+- History starts directly with your totals, without the extra Privacy dashboard heading.
+- Inactive automation cards use filled backgrounds. Selected cards keep their border, and their
+  descriptions have clearer contrast in dark mode.
+
+### Bug fixes
+
+- Home, History and restore summaries now say Parameters removed. This count includes custom rules
+  and repeated parameter names, rather than unique trackers.
+- Removed the bandwidth estimate from History because it did not measure saved data.
+
+### Internal
+
+- Updated Android Gradle Plugin, Compose and screenshot tooling.
+- Added screenshot coverage for automation choices and Home statistics.
+
 ## [1.4.0]
 
 Tidy 1.4.0 refreshes the everyday experience of cleaning and sharing links. A new light palette,

@@ -10,10 +10,12 @@ import androidx.compose.material.icons.outlined.ContentCopy
 import androidx.compose.material.icons.outlined.CleaningServices
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.unit.dp
 import com.android.tools.screenshot.PreviewTest
 import com.tidy.app.R
@@ -103,6 +105,63 @@ private fun SettingsComponents(darkTheme: Boolean) {
                     onLockedTap = {},
                     modifier = Modifier.fillMaxWidth()
                 )
+            }
+        }
+    }
+}
+
+@PreviewTest
+@ThemePreviews
+@Preview(name = "Narrow large text", widthDp = 320, heightDp = 1600, fontScale = 2f)
+@Preview(
+    name = "Narrow large text dark", widthDp = 320, heightDp = 1600, fontScale = 2f,
+    uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES
+)
+@Composable
+fun AutomationTiers(@PreviewParameter(ResultThemePreviewProvider::class) theme: String) {
+    val darkTheme = androidx.compose.foundation.isSystemInDarkTheme()
+    TidyTheme(selectedTheme = theme, isPlusUnlocked = true, darkTheme = darkTheme) {
+        Surface(color = MaterialTheme.colorScheme.background) {
+            Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(24.dp)) {
+                val groups = listOf(
+                    R.string.settings_clipboard_tier_heading to listOf(
+                        R.string.tier_suggest_title to R.string.tier_suggest_subtitle,
+                        R.string.tier_suggest_copy_title to R.string.tier_suggest_copy_subtitle,
+                        R.string.tier_auto_clean_title to R.string.tier_auto_clean_subtitle
+                    ),
+                    R.string.settings_share_tier_heading to listOf(
+                        R.string.tier_clean_title to R.string.tier_clean_subtitle,
+                        R.string.tier_clean_copy_title to R.string.tier_clean_copy_subtitle,
+                        R.string.tier_clean_copy_share_title to R.string.tier_clean_copy_share_subtitle
+                    )
+                )
+                groups.forEach { (heading, labels) ->
+                    SettingCard {
+                        Column(
+                            Modifier.padding(TidyCardTokens.contentPadding),
+                            verticalArrangement = Arrangement.spacedBy(TidyCardTokens.contentSpacing)
+                        ) {
+                            Text(
+                                stringResource(heading),
+                                style = MaterialTheme.typography.labelLarge
+                            )
+                            TierSelectorRow(
+                                cards = labels.mapIndexed { index, (title, subtitle) ->
+                                    TierCard(
+                                        index,
+                                        Icons.Outlined.ContentCopy,
+                                        stringResource(title),
+                                        stringResource(subtitle),
+                                        locked = index == 2
+                                    )
+                                },
+                                selected = 0,
+                                onSelect = {},
+                                onLockedTap = {}
+                            )
+                        }
+                    }
+                }
             }
         }
     }
